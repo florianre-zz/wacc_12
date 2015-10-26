@@ -71,12 +71,15 @@ SND: 'snd';
 PAIR: 'pair';
 
 // Words & Numbers
-fragment LOWER: 'a'..'z';
-fragment UPPER: 'A'..'Z';
-INTEGER: ('0'..'9')+;
+fragment LOWER: [a-z];
+fragment UPPER: [A-Z];
+fragment DIGIT: [0-9];
+INTEGER: DIGIT+;
 IDENT: (UNDERSCORE | LOWER | UPPER) (UNDERSCORE | LOWER | UPPER | INTEGER)*;
-fragment ESCAPED_CHARACTER: '0' | 'b' | 't' | 'r' | 'n' | 'f' | '"' | '\'' | '\\';
-fragment LEGAL_CHARACTER: ~('\\' | '\'' | '"') | '\\' ESCAPED_CHARACTER;
+fragment ESCAPED_CHARACTER: [0\b\t\r\n\f"\'\\];
+fragment LEGAL_CHARACTER: ~[\\\'"] | '\\' ESCAPED_CHARACTER;
 CHARACTER: SINGLE_QUOTE LEGAL_CHARACTER SINGLE_QUOTE;
 STRING: DOUBLE_QUOTE LEGAL_CHARACTER+ DOUBLE_QUOTE;
-COMMENT: HASH (~NL)* NL;
+fragment NL: ('\r'? '\n') | '\r';
+COMMENT: HASH (~NL)* NL -> skip;
+WS: [ \t\r\n]+ -> skip;
