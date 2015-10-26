@@ -17,10 +17,10 @@ FALSE: 'false';
 NULL: 'null';
 
 // Types
-INT: 'int';
-BOOL: 'bool';
-CHAR: 'char';
-STRING: 'string';
+INT_T: 'int';
+BOOL_T: 'bool';
+CHAR_T: 'char';
+STRING_T: 'string';
 
 // Control Flow
 BEGIN: 'begin';
@@ -38,7 +38,6 @@ CALL: 'call';
 
 // Unary Operators
 NOT: '!';
-NEGATE: '-'; // TODO: check these
 LEN: 'len';
 ORD: 'ord';
 CHR: 'chr';
@@ -47,8 +46,8 @@ CHR: 'chr';
 MUL: '*';
 DIV: '/';
 MOD: '%';
-PLUS: '+'; // TODO: check these
-MINUS: '-'; // TODO: check these
+PLUS: '+';
+MINUS: '-';
 GT: '>';
 GTE: '>=';
 LT: '<';
@@ -80,6 +79,5 @@ fragment ESCAPED_CHARACTER: [0\b\t\r\n\f"\'\\];
 fragment LEGAL_CHARACTER: ~[\\\'"] | '\\' ESCAPED_CHARACTER;
 CHARACTER: SINGLE_QUOTE LEGAL_CHARACTER SINGLE_QUOTE;
 STRING: DOUBLE_QUOTE LEGAL_CHARACTER+ DOUBLE_QUOTE;
-fragment NL: ('\r'? '\n') | '\r';
-COMMENT: HASH (~NL)* NL -> skip;
+COMMENT: HASH (~[\r\n])* '\r'? '\n' -> skip;
 WS: [ \t\r\n]+ -> skip;
