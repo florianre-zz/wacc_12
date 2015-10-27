@@ -46,8 +46,8 @@ CHR: 'chr';
 MUL: '*';
 DIV: '/';
 MOD: '%';
-PLUS: '+';
-MINUS: '-';
+PLUS: '+'; // Also used for POSITIVE
+MINUS: '-'; // Also used for NEGATIVE & NEGATE
 GT: '>';
 GTE: '>=';
 LT: '<';
