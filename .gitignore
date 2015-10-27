@@ -29,6 +29,8 @@
 #ignore the WACC tempory test_files copy
 testing/test_files/
 
+src/antlr/
+
 #ignore other junk files
 *.backup
 *.kate-swp
