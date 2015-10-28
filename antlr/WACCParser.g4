@@ -30,9 +30,10 @@ assignRHS: expr
       ;
 argList: expr (COMMA expr)*;
 pairElem: FST expr | SND expr;
-type: baseType | arrayType | pairType;
+type: nonArrayType | arrayType;
+nonArrayType: baseType | pairType;
 baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
-arrayType: type OPEN_BRACKET CLOSE_BRACKET;
+arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
 expr: intLitr
