@@ -4,17 +4,18 @@ options {
   tokenVocab=WACCLexer;
 }
 
-prog : BEGIN (expr)* END;
+prog : BEGIN func* statList? END;
 func: type IDENT OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END;
 paramList: param (COMMA param)*;
 param: type IDENT;
-statList: stat | stat SEMICOLON statList;
+statList: stat (SEMICOLON stat)*;
 stat: SKIP
       | type IDENT EQUALS assignRHS
       | assignLHS EQUALS assignRHS
       | READ assignLHS
       | FREE expr
       | EXIT expr
+      | RETURN expr
       | PRINT expr
       | PRINTLN expr
       | IF expr THEN statList ELSE statList FI
@@ -36,10 +37,11 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr : term (binaryOper expr)?
+expr : expr binaryOper expr
+     | unaryOper expr
      | OPEN_PARENTHESIS expr CLOSE_PARENTHESIS
+     | atom
      ;
-term: (unaryOper)? atom;
 atom: INTEGER
       | boolLitr
       | CHARACTER
