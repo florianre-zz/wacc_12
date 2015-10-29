@@ -73,7 +73,7 @@ PAIR: 'pair';
 fragment LOWER: [a-z];
 fragment UPPER: [A-Z];
 fragment DIGIT: [0-9];
-INTEGER: DIGIT+;
+INTEGER: (PLUS | MINUS)? DIGIT+;
 IDENT: (UNDERSCORE | LOWER | UPPER) (UNDERSCORE | LOWER | UPPER | INTEGER)*;
 fragment ESCAPED_CHARACTER: [0\b\t\r\n\f"\'\\];
 fragment LEGAL_CHARACTER: ~[\\\'"] | '\\' ESCAPED_CHARACTER;
