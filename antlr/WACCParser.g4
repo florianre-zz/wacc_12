@@ -55,20 +55,10 @@ unaryOper: NOT
       | ORD
       | CHR
       ;
-binaryOper: MUL
-      | DIV
-      | MOD
-      | PLUS
-      | MINUS
-      | GT
-      | GTE
-      | LT
-      | LTE
-      | EQ
-      | NE
-      | AND
-      | OR
-      ;
+binaryOper: arithmeticOper | comparisonOper | logicalOper;
+arithmeticOper: MUL | DIV | MOD | PLUS | MINUS;
+comparisonOper: GT | GTE | LT | LTE | EQ | NE;
+logicalOper: AND | OR;
 arrayElem: IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
 arrayLitr: OPEN_BRACKET (expr (COMMA expr)*)? CLOSE_BRACKET;
