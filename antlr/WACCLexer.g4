@@ -74,10 +74,10 @@ fragment LOWER: [a-z];
 fragment UPPER: [A-Z];
 fragment DIGIT: [0-9];
 INTEGER: DIGIT+;
-IDENT: (INT_T WS) => 'int' { $type=INT_T; }
-     | (BOOL_T WS) => 'bool' { $type=BOOL_T; }
-     | (STRING_T WS) => 'string' { $type=STRING_T; }
-     | (CHAR_T WS) => 'char' { $type=CHAR_T; }
+IDENT: {_input.LT(1).getType() == INT_T WS}? { $type=INT_T; }
+     | {_input.LT(1).getType() == BOOL_T WS}? { $type=BOOL_T; }
+     | {_input.LT(1).getType() == CHAR_T WS}? { $type=CHAR_T; }
+     | {_input.LT(1).getType() == STRING_T WS}? { $type=STRING_T; }
      | (UNDERSCORE | LOWER | UPPER) (UNDERSCORE | LOWER | UPPER | INTEGER)*;
 fragment ESCAPED_CHARACTER: '\\' [0btrnf"\'\\];
 fragment LEGAL_CHARACTER: ~[\\\'"] | ESCAPED_CHARACTER;
