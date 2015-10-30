@@ -8,7 +8,7 @@ CLOSE_BRACKET: ']';
 COMMA: ',';
 SEMICOLON: ';';
 EQUALS: '=';
-UNDERSCORE: '_';
+fragment UNDERSCORE: '_';
 SINGLE_QUOTE: '\'';
 DOUBLE_QUOTE: '"';
 HASH: '#';
@@ -17,10 +17,10 @@ FALSE: 'false';
 NULL: 'null';
 
 // Types
-INT_T: 'int';
-BOOL_T: 'bool';
-CHAR_T: 'char';
-STRING_T: 'string';
+INT_T: 'int' WS;
+BOOL_T: 'bool' WS;
+CHAR_T: 'char' WS;
+STRING_T: 'string' WS;
 
 // Control Flow
 BEGIN: 'begin';
@@ -75,8 +75,8 @@ fragment UPPER: [A-Z];
 fragment DIGIT: [0-9];
 INTEGER: DIGIT+;
 IDENT: (UNDERSCORE | LOWER | UPPER) (UNDERSCORE | LOWER | UPPER | INTEGER)*;
-fragment ESCAPED_CHARACTER: [0\b\t\r\n\f"\'\\];
-fragment LEGAL_CHARACTER: ~[\\\'"] | '\\' ESCAPED_CHARACTER;
+fragment ESCAPED_CHARACTER: '\\' [0btrnf"\'\\];
+fragment LEGAL_CHARACTER: ~[\\\'"] | ESCAPED_CHARACTER;
 CHARACTER: SINGLE_QUOTE LEGAL_CHARACTER SINGLE_QUOTE;
 STRING: DOUBLE_QUOTE LEGAL_CHARACTER* DOUBLE_QUOTE;
 COMMENT: HASH (~[\r\n])* '\r'? '\n' -> skip;
