@@ -41,7 +41,7 @@ expr: sign INTEGER
       | (CHR)? (sign)? INTEGER
       | (NOT)? boolLitr
       | (ORD)? CHARACTER
-      | STRING
+      | STRING //Length?
       | pairLitr
       | (unaryOper)? IDENT
       | (LEN)? arrayElem
