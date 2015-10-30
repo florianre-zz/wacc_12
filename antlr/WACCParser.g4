@@ -30,13 +30,10 @@ assignRHS: expr
       | CALL IDENT OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
       ;
 argList: expr (COMMA expr)*;
-pairElem: FST expr | SND expr;
-type: nonArrayType | arrayType;
-nonArrayType: baseType | pairType;
-baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
-arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
+type: baseType | pairType;
+baseType: ARRAY_T | INT_T | BOOL_T | CHAR_T | STRING_T;
 pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
-pairElemType: baseType | arrayType | PAIR;
+pairElemType: baseType | PAIR;
 expr: sign INTEGER
       | (CHR)? (sign)? INTEGER
       | (NOT)? boolLitr
@@ -59,6 +56,7 @@ binaryOper: arithmeticOper | comparisonOper | logicalOper;
 arithmeticOper: MUL | DIV | MOD | PLUS | MINUS;
 comparisonOper: GT | GTE | LT | LTE | EQ | NE;
 logicalOper: AND | OR;
+pairElem: FST expr | SND expr;
 arrayElem: IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
 arrayLitr: OPEN_BRACKET (expr (COMMA expr)*)? CLOSE_BRACKET;
