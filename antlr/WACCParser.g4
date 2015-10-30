@@ -36,8 +36,7 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr: sign INTEGER
-      | (CHR)? (sign)? INTEGER
+expr: (CHR)? (sign)? INTEGER
       | (NOT)? boolLitr
       | (ORD)? CHARACTER
       | STRING //Length?
