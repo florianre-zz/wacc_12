@@ -37,19 +37,20 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr : expr binaryOper expr
-     | unaryOper expr
-     | OPEN_PARENTHESIS expr CLOSE_PARENTHESIS
-     | atom
-     ;
+expr : additionExpr;
+additionExpr: multiplyExpr (PLUS multiplyExpr | MINUS multiplyExpr)*;
+multiplyExpr: modExpr (MUL modExpr | DIV modExpr)*;
+modExpr: unaryExpr (MOD unaryExpr)*;
+unaryExpr: unaryOper? atom;
 atom: INTEGER
       | boolLitr
       | CHARACTER
       | STRING
       | pairLitr
       | IDENT
-      | arrayLitr;
-
+      | arrayLitr
+      | OPEN_PARENTHESIS expr CLOSE_PARENTHESIS
+      ;
 unaryOper: NOT
       | MINUS
       | LEN
