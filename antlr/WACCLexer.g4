@@ -21,7 +21,6 @@ INT_T: 'int';
 BOOL_T: 'bool';
 CHAR_T: 'char';
 STRING_T: 'string';
-ARRAY_T: (INT_T | BOOL_T | CHAR_T | STRING_T) (OPEN_BRACKET CLOSE_BRACKET)+;
 
 // Control Flow
 BEGIN: 'begin';

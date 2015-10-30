@@ -30,10 +30,12 @@ assignRHS: expr
       | CALL IDENT OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
       ;
 argList: expr (COMMA expr)*;
-type: baseType | pairType;
-baseType: ARRAY_T | INT_T | BOOL_T | CHAR_T | STRING_T;
+type: nonArrayType | arrayType;
+nonArrayType: baseType | pairType;
+baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
+arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
-pairElemType: baseType | PAIR;
+pairElemType: baseType | arrayType | PAIR;
 expr: sign INTEGER
       | (CHR)? (sign)? INTEGER
       | (NOT)? boolLitr
