@@ -4,7 +4,7 @@ options {
   tokenVocab=WACCLexer;
 }
 
-prog : BEGIN func* statList? END;
+prog: BEGIN func* statList? END;
 func: type IDENT OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END;
 paramList: param (COMMA param)*;
 param: type IDENT;
@@ -37,30 +37,38 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr : additionExpr;
-/*comparisonExpr: expr (comparisonOper expr)*;*/
-/*logicalExpr: expr (logicalOper expr)*;*/
-additionExpr: multiplyExpr (PLUS multiplyExpr | MINUS multiplyExpr)*;
-multiplyExpr: modExpr (MUL modExpr | DIV modExpr)*;
-modExpr: unaryExpr (MOD unaryExpr)*;
-unaryExpr: unaryOper? atom;
-atom: INTEGER
-      | boolLitr
-      | CHARACTER
+expr: sign INTEGER
+      | (CHR)? (sign)? INTEGER
+      | (NOT)? boolLitr
+      | (ORD)? CHARACTER
       | STRING
       | pairLitr
-      | IDENT
-      | arrayLitr
-      | OPEN_PARENTHESIS expr CLOSE_PARENTHESIS
+      | (unaryOper)? IDENT
+      | (LEN)? arrayElem
+      | expr binaryOper expr
+      | (unaryOper)? OPEN_PARENTHESIS expr CLOSE_PARENTHESIS
       ;
+sign: MINUS | PLUS;
 unaryOper: NOT
       | MINUS
       | LEN
       | ORD
       | CHR
       ;
-comparisonOper: GT | GTE | LT | LTE | EQ | NE;
-logicalOper: AND | OR;
+binaryOper: MUL
+      | DIV
+      | MOD
+      | PLUS
+      | MINUS
+      | GT
+      | GTE
+      | LT
+      | LTE
+      | EQ
+      | NE
+      | AND
+      | OR
+      ;
 arrayElem: IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
 arrayLitr: OPEN_BRACKET (expr (COMMA expr)*)? CLOSE_BRACKET;
