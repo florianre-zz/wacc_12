@@ -74,9 +74,13 @@ fragment LOWER: [a-z];
 fragment UPPER: [A-Z];
 fragment DIGIT: [0-9];
 INTEGER: DIGIT+;
-IDENT: (UNDERSCORE | LOWER | UPPER) (UNDERSCORE | LOWER | UPPER | INTEGER)*;
-fragment ESCAPED_CHARACTER: [0\b\t\r\n\f"\'\\];
-fragment LEGAL_CHARACTER: ~[\\\'"] | '\\' ESCAPED_CHARACTER;
+IDENT: (INT_T WS) => 'int' { $type=INT_T; }
+     | (BOOL_T WS) => 'bool' { $type=BOOL_T; }
+     | (STRING_T WS) => 'string' { $type=STRING_T; }
+     | (CHAR_T WS) => 'char' { $type=CHAR_T; }
+     | (UNDERSCORE | LOWER | UPPER) (UNDERSCORE | LOWER | UPPER | INTEGER)*;
+fragment ESCAPED_CHARACTER: '\\' [0btrnf"\'\\];
+fragment LEGAL_CHARACTER: ~[\\\'"] | ESCAPED_CHARACTER;
 CHARACTER: SINGLE_QUOTE LEGAL_CHARACTER SINGLE_QUOTE;
 STRING: DOUBLE_QUOTE LEGAL_CHARACTER* DOUBLE_QUOTE;
 COMMENT: HASH (~[\r\n])* '\r'? '\n' -> skip;
