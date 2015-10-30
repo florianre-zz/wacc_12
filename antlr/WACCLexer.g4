@@ -8,7 +8,7 @@ CLOSE_BRACKET: ']';
 COMMA: ',';
 SEMICOLON: ';';
 EQUALS: '=';
-UNDERSCORE: '_';
+fragment UNDERSCORE: '_';
 SINGLE_QUOTE: '\'';
 DOUBLE_QUOTE: '"';
 HASH: '#';
