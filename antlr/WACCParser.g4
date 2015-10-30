@@ -38,6 +38,8 @@ arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
 expr : additionExpr;
+/*comparisonExpr: expr (comparisonOper expr)*;*/
+/*logicalExpr: expr (logicalOper expr)*;*/
 additionExpr: multiplyExpr (PLUS multiplyExpr | MINUS multiplyExpr)*;
 multiplyExpr: modExpr (MUL modExpr | DIV modExpr)*;
 modExpr: unaryExpr (MOD unaryExpr)*;
@@ -57,8 +59,6 @@ unaryOper: NOT
       | ORD
       | CHR
       ;
-binaryOper: arithmeticOper | comparisonOper | logicalOper;
-arithmeticOper: MUL | DIV | MOD | PLUS | MINUS;
 comparisonOper: GT | GTE | LT | LTE | EQ | NE;
 logicalOper: AND | OR;
 arrayElem: IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
