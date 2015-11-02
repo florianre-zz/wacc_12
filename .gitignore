@@ -28,6 +28,10 @@
 
 #ignore the WACC tempory test_files copy
 testing/test_files/
+src/antlr/
+
+#ignore the WACC example programs - until repo is merged
+examples/
 
 #ignore other junk files
 *.backup
