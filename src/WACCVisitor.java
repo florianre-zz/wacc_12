@@ -1,3 +1,4 @@
+/*
 package wacc;
 import java.util.*;
 import antlr.*;
@@ -29,3 +30,4 @@ public class WACCVisitor extends WACCParserBaseVisitor<Void> {
     return null;
   }
 }
+*/
