@@ -26,6 +26,10 @@
 *.nav
 *.toc
 
+#ignore the WACC tempory test_files copy                                         
+testing/test_files/                                                              
+src/antlr/ 
+
 #ignore build, Maven and intelliJ files
 target
 *.class
