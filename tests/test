@@ -2,25 +2,33 @@
 require 'find'
 require 'shellwords'
 
-errFile = "errors.log"
+@errFile = "errors.log"
 
-open(errFile, 'w') { |f| f.puts "" }
+open(@errFile, 'w') { |f| f.print "" }
 
-testFolder = "/Users/elliotgreenwood/Elliot\ Greenwood/I/Imperial/Year 2/WACC/wacc_examples/valid"
-testFiles = []
-Find.find(testFolder) do |path|
-  testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+def runTests(testPath)
+  testFiles = []
+  Find.find(testPath) do |path|
+    testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+  end
+  trees = []
+  numTests = testFiles.length
+  i = 1
+  testFiles.each do |test|
+    print "Running Test: #{i}/#{numTests}\r"
+    open(@errFile, 'a') { |f| f.puts "Running Test: #{File.basename test}" }
+    trees << `java -cp bin:lib/antlr-4.4-complete.jar Test < #{test} 2>>errors.log`
+    open(@errFile, 'a') { |f| f.puts "\n" }
+    i += 1
+  end
+  puts "\n"
 end
-puts "Starting tests..."
-trees = []
-numTests = testFiles.length
-i = 1
-testFiles.each do |test|
-  print "Running Test: #{i}/#{numTests}\r"
-  open(errFile, 'a') { |f| f.puts "Running Test: #{File.basename test}" }
-  trees << `java -cp bin:lib/antlr-4.4-complete.jar Test < #{test} 2>>errors.log`
-  open(errFile, 'a') { |f| f.puts "\n" }
-  i += 1
-end
-puts "\n"
+
+testFolder = "/Users/elliotgreenwood/Elliot\ Greenwood/I/Imperial/Year 2/WACC/wacc_examples/"
+puts "Starting Valid tests..."
+open(@errFile, 'a') { |f| f.puts "Running Valid Tests:\n" }
+runTests(testFolder+"valid")
+puts "Starting Invalid tests..."
+open(@errFile, 'a') { |f| f.puts "Running Invalid Tests:\n" }
+runTests(testFolder+"invalid/syntaxErr")
 puts "Finished tests..."
