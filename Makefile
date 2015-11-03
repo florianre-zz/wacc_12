@@ -1,5 +1,5 @@
 all:
-	mvn compile
+	mvn -q compile
 
 clean:
-	mvn clean
+	mvn -q clean
