@@ -26,6 +26,7 @@
 *.nav
 *.toc
 
+
 #ignore build, Maven and intelliJ files
 target
 *.class
