@@ -13,22 +13,9 @@
 *.dvi
 *.ps
 
-#ignore junk files from compiling C code
-*.o
-
-#ignore junk files from compiling Haskell code
-*.hi
-
-#ignore junk files from compiling Java code
-*.class
-
 #ignore junk files from running the WACC compiler
 *.s
 *.ast
-
-#ignore the WACC tempory test_files copy
-testing/test_files/
-src/antlr/
 
 #ignore other junk files
 *.backup
@@ -38,3 +25,15 @@ src/antlr/
 *.vrb
 *.nav
 *.toc
+
+
+#ignore build, Maven and intelliJ files
+target
+*.class
+*.iml
+*.ipr
+.idea
+.classpath
+.settings
+.project
+.DS_Store
