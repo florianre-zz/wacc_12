@@ -12,9 +12,9 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>org.antlr</groupId>
+                <groupId>com.tunnelvisionlabs</groupId>
                 <artifactId>antlr4-maven-plugin</artifactId>
-                <version>4.0</version>
+                <version>4.4</version>
                 <executions>
                     <execution>
                         <goals>
@@ -46,9 +46,9 @@
     
     <dependencies>
         <dependency>
-            <groupId>org.antlr</groupId>
+            <groupId>com.tunnelvisionlabs</groupId>
             <artifactId>antlr4-runtime</artifactId>
-            <version>4.0</version>
+            <version>4.4</version>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
