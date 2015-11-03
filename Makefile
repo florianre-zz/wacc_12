@@ -6,5 +6,5 @@ all:
 clean:
 	mvn -q clean
 
-test:
+test: clean
 	mvn test
