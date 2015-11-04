@@ -16,12 +16,12 @@ stat: SKIP # SkipStat
       | FREE expr # FreeStat
       | EXIT expr # ExitStat
       | RETURN expr # ReturnStat
-      | printStat
+      | PRINT expr # PrintStat
+      | PRINTLN expr # PrintStat
       | IF expr THEN statList ELSE statList FI # IfStat
       | WHILE expr DO statList DONE # WhileStat
       | BEGIN statList END # BeginStat
       ;
-printStat: (PRINT | PRINTLN) expr;
 assignLHS: IDENT | arrayElem | pairElem;
 assignRHS: expr
       | arrayLitr
@@ -36,7 +36,7 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr: (CHR)? (sign)? INTEGER 
+expr: (CHR)? (sign)? INTEGER
       | (NOT)? boolLitr
       | (ORD)? CHARACTER
       | STRING //Length?
