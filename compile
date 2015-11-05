@@ -1,6 +1,8 @@
 #!/usr/bin/ruby
 require 'optparse'
 
+@file = ""
+
 usage = "Usage: ./compile [-d | --debug] filename.wacc"
 
 options = {}
@@ -17,16 +19,19 @@ opts = OptionParser.new do |opts|
   end
 end.parse!
 
-if !ARGV[0]
-  puts usage
-  exit
+# if !ARGV[0]
+#   puts usage
+#   exit
+# else
+#   @file = ARGV[0]
+# end
+
+def compile(isDebug)
+  puts "Running WACC Compile"
+  debug = isDebug ? '-q' : ''
+  result = `mvn #{debug} exec:java -Dexec.mainClass="WACCCompile" -Dexec.args=""`
+  puts result
+  puts "Exited with: #{$?.exitstatus}"
 end
 
-
-if options[:debug]
-  exit_spec()
-else
-  build_spec()
-end
-
-puts "TODO: setup this script to call your WACC compiler"
+compile(options[:debug])
