@@ -5,12 +5,13 @@ options {
 }
 
 prog: BEGIN func* statList END EOF;
-func: type IDENT OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END;
+func: type funcName=IDENT OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS
+statList END;
 paramList: param (COMMA param)*;
-param: type IDENT;
+param: type name=IDENT;
 statList: stat (SEMICOLON stat)*;
-stat: SKIP # SkipStat
-      | type IDENT EQUALS assignRHS            # InitStat
+stat: SKIP                                     # SkipStat
+      | type varName=IDENT EQUALS assignRHS    # InitStat
       | assignLHS EQUALS assignRHS             # AssignStat
       | READ assignLHS                         # ReadStat
       | FREE expr                              # FreeStat
@@ -22,12 +23,12 @@ stat: SKIP # SkipStat
       | WHILE expr DO statList DONE            # WhileStat
       | BEGIN statList END                     # BeginStat
       ;
-assignLHS: IDENT | arrayElem | pairElem;
+assignLHS: varName=IDENT | arrayElem | pairElem;
 assignRHS: expr
       | arrayLitr
       | NEW_PAIR OPEN_PARENTHESIS expr COMMA expr CLOSE_PARENTHESIS
       | pairElem
-      | CALL IDENT OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
+      | CALL funcName=IDENT OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
       ;
 argList: expr (COMMA expr)*;
 type: nonArrayType | arrayType;
@@ -58,7 +59,7 @@ arithmeticOper: MUL | DIV | MOD | PLUS | MINUS;
 comparisonOper: GT | GTE | LT | LTE | EQ | NE;
 logicalOper: AND | OR;
 pairElem: FST expr | SND expr;
-arrayElem: IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
+arrayElem: varName=IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
 arrayLitr: OPEN_BRACKET (expr (COMMA expr)*)? CLOSE_BRACKET;
 pairLitr: NULL;
