@@ -10,23 +10,23 @@ statList END;
 paramList: param (COMMA param)*;
 param: type name=IDENT;
 statList: stat (SEMICOLON stat)*;
-stat: SKIP                                     # SkipStat
-      | type varName=IDENT EQUALS assignRHS    # InitStat
-      | assignLHS EQUALS assignRHS             # AssignStat
-      | READ assignLHS                         # ReadStat
-      | FREE expr                              # FreeStat
-      | EXIT expr                              # ExitStat
-      | RETURN expr                            # ReturnStat
-      | PRINT expr                             # PrintStat
-      | PRINTLN expr                           # PrintStat
-      | IF expr THEN statList ELSE statList FI # IfStat
-      | WHILE expr DO statList DONE            # WhileStat
-      | BEGIN statList END                     # BeginStat
+stat: SKIP                                                       # SkipStat
+      | type varName=IDENT EQUALS assignRHS                      # InitStat
+      | assignLHS EQUALS assignRHS                               # AssignStat
+      | READ assignLHS                                           # ReadStat
+      | FREE expr                                                # FreeStat
+      | EXIT expr                                                # ExitStat
+      | RETURN expr                                              # ReturnStat
+      | PRINT expr                                               # PrintStat
+      | PRINTLN expr                                             # PrintStat
+      | IF expr THEN thenStat=statList ELSE elseStat=statList FI # IfStat
+      | WHILE expr DO statList DONE                              # WhileStat
+      | BEGIN statList END                                       # BeginStat
       ;
-assignLHS: varName=IDENT | arrayElem | pairElem;
+assignLHS: IDENT | arrayElem | pairElem;
 assignRHS: expr
       | arrayLitr
-      | NEW_PAIR OPEN_PARENTHESIS expr COMMA expr CLOSE_PARENTHESIS
+      | NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS
       | pairElem
       | CALL funcName=IDENT OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
       ;
@@ -35,7 +35,7 @@ type: nonArrayType | arrayType;
 nonArrayType: baseType | pairType;
 baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
-pairType: PAIR OPEN_PARENTHESIS pairElemType COMMA pairElemType CLOSE_PARENTHESIS;
+pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
 expr: (CHR)? (sign)? INTEGER
       | (NOT)? boolLitr
@@ -44,16 +44,11 @@ expr: (CHR)? (sign)? INTEGER
       | pairLitr
       | (unaryOper)? IDENT
       | (LEN)? arrayElem
-      | expr binaryOper expr
+      | e1=expr binaryOper e2=expr
       | (unaryOper)? OPEN_PARENTHESIS expr CLOSE_PARENTHESIS
       ;
 sign: MINUS | PLUS;
-unaryOper: NOT
-      | MINUS
-      | LEN
-      | ORD
-      | CHR
-      ;
+unaryOper: NOT | MINUS | LEN | ORD | CHR;
 binaryOper: arithmeticOper | comparisonOper | logicalOper;
 arithmeticOper: MUL | DIV | MOD | PLUS | MINUS;
 comparisonOper: GT | GTE | LT | LTE | EQ | NE;
