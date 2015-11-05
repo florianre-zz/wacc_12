@@ -9,18 +9,18 @@ func: type IDENT OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END
 paramList: param (COMMA param)*;
 param: type IDENT;
 statList: stat (SEMICOLON stat)*;
-stat: SKIP
-      | type IDENT EQUALS assignRHS
-      | assignLHS EQUALS assignRHS
-      | READ assignLHS
-      | FREE expr
-      | EXIT expr
-      | RETURN expr
-      | PRINT expr
-      | PRINTLN expr
-      | IF expr THEN statList ELSE statList FI
-      | WHILE expr DO statList DONE
-      | BEGIN statList END
+stat: SKIP # SkipStat
+      | type IDENT EQUALS assignRHS            # InitStat
+      | assignLHS EQUALS assignRHS             # AssignStat
+      | READ assignLHS                         # ReadStat
+      | FREE expr                              # FreeStat
+      | EXIT expr                              # ExitStat
+      | RETURN expr                            # ReturnStat
+      | PRINT expr                             # PrintStat
+      | PRINTLN expr                           # PrintStat
+      | IF expr THEN statList ELSE statList FI # IfStat
+      | WHILE expr DO statList DONE            # WhileStat
+      | BEGIN statList END                     # BeginStat
       ;
 assignLHS: IDENT | arrayElem | pairElem;
 assignRHS: expr
