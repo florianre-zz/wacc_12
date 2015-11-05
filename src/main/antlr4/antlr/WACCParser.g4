@@ -10,17 +10,17 @@ paramList: param (COMMA param)*;
 param: type IDENT;
 statList: stat (SEMICOLON stat)*;
 stat: SKIP # SkipStat
-      | type IDENT EQUALS assignRHS # InitStat
-      | assignLHS EQUALS assignRHS # AssignStat
-      | READ assignLHS # ReadStat
-      | FREE expr # FreeStat
-      | EXIT expr # ExitStat
-      | RETURN expr # ReturnStat
-      | PRINT expr # PrintStat
-      | PRINTLN expr # PrintStat
+      | type IDENT EQUALS assignRHS            # InitStat
+      | assignLHS EQUALS assignRHS             # AssignStat
+      | READ assignLHS                         # ReadStat
+      | FREE expr                              # FreeStat
+      | EXIT expr                              # ExitStat
+      | RETURN expr                            # ReturnStat
+      | PRINT expr                             # PrintStat
+      | PRINTLN expr                           # PrintStat
       | IF expr THEN statList ELSE statList FI # IfStat
-      | WHILE expr DO statList DONE # WhileStat
-      | BEGIN statList END # BeginStat
+      | WHILE expr DO statList DONE            # WhileStat
+      | BEGIN statList END                     # BeginStat
       ;
 assignLHS: IDENT | arrayElem | pairElem;
 assignRHS: expr
