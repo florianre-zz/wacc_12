@@ -1,4 +1,4 @@
-package antlr;
+package wacc;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
@@ -11,7 +11,7 @@ public class SymbolTable {
 
     public SymbolTable(SymbolTable enclosingST) {
         this.enclosingST = enclosingST;
-        this.dict = new Hashtable<String, ParserRuleContext>();
+        this.dict = new Hashtable<>();
     }
 
     public ParserRuleContext add(String id, ParserRuleContext value){

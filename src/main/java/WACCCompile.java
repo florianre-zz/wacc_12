@@ -24,9 +24,9 @@ public class WACCCompile {
 
     //System.out.println(tree.toStringTree(parser)); // print LISP-style tree
     System.out.println("====");
+    System.out.println("Visiting...");
     WACCVisitor visitor = new WACCVisitor();
     visitor.visit(tree);
-    System.out.println("Visiting...");
     System.out.println("====");
   }
 }

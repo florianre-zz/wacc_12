@@ -16,7 +16,7 @@ public class WACCVisitor extends WACCParserBaseVisitor<Void> {
 //      visit(ctx.params.get(i));
 //    }
 //    System.out.print(" => ");
-//    //vist funtion return type (note this is out of normal tree order)
+//    //visit function return type (note this is out of normal tree order)
 //    visitChildren(ctx.param);
     return null;
   }
