@@ -19,17 +19,14 @@ opts = OptionParser.new do |opts|
   end
 end.parse!
 
-# if !ARGV[0]
-#   puts usage
-#   exit
-# else
-#   @file = ARGV[0]
-# end
+if ARGV[0]
+  @file = "<" + ARGV[0]
+end
 
 def compile(isDebug)
   puts "Running WACC Compile"
-  debug = isDebug ? '-q' : ''
-  result = `mvn #{debug} exec:java -Dexec.mainClass="WACCCompile" -Dexec.args=""`
+  debug = isDebug ? '' : '-q'
+  result = `mvn #{debug} exec:java -Dexec.mainClass="WACCCompile" #{@file}`
   puts result
   puts "Exited with: #{$?.exitstatus}"
 end
