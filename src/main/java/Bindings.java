@@ -11,12 +11,10 @@ public class Bindings {
   }
 
   public ParserRuleContext getContext() {
-
     return ctx;
   }
 
   public String getName() {
-
     return name;
   }
 }

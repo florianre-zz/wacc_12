@@ -1,4 +1,5 @@
 import org.antlr.v4.runtime.ParserRuleContext;
+
 public class Pair extends Variable {
 
   private Type fstType;
