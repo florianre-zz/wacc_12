@@ -9,15 +9,16 @@ public class WACCVisitor extends WACCParserBaseVisitor<Void> {
 
   public Void visitFunc(WACCParser.FuncContext ctx) {
     System.out.println("I found a function definition!");
-    System.out.println(ctx);
-//    System.out.print("Type info: ");
-//    //need to visit function args in a loop
-//    for (int i = 0; i < ctx.params.size(); i++) {
-//      visit(ctx.params.get(i));
-//    }
-//    System.out.print(" => ");
-//    //visit function return type (note this is out of normal tree order)
-//    visitChildren(ctx.param);
+    System.out.println(ctx.funcName.getText());
+    System.out.print("Type info: ");
+    //need to visit function args in a loop
+    for (int i = 0; i < ctx.paramList().param().size(); i++) {
+      visit(ctx.paramList().param(i));
+    }
+    System.out.print(" => ");
+    //visit function return type (note this is out of normal tree order)
+    visitChildren(ctx.type());
+
     return null;
   }
 
