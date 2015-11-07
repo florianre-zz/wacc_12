@@ -1,8 +1,8 @@
 ###Build Status
 
-Master - [![Build Status](https://magnum.travis-ci.com/egnwd/wacc_12.svg?token=yTGVwCpHZBQuhLqD9VAk&branch=master)](https://magnum.travis-ci.com/egnwd/wacc_12)
+Master [![Build Status](https://magnum.travis-ci.com/egnwd/wacc_12.svg?token=yTGVwCpHZBQuhLqD9VAk&branch=master)](https://magnum.travis-ci.com/egnwd/wacc_12)
 
-Semantic analysis - [![Build Status](https://magnum.travis-ci.com/egnwd/wacc_12.svg?token=yTGVwCpHZBQuhLqD9VAk&branch=semantic-analysis)](https://magnum.travis-ci.com/egnwd/wacc_12)
+Semantic analysis [![Build Status](https://magnum.travis-ci.com/egnwd/wacc_12.svg?token=yTGVwCpHZBQuhLqD9VAk&branch=semantic-analysis)](https://magnum.travis-ci.com/egnwd/wacc_12)
 
 ----------------------------
 Provided files/directories  
