@@ -31,20 +31,20 @@ Where we expect you to write your compiler code.
 
 `grun`
 
-The grun script allows you to run the ANTLR TestRig program that can assist you 
+The grun script allows you to run the ANTLR TestRig program that can assist you
 in debugging you lexer and parser (more details below).
 
 `compile`
 
 The compile script should be edited to provide a frontend interface to your WACC
-compiler. You are free to change the language used in this script, but do not 
+compiler. You are free to change the language used in this script, but do not
 change its name (more details below).
 
 `Makefile`
 
 The Makefile will make the appropriate calls to Maven, and should not need to be edited.
 
-`make` (or `make all`) will generate the ANTLR source and class files and compile 
+`make` (or `make all`) will generate the ANTLR source and class files and compile
 all java files in the `src/main/java` directory.
 
 `make clean` - default behaviour
@@ -66,24 +66,23 @@ what rule to start parsing with and what kind of output you want.
 
 For example:
   ./grun -tokens
-will run the TestRig using the WACC grammar. To see how the parser groups these 
+will run the TestRig using the WACC grammar. To see how the parser groups these
 tokens you can use the -tree or -gui options instead, such as:
   ./grun -gui
-In either case you will need to type in your input program and then close the 
+In either case you will need to type in your input program and then close the
 input stream with ctrl-D.
 
-Rather than typing your input programs in by hand, you can pass the TestRig a 
+Rather than typing your input programs in by hand, you can pass the TestRig a
 file to read by piping it in through stdin with
   ./grun -gui < testfile
-When using the TestRig in this way you won't need to hit ctrl-D to close the 
+When using the TestRig in this way you won't need to hit ctrl-D to close the
 input stream as the EOF character in the file does this for you.
 
 `compile`
 
-This script currently writes a TODO: message to the console, but you should
-update it to call the the main class of your compiler with appropriate 
-arguments. Note that the lab's automated testing service will be using this 
-script as the access point to your compiler.
+This script call the WACCCompile class. It can be called with the `-d` or `--debug` flag to show all of maven's output. You can call the script with an input file as an argument which will be used as the `System.in` for the WACCCompile program.
+###### TODO
+ - check that the file is of the format `*.wacc`
 
-You **do not** need to add the ANTLR jar file to the classpath of your calls 
+You **do not** need to add the ANTLR jar file to the classpath of your calls
 to Java, as Maven handles this automatically.
