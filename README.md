@@ -6,39 +6,39 @@
 Provided files/directories  
 ----------------------------
 
-> pom.xml <
+`pom.xml`
 
 Configures Maven with project information and the required dependencies and plugins.
 
-> .travis.yml <
+`.travis.yml`
 
 Configures Travis
 
-> config/checkstyle.xml <
+`config/checkstyle.xml`
 
 Configures the Maven checkstyle
 
-> src/main/antlr4/antlr <
+`src/main/antlr4/antlr`
 
 The antlr directory contains the ANTLR lexer and parser specification
 files WACCLexer.g4 and WACCParser.g4.
 
-> src/main/java < 
+`src/main/java`
 
 Where we expect you to write your compiler code.
 
-> grun <
+`grun`
 
 The grun script allows you to run the ANTLR TestRig program that can assist you 
 in debugging you lexer and parser (more details below).
 
-> compile <
+`compile`
 
 The compile script should be edited to provide a frontend interface to your WACC
 compiler. You are free to change the language used in this script, but do not 
 change its name (more details below).
 
-> Makefile <
+`Makefile`
 
 The Makefile will make the appropriate calls to Maven, and should not need to be edited.
 
@@ -53,7 +53,7 @@ all java files in the `src/main/java` directory.
 Using the provided scripts
 ----------------------------
 
-> grun <
+`grun`
 
 **Important: You must `make` before running grun the first time!**
 
@@ -76,7 +76,7 @@ file to read by piping it in through stdin with
 When using the TestRig in this way you won't need to hit ctrl-D to close the 
 input stream as the EOF character in the file does this for you.
 
-> compile <
+`compile`
 
 This script currently writes a TODO: message to the console, but you should
 update it to call the the main class of your compiler with appropriate 
