@@ -1,6 +1,7 @@
 package wacc;
 
-import antlr.*;
+import antlr.WACCParser;
+import antlr.WACCParserBaseVisitor;
 
 public class WACCVisitor extends WACCParserBaseVisitor<Void> {
 

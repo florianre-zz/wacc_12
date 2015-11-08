@@ -2,7 +2,7 @@ package bindings;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-public class Function extends Bindings {
+public class Function extends Binding {
 
   private Type type;
   private Variable[] params;

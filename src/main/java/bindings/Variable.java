@@ -2,7 +2,7 @@ package bindings;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-public class Variable extends Bindings{
+public class Variable extends Binding {
 
   private Type type;
 

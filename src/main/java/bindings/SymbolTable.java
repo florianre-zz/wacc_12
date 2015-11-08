@@ -6,25 +6,25 @@ import java.util.Hashtable;
 public class SymbolTable {
 
     private SymbolTable enclosingST;
-    private Dictionary<String, Bindings> dict;
+    private Dictionary<String, Binding> dict;
 
     public SymbolTable(SymbolTable enclosingST) {
         this.enclosingST = enclosingST;
         this.dict = new Hashtable<>();
     }
 
-    public Bindings add(String id, Bindings binding){
+    public Binding add(String id, Binding binding){
         return dict.put(id, binding);
     }
 
-    public Bindings lookup(String id){
+    public Binding lookup(String id){
         return dict.get(id);
     }
 
-    public Bindings lookupAll(String id){
+    public Binding lookupAll(String id){
         SymbolTable currentScope = this;
         while (currentScope != null){
-            Bindings binding = currentScope.lookup(id);
+            Binding binding = currentScope.lookup(id);
             if (binding != null) {
                 return binding;
             }
@@ -33,4 +33,8 @@ public class SymbolTable {
         // id is found in no other scope
         return null;
     }
+
+  public SymbolTable getEnclosingST() {
+    return enclosingST;
+  }
 }
