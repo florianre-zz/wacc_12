@@ -2,7 +2,7 @@ package wacc;
 
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
-import bindings.Program;
+import bindings.NewScope;
 import bindings.SymbolTable;
 
 public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
@@ -11,15 +11,17 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
   private SymbolTable workingSymbTable;
 
   public WACCBuildSTVisitor(SymbolTable top) {
-    this.top = top;
+    this.top = this.workingSymbTable = top;
   }
 
   @Override
   public Void visitProg(WACCParser.ProgContext ctx) {
-    SymbolTable programSymbTab = new SymbolTable(top);
-    workingSymbTable = programSymbTab;
-    top.add("prog", new Program("prog", ctx, programSymbTab));
-    return super.visitProg(ctx);
+    SymbolTable programSymbTab = new SymbolTable(workingSymbTable);
+    workingSymbTable.add("prog", new NewScope("prog", ctx, programSymbTab));
+    setWorkingSymbTable(programSymbTab);
+    super.visitChildren(ctx);
+    goUpWorkingSymbTable();
+    return null;
   }
 
   private void setWorkingSymbTable(SymbolTable workingSymbTable) {

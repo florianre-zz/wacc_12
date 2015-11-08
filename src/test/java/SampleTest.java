@@ -7,8 +7,8 @@ import static org.hamcrest.core.Is.is;
 // import static org.junit.Assert.fail;
 
 public class SampleTest {
-    @Test
-    public void sampleTest() {
+  @Test
+  public void sampleTest() {
         assertThat(1, is(1));
     }
 }

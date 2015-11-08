@@ -2,17 +2,15 @@ package bindings;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-public class Function extends Binding {
+public class Function extends NewScope {
 
   private Type type;
   private Variable[] params;
-  private SymbolTable symbolTable;
 
   public Function(String name, ParserRuleContext ctx, Variable[] params,
                   SymbolTable symbolTable, Type type) {
-    super(name, ctx);
+    super(name, ctx, symbolTable);
     this.params = params;
-    this.symbolTable = symbolTable;
     this.type = type;
   }
 
@@ -22,9 +20,5 @@ public class Function extends Binding {
 
   public Variable[] getParams() {
     return params;
-  }
-
-  public SymbolTable getSymbolTable() {
-    return symbolTable;
   }
 }
