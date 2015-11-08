@@ -1,4 +1,5 @@
-import antlr.SymbolTable;
+package bindings;
+
 import org.antlr.v4.runtime.ParserRuleContext;
 
 public class Function extends Bindings {

@@ -1,3 +1,5 @@
+package wacc;
+
 import antlr.*;
 
 public class WACCVisitor extends WACCParserBaseVisitor<Void> {
@@ -10,7 +12,7 @@ public class WACCVisitor extends WACCParserBaseVisitor<Void> {
   public Void visitFunc(WACCParser.FuncContext ctx) {
     System.out.println("I found a function definition!");
     System.out.println(ctx.funcName.getText());
-    System.out.print("Type info: ");
+    System.out.print("bindings.Type info: ");
     //need to visit function args in a loop
     for (int i = 0; i < ctx.paramList().param().size(); i++) {
       visit(ctx.paramList().param(i));

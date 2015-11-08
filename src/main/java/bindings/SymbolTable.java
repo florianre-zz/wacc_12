@@ -1,4 +1,4 @@
-package wacc;
+package bindings;
 
 import java.util.Dictionary;
 import java.util.Hashtable;

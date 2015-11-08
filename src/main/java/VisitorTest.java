@@ -4,6 +4,8 @@ import org.antlr.v4.runtime.tree.*;
 
 // import antlr package (your code)
 import antlr.*;
+import wacc.WACCVisitor;
+
 public class VisitorTest {
     public static void main(String[] args) throws Exception {
 
