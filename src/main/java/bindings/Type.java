@@ -4,14 +4,14 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 public class Type extends Binding {
 
-  private int min, max;
+  private Integer min, max;
 
   public Type(String name, ParserRuleContext ctx) {
     super(name, ctx);
   }
 
   public Type(String name, ParserRuleContext ctx, int min, int max) {
-    super(name, ctx);
+    this(name, ctx);
     this.min = min;
     this.max = max;
   }
