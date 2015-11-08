@@ -2,32 +2,31 @@ package bindings;
 
 import java.util.Dictionary;
 import java.util.Hashtable;
-import org.antlr.v4.runtime.ParserRuleContext;
 
 public class SymbolTable {
 
     private SymbolTable enclosingST;
-    private Dictionary<String, ParserRuleContext> dict;
+    private Dictionary<String, Bindings> dict;
 
     public SymbolTable(SymbolTable enclosingST) {
         this.enclosingST = enclosingST;
         this.dict = new Hashtable<>();
     }
 
-    public ParserRuleContext add(String id, ParserRuleContext value){
-        return dict.put(id, value);
+    public Bindings add(String id, Bindings binding){
+        return dict.put(id, binding);
     }
 
-    public ParserRuleContext lookup(String id){
+    public Bindings lookup(String id){
         return dict.get(id);
     }
 
-    public ParserRuleContext lookupAll(String id){
+    public Bindings lookupAll(String id){
         SymbolTable currentScope = this;
         while (currentScope != null){
-            ParserRuleContext value = currentScope.lookup(id);
-            if (value != null) {
-                return value;
+            Bindings binding = currentScope.lookup(id);
+            if (binding != null) {
+                return binding;
             }
             currentScope = currentScope.enclosingST; // looking into next highest scope
         }
