@@ -1,34 +1,33 @@
 #!/usr/bin/ruby
-require 'optparse'
+# require 'optparse'
 
 @file = ""
 
-usage = "Usage: ./compile [-d | --debug] filename.wacc"
+usage = "Usage: ./compile filename.wacc"
 
-options = {}
-opts = OptionParser.new do |opts|
-  opts.banner = usage
-
-  opts.on("-d", "--debug") do |d|
-    options[:debug] = d
-  end
-
-  opts.on_tail("-h", "--help") do |v|
-    puts opts
-    exit
-  end
-end.parse!
+# options = {}
+# opts = OptionParser.new do |opts|
+#   opts.banner = usage
+#
+#   opts.on("-d", "--debug") do |d|
+#     options[:debug] = d
+#   end
+#
+#   opts.on_tail("-h", "--help") do |v|
+#     puts opts
+#     exit
+#   end
+# end.parse!
 
 if ARGV[0]
   @file = "<" + ARGV[0]
 end
 
-def compile(isDebug)
+def compile()
   puts "Running WACC Compile"
-  debug = isDebug ? '' : '-q'
-  result = `mvn #{debug} exec:java -Dexec.mainClass="wacc.WACCCompile" #{@file}`
+  result = `java -cp target/WACC-Compiler-0.2-BETA-jar-with-dependencies.jar wacc.WACCCompile #{@file}`
   puts result
   puts "Exited with: #{$?.exitstatus}"
 end
 
-compile(options[:debug])
+compile()
