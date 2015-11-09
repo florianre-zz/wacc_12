@@ -1,12 +1,10 @@
 package bindings;
 
-import java.util.Dictionary;
 import java.util.Hashtable;
 
-public class SymbolTable {
+public class SymbolTable extends Hashtable<String, Binding> {
 
   private SymbolTable enclosingST;
-  private Dictionary<String, Binding> dict;
 
   public SymbolTable() {
     this(null);
@@ -14,17 +12,6 @@ public class SymbolTable {
 
   public SymbolTable(SymbolTable enclosingST) {
     this.enclosingST = enclosingST;
-    this.dict = new Hashtable<>();
-  }
-
-  // Returns null if (key, value) pair doesn't exist in the dictionary
-  // otherwise returns the value that exists at key
-  public Binding put(String id, Binding binding){
-    return dict.put(id, binding);
-  }
-
-  public Binding get(String id){
-      return dict.get(id);
   }
 
   public Binding lookupAll(String id){
