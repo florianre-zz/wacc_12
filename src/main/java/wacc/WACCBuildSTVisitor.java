@@ -17,7 +17,7 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
   @Override
   public Void visitProg(WACCParser.ProgContext ctx) {
     SymbolTable programSymbTab = new SymbolTable(workingSymbTable);
-    workingSymbTable.add("prog", new NewScope("prog", ctx, programSymbTab));
+    workingSymbTable.put("prog", new NewScope("prog", ctx, programSymbTab));
     setWorkingSymbTable(programSymbTab);
     super.visitChildren(ctx);
     goUpWorkingSymbTable();

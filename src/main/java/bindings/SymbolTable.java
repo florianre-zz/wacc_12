@@ -17,26 +17,28 @@ public class SymbolTable {
     this.dict = new Hashtable<>();
   }
 
-  public Binding add(String id, Binding binding){
-        return dict.put(id, binding);
-    }
+  // Returns null if (key, value) pair doesn't exist in the dictionary
+  // otherwise returns the value that exists at key
+  public Binding put(String id, Binding binding){
+    return dict.put(id, binding);
+  }
 
-    public Binding lookup(String id){
-        return dict.get(id);
-    }
+  public Binding get(String id){
+      return dict.get(id);
+  }
 
-    public Binding lookupAll(String id){
-      SymbolTable currentScope = this;
-      while (currentScope != null){
-        Binding binding = currentScope.lookup(id);
-        if (binding != null) {
-          return binding;
-        }
-        currentScope = currentScope.enclosingST; // looking into next highest scope
+  public Binding lookupAll(String id){
+    SymbolTable currentScope = this;
+    while (currentScope != null){
+      Binding binding = currentScope.get(id);
+      if (binding != null) {
+        return binding;
       }
-      // id is found in no other scope
-      return null;
+      currentScope = currentScope.enclosingST; // looking into next highest scope
     }
+    // id is found in no other scope
+    return null;
+  }
 
   public SymbolTable getEnclosingST() {
     return enclosingST;

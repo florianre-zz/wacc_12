@@ -1,15 +1,12 @@
-// import static org.hamcrest.CoreMatchers.containsString;
-// import static org.hamcrest.CoreMatchers.hasItems;
-// import static org.junit.Assert.fail;
-
-import antlr.WACCParser;
-import bindings.NewScope;
-import bindings.SymbolTable;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Rule;
 import org.junit.Test;
+
+import antlr.WACCParser;
+import bindings.NewScope;
+import bindings.SymbolTable;
 import wacc.WACCBuildSTVisitor;
 
 public class WACCBuildSTVisitorTest {
@@ -18,18 +15,21 @@ public class WACCBuildSTVisitorTest {
   public JUnitRuleMockery context = new JUnitRuleMockery() {{
     setImposteriser(ClassImposteriser.INSTANCE);
   }};
+
   final SymbolTable top = context.mock(SymbolTable.class);
+  WACCBuildSTVisitor buildSTVisitor = new WACCBuildSTVisitor(top);
 
   @Test
   public void visitProgAddsNewProgramSymbolTableToTop(){
     final WACCParser.ProgContext ctx
         = context.mock(WACCParser.ProgContext.class);
+
     context.checking(new Expectations() {{
-      oneOf(top).add(with(aNonNull(String.class)),
-                     with(aNonNull(NewScope.class)));
+      oneOf(top).put(with(aNonNull(String.class)),
+          with(aNonNull(NewScope.class)));
       ignoring(ctx).getChildCount();
     }});
-    WACCBuildSTVisitor buildSTVisitor = new WACCBuildSTVisitor(top);
+
     buildSTVisitor.visitProg(ctx);
   }
   
