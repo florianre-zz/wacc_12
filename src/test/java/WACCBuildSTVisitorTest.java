@@ -1,3 +1,4 @@
+import bindings.Binding;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -16,7 +17,8 @@ public class WACCBuildSTVisitorTest {
     setImposteriser(ClassImposteriser.INSTANCE);
   }};
 
-  final SymbolTable top = context.mock(SymbolTable.class);
+  @SuppressWarnings("unchecked")
+  final SymbolTable<String, Binding> top = context.mock(SymbolTable.class);
   WACCBuildSTVisitor buildSTVisitor = new WACCBuildSTVisitor(top);
 
   @Test
