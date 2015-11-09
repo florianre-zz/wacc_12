@@ -2,9 +2,9 @@ package bindings;
 
 import java.util.Hashtable;
 
-public class SymbolTable extends Hashtable<String, Binding> {
+public class SymbolTable<S, T> extends Hashtable<S, T> {
 
-  private SymbolTable enclosingST;
+  private SymbolTable<S, T> enclosingST;
 
   public SymbolTable() {
     this(null);
@@ -14,12 +14,12 @@ public class SymbolTable extends Hashtable<String, Binding> {
     this.enclosingST = enclosingST;
   }
 
-  public Binding lookupAll(String id){
-    SymbolTable currentScope = this;
+  public T lookupAll(S key){
+    SymbolTable<S, T> currentScope = this;
     while (currentScope != null){
-      Binding binding = currentScope.get(id);
-      if (binding != null) {
-        return binding;
+      T value = currentScope.get(key);
+      if (value != null) {
+        return value;
       }
       currentScope = currentScope.enclosingST; // looking into next highest scope
     }
