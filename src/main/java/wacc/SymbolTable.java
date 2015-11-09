@@ -10,7 +10,7 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
     this(null);
   }
 
-  public SymbolTable(SymbolTable enclosingST) {
+  public SymbolTable(SymbolTable<S, T> enclosingST) {
     this.enclosingST = enclosingST;
   }
 
@@ -21,13 +21,14 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
       if (value != null) {
         return value;
       }
-      currentScope = currentScope.enclosingST; // looking into next highest scope
+      // looking into next highest scope
+      currentScope = currentScope.getEnclosingST();
     }
     // id is found in no other scope
     return null;
   }
 
-  public SymbolTable getEnclosingST() {
+  public SymbolTable<S, T> getEnclosingST() {
     return enclosingST;
   }
 }
