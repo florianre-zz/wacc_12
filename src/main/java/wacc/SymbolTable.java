@@ -1,5 +1,6 @@
 package wacc;
 
+import java.util.Enumeration;
 import java.util.Hashtable;
 
 public class SymbolTable<S, T> extends Hashtable<S, T> {
@@ -30,5 +31,21 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
 
   public SymbolTable<S, T> getEnclosingST() {
     return enclosingST;
+  }
+
+  @Override
+  public String toString() {
+    final StringBuilder sb = new StringBuilder("SymbolTable {\n");
+    Enumeration<S> keys = this.keys();
+    while (keys.hasMoreElements()) {
+      S element = keys.nextElement();
+      sb.append("\t");
+      sb.append(element.toString());
+      sb.append(": ");
+      sb.append(this.get(element));
+      sb.append("\n");
+    }
+    sb.append("}");
+    return sb.toString();
   }
 }

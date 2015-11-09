@@ -2,6 +2,7 @@ package wacc;
 
 import antlr.*;
 import bindings.Binding;
+import bindings.NewScope;
 import bindings.Type;
 import bindings.Variable;
 import org.antlr.v4.runtime.*;
@@ -9,7 +10,7 @@ import org.antlr.v4.runtime.tree.*;
 
 public class WACCCompile {
   public static void main(String[] args) throws Exception {
-
+    System.out.println("Welcome to WACC Compile...");
     // create a CharStream that reads from standard input
     ANTLRInputStream input = new ANTLRInputStream(System.in);
 
@@ -31,6 +32,9 @@ public class WACCCompile {
     SymbolTable<String, Binding> top = createTopSymbolTable();
     WACCBuildSTVisitor buildSTVisitor = new WACCBuildSTVisitor(top);
     buildSTVisitor.visit(tree);
+    System.out.println("Symbol Tables: ");
+    System.out.println(top);
+    System.out.println(((NewScope) top.get("prog")).getSymbolTable());
     System.out.println("====");
   }
 
