@@ -6,7 +6,7 @@ import org.junit.Test;
 
 import antlr.WACCParser;
 import bindings.NewScope;
-import bindings.SymbolTable;
+import wacc.SymbolTable;
 import wacc.WACCBuildSTVisitor;
 
 public class WACCBuildSTVisitorTest {

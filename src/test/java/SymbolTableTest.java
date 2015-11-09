@@ -1,9 +1,10 @@
-import bindings.SymbolTable;
+import wacc.SymbolTable;
 
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Rule;
 import org.junit.Test;
+import wacc.SymbolTable;
 
 public class SymbolTableTest {
 
