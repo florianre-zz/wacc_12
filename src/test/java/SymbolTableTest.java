@@ -28,7 +28,7 @@ public class SymbolTableTest {
   }
 
   @Test
-  public void testLookupAllInChildNoParent() throws Exception {
+  public void testLookupAllInRoot() throws Exception {
     symbolTable.put(TEST_KEY, binding);
     assertThat(symbolTable.lookupAll(TEST_KEY), is(binding));
   }
@@ -53,6 +53,15 @@ public class SymbolTableTest {
   public void testLookupAllInParentNotChild() throws Exception {
     symbolTable = new SymbolTable<>(parentSymbolTable);
     parentSymbolTable.put(TEST_KEY, binding);
+    assertThat(symbolTable.lookupAll(TEST_KEY), is(binding));
+  }
+
+  @Test
+  public void testLookupAllInGrandparentNotChildren() throws Exception {
+    SymbolTable<String, Binding> grandparentSymbolTable = new SymbolTable<>();
+    parentSymbolTable = new SymbolTable<>(grandparentSymbolTable);
+    symbolTable = new SymbolTable<>(parentSymbolTable);
+    grandparentSymbolTable.put(TEST_KEY, binding);
     assertThat(symbolTable.lookupAll(TEST_KEY), is(binding));
   }
 
