@@ -2,15 +2,16 @@ package bindings;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-import java.util.Hashtable;
+import java.util.Dictionary;
+import java.util.List;
 
 public class Function extends NewScope {
 
   private Type type;
-  private Variable[] params;
+  private List<Variable> params;
 
-  public Function(String name, ParserRuleContext ctx, Variable[] params,
-                  Hashtable<String, Binding> symbolTable, Type type) {
+  public Function(String name, ParserRuleContext ctx, List<Variable> params,
+                  Dictionary<String, Binding> symbolTable, Type type) {
     super(name, ctx, symbolTable);
     this.params = params;
     this.type = type;
@@ -20,7 +21,7 @@ public class Function extends NewScope {
     return type;
   }
 
-  public Variable[] getParams() {
+  public List<Variable> getParams() {
     return params;
   }
 }
