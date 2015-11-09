@@ -25,8 +25,8 @@ public class WACCBuildSTVisitorTest {
     final WACCParser.ProgContext ctx
         = context.mock(WACCParser.ProgContext.class);
     context.checking(new Expectations() {{
-      oneOf(top).add(with(aNonNull(String.class)), with(aNonNull(NewScope
-                                                                   .class)));
+      oneOf(top).add(with(aNonNull(String.class)),
+                     with(aNonNull(NewScope.class)));
       ignoring(ctx).getChildCount();
     }});
     WACCBuildSTVisitor buildSTVisitor = new WACCBuildSTVisitor(top);
