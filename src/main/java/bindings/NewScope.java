@@ -8,8 +8,8 @@ public class NewScope extends Binding {
 
   private Dictionary<String, Binding> symbolTable;
 
-  public NewScope(String name, ParserRuleContext ctx, Dictionary<String, Binding> symbolTable) {
-    super(name, ctx);
+  public NewScope(String name, Dictionary<String, Binding> symbolTable) {
+    super(name);
     this.symbolTable = symbolTable;
   }
 

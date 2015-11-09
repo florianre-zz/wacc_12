@@ -6,8 +6,8 @@ public class Variable extends Binding {
 
   private Type type;
 
-  public Variable(String name, ParserRuleContext ctx, Type type) {
-    super(name, ctx);
+  public Variable(String name, Type type) {
+    super(name);
     this.type = type;
   }
 

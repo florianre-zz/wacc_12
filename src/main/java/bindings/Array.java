@@ -6,9 +6,9 @@ public class Array extends Variable {
 
   private int dimensionality;
 
-  public Array(String name, ParserRuleContext ctx, Type type,
+  public Array(String name, Type type,
                int dimensionality) {
-    super(name, ctx, type);
+    super(name, type);
     this.dimensionality = dimensionality;
   }
 

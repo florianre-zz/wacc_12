@@ -16,14 +16,10 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     this.top = this.workingSymbTable = top;
   }
 
-  @Override
-  public Void visitProg(WACCParser.ProgContext ctx) {
-    SymbolTable<String, Binding> programSymbTab = new SymbolTable<>(workingSymbTable);
-    workingSymbTable.put("prog", new NewScope("prog", ctx, programSymbTab));
-    setWorkingSymbTable(programSymbTab);
-    super.visitChildren(ctx);
-    goUpWorkingSymbTable();
-    return null;
+  // Helper Methods
+
+  private Type getType(WACCParser.TypeContext ctx) {
+    return (Type) top.lookupAll(ctx.getText());
   }
 
   private void setWorkingSymbTable(SymbolTable<String, Binding> workingSymbTable) {
@@ -37,6 +33,18 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     }
   }
 
+  // Visit Functions
+
+  @Override
+  public Void visitProg(WACCParser.ProgContext ctx) {
+    SymbolTable<String, Binding> programSymbTab = new SymbolTable<>(workingSymbTable);
+    workingSymbTable.put("prog", new NewScope("prog", programSymbTab));
+    setWorkingSymbTable(programSymbTab);
+    super.visitChildren(ctx);
+    goUpWorkingSymbTable();
+    return null;
+  }
+
   @Override
   public Void visitFunc(WACCParser.FuncContext ctx) {
     SymbolTable<String, Binding> funcSymbTab
@@ -48,11 +56,11 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     for (WACCParser.ParamContext paramContext : paramContexts) {
       String name = paramContext.getText();
       Type type = getType(paramContext.type());
-      Variable param = new Variable(name, paramContext, type);
+      Variable param = new Variable(name, type);
       funcParams.add(param);
     }
 
-    Function function = new Function(ctx.funcName.getText(), ctx, funcParams,
+    Function function = new Function(ctx.funcName.getText(), funcParams,
                                      funcSymbTab, getType(ctx.type()));
     workingSymbTable.put(ctx.funcName.getText(), function);
 
@@ -62,7 +70,5 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
-  private Type getType(WACCParser.TypeContext ctx) {
-    return (Type) top.lookupAll(ctx.getText());
-  }
+
 }

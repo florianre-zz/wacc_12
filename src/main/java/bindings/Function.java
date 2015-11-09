@@ -10,9 +10,9 @@ public class Function extends NewScope {
   private Type type;
   private List<Variable> params;
 
-  public Function(String name, ParserRuleContext ctx, List<Variable> params,
+  public Function(String name, List<Variable> params,
                   Dictionary<String, Binding> symbolTable, Type type) {
-    super(name, ctx, symbolTable);
+    super(name, symbolTable);
     this.params = params;
     this.type = type;
   }

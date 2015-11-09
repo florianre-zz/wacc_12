@@ -6,12 +6,12 @@ public class Type extends Binding {
 
   private Integer min, max;
 
-  public Type(String name, ParserRuleContext ctx) {
-    super(name, ctx);
+  public Type(String name) {
+    super(name);
   }
 
-  public Type(String name, ParserRuleContext ctx, int min, int max) {
-    this(name, ctx);
+  public Type(String name, int min, int max) {
+    this(name);
     this.min = min;
     this.max = max;
   }
