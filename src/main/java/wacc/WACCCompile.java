@@ -1,6 +1,9 @@
 package wacc;
 
 import antlr.*;
+import bindings.Binding;
+import bindings.Type;
+import bindings.Variable;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
@@ -22,10 +25,22 @@ public class WACCCompile {
     ParseTree tree = parser.prog(); // begin parsing at prog rule
 
     //System.out.println(tree.toStringTree(parser)); // print LISP-style tree
+
     System.out.println("====");
     System.out.println("Visiting...");
-    WACCVisitor visitor = new WACCVisitor();
-    visitor.visit(tree);
+    SymbolTable<String, Binding> top = createTopSymbolTable();
+    WACCBuildSTVisitor buildSTVisitor = new WACCBuildSTVisitor(top);
+    buildSTVisitor.visit(tree);
     System.out.println("====");
   }
+
+  private static SymbolTable<String, Binding> createTopSymbolTable() {
+    SymbolTable<String, Binding> top = new SymbolTable<>();
+    top.put("int", new Type("INT_T", Integer.MIN_VALUE, Integer.MAX_VALUE));
+    top.put("bool", new Type("BOOL_T", 0, 1));
+    top.put("char", new Type("CHAR_T", 0, 255));
+    top.put("string", new Type("STRING_T"));
+    return top;
+  }
+
 }
