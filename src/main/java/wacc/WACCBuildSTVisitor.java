@@ -4,6 +4,7 @@ import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -79,9 +80,24 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     }
 
     Function function =
-        new Function(getType(ctx.type()), ctx.funcName.getText(), funcParams,
+        new Function((Type) top.lookupAll("int"), ctx.funcName.getText(),
+                     funcParams,
                      funcSymbTab);
     workingSymbTable.put(ctx.funcName.getText(), function);
+
+    return fillNewSymbolTable(ctx, funcSymbTab);
+  }
+
+  @Override
+  public Void visitMain(@NotNull WACCParser.MainContext ctx) {
+    SymbolTable<String, Binding> funcSymbTab
+        = new SymbolTable<>(workingSymbTable);
+    List<Variable> funcParams = new ArrayList<>();
+
+//    Function function =
+//        new Function(getType("int"), "0main", funcParams,
+//                     funcSymbTab);
+//    workingSymbTable.put(ctx.funcName.getText(), function);
 
     return fillNewSymbolTable(ctx, funcSymbTab);
   }
@@ -103,7 +119,6 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     String scopeName = "begin" + ++beginCount;
     return setANewScope(ctx, scopeName);
   }
-
 
 
 }
