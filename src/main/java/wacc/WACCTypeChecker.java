@@ -182,11 +182,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   
   @Override
 	public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
-
     visitChildren(ctx);
-
     return null;
-
 	}
 
   @Override
