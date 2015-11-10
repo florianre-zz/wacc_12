@@ -2,12 +2,9 @@ package wacc.error;
 
 public abstract class Error {
 
-  protected String message() {
+  @Override
+  public String toString() {
     return "Error: ";
-  }
-
-  public void print() {
-    System.out.println(message());
   }
 
 }

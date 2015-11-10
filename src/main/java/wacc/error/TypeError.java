@@ -5,8 +5,9 @@ package wacc.error;
  */
 public class TypeError extends Error {
 
-  protected String message() {
-    return super.message() + "Type Error: ";
+  @Override
+  public String toString() {
+    return "Type " + super.toString();
   }
 
 }
