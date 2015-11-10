@@ -7,6 +7,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.*;
 import wacc.SymbolTable;
 import wacc.WACCTypeChecker;
+import wacc.error.*;
 
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.*;
@@ -28,11 +29,13 @@ public class WACCTypeCheckerTest {
   }};
 
   WACCParser.TypeContext typeCtx;
+  ErrorHandler errorHandler;
 
   @Before
   public void setUp() throws Exception {
 
     typeCtx = context.mock(WACCParser.TypeContext.class);
+    errorHandler = new ErrorHandler();
 
     SymbolTable<String, Binding> top = new SymbolTable<>();
     top.put("int", new Type("INT_T", Integer.MIN_VALUE, Integer.MAX_VALUE));
@@ -40,7 +43,7 @@ public class WACCTypeCheckerTest {
     top.put("char", new Type("CHAR_T", 0, 255));
     top.put("string", new Type("STRING_T"));
 
-    typeChecker = new WACCTypeChecker(top);
+    typeChecker = new WACCTypeChecker(top, errorHandler);
   }
 
   @After
@@ -106,8 +109,6 @@ public class WACCTypeCheckerTest {
 
     Type type = typeChecker.visitFunc(funcCtx);
     assertNotNull(type);
-
-    //TODO: Error Handling Tests
   }
 
   @Test
@@ -124,7 +125,6 @@ public class WACCTypeCheckerTest {
     Type type = typeChecker.visitFunc(funcCtx);
     assertNull(type);
 
-    //TODO: Error Handling Tests
   }
 
 }
