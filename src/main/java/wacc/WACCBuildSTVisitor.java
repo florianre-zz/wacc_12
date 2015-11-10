@@ -4,7 +4,6 @@ import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,12 +11,16 @@ import java.util.List;
 public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
 
   private SymbolTable<String, Binding> top;
-  private SymbolTable<String, Binding> workingSymbTable;
+  private SymbolTable<String, Binding> workingSymTable;
   private int ifCount, whileCount, beginCount;
 
   public WACCBuildSTVisitor(SymbolTable<String, Binding> top) {
-    this.top = this.workingSymbTable = top;
+    this.top = this.workingSymTable = top;
     ifCount = whileCount =  beginCount = 0;
+  }
+
+  private void setWorkingSymTable(SymbolTable<String, Binding> workingSymTable) {
+    this.workingSymTable = workingSymTable;
   }
 
   // Helper Methods
@@ -26,52 +29,49 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     return (Type) top.lookupAll(ctx.getText());
   }
 
-  private void setWorkingSymbTable(SymbolTable<String, Binding> workingSymbTable) {
-    this.workingSymbTable = workingSymbTable;
-  }
-
-  private void goUpWorkingSymbTable() {
-    SymbolTable<String, Binding> enclosingST
-        = workingSymbTable.getEnclosingST();
+  private void goUpWorkingSymTable() {
+    SymbolTable<String, Binding> enclosingST = workingSymTable.getEnclosingST();
     if (enclosingST != null) {
-      setWorkingSymbTable(enclosingST);
+      setWorkingSymTable(enclosingST);
     }
   }
 
   private Void fillNewSymbolTable(ParserRuleContext ctx,
-                                  SymbolTable<String, Binding> symbTab) {
-
-    setWorkingSymbTable(symbTab);
+                                  SymbolTable<String, Binding> symTab) {
+    setWorkingSymTable(symTab);
     super.visitChildren(ctx);
-    goUpWorkingSymbTable();
+    goUpWorkingSymTable();
     return null;
   }
 
   private Void setANewScope(ParserRuleContext ctx, String scopeName) {
-    SymbolTable<String, Binding> symbTab
-        = new SymbolTable<>(workingSymbTable);
+    SymbolTable<String, Binding> symTab = new SymbolTable<>(workingSymTable);
+    workingSymTable.put(scopeName, new NewScope(scopeName, symTab));
+    return fillNewSymbolTable(ctx, symTab);
+  }
 
-    workingSymbTable.put(scopeName, new NewScope(scopeName, symbTab));
-
-    return fillNewSymbolTable(ctx, symbTab);
+  private Void createFunc(ParserRuleContext ctx, String s,
+                          List<Variable> params) {
+    SymbolTable<String, Binding> symTable = new SymbolTable<>(workingSymTable);
+    Function function
+        = new Function((Type) top.lookupAll("int"), s, params, symTable);
+    workingSymTable.put(s, function);
+    return fillNewSymbolTable(ctx, symTable);
   }
 
   // Visit Functions
 
   @Override
-  public Void visitProg(WACCParser.ProgContext ctx) {
-    return setANewScope(ctx, "prog");
+  public Void visitMain(WACCParser.MainContext ctx) {
+    return createFunc(ctx, "0main", new ArrayList<Variable>());
   }
 
   @Override
   public Void visitFunc(WACCParser.FuncContext ctx) {
+    List<? extends WACCParser.ParamContext> paramContexts
+        = ctx.paramList().param();
 
-    SymbolTable<String, Binding> funcSymbTab
-        = new SymbolTable<>(workingSymbTable);
-    List<? extends WACCParser.ParamContext> paramContexts =
-        ctx.paramList().param();
     List<Variable> funcParams = new ArrayList<>();
-
     for (WACCParser.ParamContext paramContext : paramContexts) {
       String name = paramContext.getText();
       Type type = getType(paramContext.type());
@@ -79,27 +79,18 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
       funcParams.add(param);
     }
 
-    Function function =
-        new Function((Type) top.lookupAll("int"), ctx.funcName.getText(),
-                     funcParams,
-                     funcSymbTab);
-    workingSymbTable.put(ctx.funcName.getText(), function);
-
-    return fillNewSymbolTable(ctx, funcSymbTab);
+    return createFunc(ctx, ctx.funcName.getText(), funcParams);
   }
 
   @Override
-  public Void visitMain(@NotNull WACCParser.MainContext ctx) {
-    SymbolTable<String, Binding> funcSymbTab
-        = new SymbolTable<>(workingSymbTable);
-    List<Variable> funcParams = new ArrayList<>();
+  public Void visitProg(WACCParser.ProgContext ctx) {
+    return setANewScope(ctx, "prog");
+  }
 
-//    Function function =
-//        new Function(getType("int"), "0main", funcParams,
-//                     funcSymbTab);
-//    workingSymbTable.put(ctx.funcName.getText(), function);
-
-    return fillNewSymbolTable(ctx, funcSymbTab);
+  @Override
+  public Void visitBeginStat(WACCParser.BeginStatContext ctx) {
+    String scopeName = "begin" + ++beginCount;
+    return setANewScope(ctx, scopeName);
   }
 
   @Override
@@ -113,12 +104,5 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     String scopeName = "while" + ++whileCount;
     return setANewScope(ctx, scopeName);
   }
-
-  @Override
-  public Void visitBeginStat(WACCParser.BeginStatContext ctx) {
-    String scopeName = "begin" + ++beginCount;
-    return setANewScope(ctx, scopeName);
-  }
-
 
 }
