@@ -37,15 +37,6 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     }
   }
 
-  private Void setANewScope(ParserRuleContext ctx, String scopeName) {
-    SymbolTable<String, Binding> symbTab
-        = new SymbolTable<>(workingSymbTable);
-
-    workingSymbTable.put(scopeName, new NewScope(scopeName, symbTab));
-
-    return fillNewSymbolTable(ctx, symbTab);
-  }
-
   private Void fillNewSymbolTable(ParserRuleContext ctx,
                                   SymbolTable<String, Binding> symbTab) {
 
@@ -53,6 +44,15 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     super.visitChildren(ctx);
     goUpWorkingSymbTable();
     return null;
+  }
+
+  private Void setANewScope(ParserRuleContext ctx, String scopeName) {
+    SymbolTable<String, Binding> symbTab
+        = new SymbolTable<>(workingSymbTable);
+
+    workingSymbTable.put(scopeName, new NewScope(scopeName, symbTab));
+
+    return fillNewSymbolTable(ctx, symbTab);
   }
 
   // Visit Functions
@@ -103,5 +103,7 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     String scopeName = "begin" + ++beginCount;
     return setANewScope(ctx, scopeName);
   }
+
+
 
 }

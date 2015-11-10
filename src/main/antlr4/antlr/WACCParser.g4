@@ -4,7 +4,7 @@ options {
   tokenVocab=WACCLexer;
 }
 
-prog: BEGIN func* statList END EOF;
+prog: BEGIN func* main=statList END EOF;
 func: type funcName=IDENT OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS
 statList END;
 paramList: param (COMMA param)*;
