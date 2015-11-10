@@ -13,32 +13,18 @@ import java.util.List;
 
 public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
-
   private final SymbolTable<String, Binding> top;
+  private SymbolTable<String, Binding> workingSymbTable;
 
-  public WACCTypeChecker(
-      SymbolTable<String, Binding> top) {
+  public WACCTypeChecker(SymbolTable<String, Binding> top) {
     this.top = top;
+    this.workingSymbTable = top;
   }
 
   // Helper Methods
 
   private Type getType(WACCParser.TypeContext ctx) {
     return (Type) top.lookupAll(ctx.getText());
-  }
-
-  private List<Variable> getFunctionParameters(WACCParser.FuncContext ctx) {
-    List<? extends WACCParser.ParamContext> paramContexts
-        = ctx.paramList().param();
-    List<Variable> funcParams = new ArrayList<>();
-
-    for (WACCParser.ParamContext paramContext : paramContexts) {
-      String name = paramContext.getText();
-      Type type = getType(paramContext.type());
-      Variable param = new Variable(name, type);
-      funcParams.add(param);
-    }
-    return funcParams;
   }
   
   @Override
@@ -88,7 +74,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   
   @Override
 	public Type visitType(@NotNull WACCParser.TypeContext ctx) {
-		return null;
+		Type type = (Type) workingSymbTable.lookupAll(ctx.getText());
+    return type;
 	}
   
   @Override
@@ -118,7 +105,14 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
 	public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
-		return null;
+
+    Type type = visitType(ctx.type());
+    if (type == null) {
+      TypeError error = new TypeError();
+      error.print();
+    }
+
+    return type;
 	}
   
   @Override
