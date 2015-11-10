@@ -49,6 +49,19 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
   public Void visitFunc(WACCParser.FuncContext ctx) {
     SymbolTable<String, Binding> funcSymbTab
         = new SymbolTable<>(workingSymbTable);
+    List<Variable> funcParams = getFunctionParameters(ctx);
+
+    Function function = new Function(ctx.funcName.getText(), funcParams,
+                                     funcSymbTab, getType(ctx.type()));
+    workingSymbTable.put(ctx.funcName.getText(), function);
+
+    setWorkingSymbTable(funcSymbTab);
+    super.visitChildren(ctx);
+    goUpWorkingSymbTable();
+    return null;
+  }
+
+  private List<Variable> getFunctionParameters(WACCParser.FuncContext ctx) {
     List<? extends WACCParser.ParamContext> paramContexts
         = ctx.paramList().param();
     List<Variable> funcParams = new ArrayList<>();
@@ -59,15 +72,7 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
       Variable param = new Variable(name, type);
       funcParams.add(param);
     }
-
-    Function function = new Function(ctx.funcName.getText(), funcParams,
-                                     funcSymbTab, getType(ctx.type()));
-    workingSymbTable.put(ctx.funcName.getText(), function);
-
-    setWorkingSymbTable(funcSymbTab);
-    super.visitChildren(ctx);
-    goUpWorkingSymbTable();
-    return null;
+    return funcParams;
   }
 
 
