@@ -73,8 +73,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   
   @Override
 	public Type visitType(@NotNull WACCParser.TypeContext ctx) {
-		Type type = (Type) workingSymbTable.lookupAll(ctx.getText());
-    return type;
+    return (Type) workingSymbTable.lookupAll(ctx.getText());
 	}
   
   @Override
@@ -99,7 +98,11 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
 	public Type visitStatList(@NotNull WACCParser.StatListContext ctx) {
-		return null;
+    Type returnType = null;
+    for (WACCParser.StatContext stat : ctx.stat()) {
+      returnType = visitStat(stat);
+    }
+    return returnType;
 	}
 
   @Override
@@ -136,7 +139,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
 	public Type visitStat(@NotNull WACCParser.StatContext ctx) {
-		return null;
+    return visitChildren(ctx);
 	}
 
   @Override
@@ -210,9 +213,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       errorHandler.encounteredError(error);
     }
 
-    for (WACCParser.ParamContext param : ctx.paramList().param()) {
-      visitParam(param);
-    }
+    visitParamList(ctx.paramList());
 
     Type actualReturnType = visitStatList(ctx.statList());
 
@@ -231,7 +232,10 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   
   @Override
 	public Type visitParamList(@NotNull WACCParser.ParamListContext ctx) {
-		return null;
+    for (WACCParser.ParamContext param : ctx.param()) {
+      visitParam(param);
+    }
+    return null;
 	}
   
   @Override

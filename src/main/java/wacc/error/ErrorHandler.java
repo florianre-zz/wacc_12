@@ -2,9 +2,6 @@ package wacc.error;
 
 import java.util.ArrayList;
 
-/**
- * Created by elliotgreenwood on 11.10.15.
- */
 public class ErrorHandler {
   ArrayList<Error> errors;
 

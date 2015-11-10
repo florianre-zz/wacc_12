@@ -6,8 +6,7 @@ options {
 
 prog: BEGIN func* main END EOF;
 main: statList;
-func: type funcName=IDENT OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS
-statList END;
+func: type funcName=IDENT OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END;
 paramList: param (COMMA param)*;
 param: type name=IDENT;
 statList: stat (SEMICOLON stat)*;
