@@ -107,9 +107,24 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
 
   @Override
   public Void visitInitStat(WACCParser.InitStatContext ctx) {
-    workingSymTable.put(ctx.varName.getText(),
-                        new Variable(ctx.varName.getText(),
-                                     new Type(ctx.type().getText())));
+    String varName = ctx.varName.getText();
+    if (ctx.type().arrayType() != null) {
+      workingSymTable.put(varName,
+                          new Array(varName, ctx.type().arrayType()))
+    } else {
+      if (ctx.type().nonArrayType().pairType() != null) {
+//        workingSymTable.put(varName,
+//                            new Pair(varName,
+//                                     ctx.type().nonArrayType().pairType()
+//                                         .firstType,
+//                                     ctx.type().nonArrayType().pairType()
+//                                         .secondType)
+      } else {
+        workingSymTable.put(varName,
+                            new Variable(varName, new Type(ctx.type().nonArrayType().baseType().getText())));
+      }
+    }
+
     //return super.visitInitStat(ctx);
     return null;
   }
