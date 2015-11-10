@@ -8,8 +8,8 @@ public class Function extends NewScope {
   private Type type;
   private List<Variable> params;
 
-  public Function(String name, List<Variable> params,
-                  Dictionary<String, Binding> symbolTable, Type type) {
+  public Function(Type type, String name, List<Variable> params,
+                  Dictionary<String, Binding> symbolTable) {
     super(name, symbolTable);
     this.params = params;
     this.type = type;
