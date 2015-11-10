@@ -1,7 +1,7 @@
 .PHONY: all clean test
 
 all:
-	mvn -q compile
+	mvn -q package
 
 clean:
 	mvn -q clean
