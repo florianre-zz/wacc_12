@@ -105,4 +105,13 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
     return setANewScope(ctx, scopeName);
   }
 
+  @Override
+  public Void visitInitStat(WACCParser.InitStatContext ctx) {
+    workingSymTable.put(ctx.varName.getText(),
+                        new Variable(ctx.varName.getText(),
+                                     new Type(ctx.type().getText())));
+    //return super.visitInitStat(ctx);
+    return null;
+  }
+
 }
