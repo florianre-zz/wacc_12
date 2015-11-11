@@ -8,6 +8,7 @@ import bindings.Variable;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 import wacc.error.DeclarationError;
+import wacc.error.ErrorHandler;
 
 public class WACCCompile {
   public static void main(String[] args) throws Exception {
@@ -36,7 +37,8 @@ public class WACCCompile {
     System.out.println("Symbol Tables: ");
     System.out.println(top);
     System.out.println(((NewScope) top.get("prog")).getSymbolTable());
-    WACCTypeChecker typeChecker = new WACCTypeChecker(top);
+    ErrorHandler errorHandler = new ErrorHandler();
+    WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     DeclarationError error = new DeclarationError();
     error.print();
     System.out.println("====");

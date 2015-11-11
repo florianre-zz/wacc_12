@@ -4,21 +4,20 @@ import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.Binding;
 import bindings.Type;
-import bindings.Variable;
 import org.antlr.v4.runtime.misc.NotNull;
+import wacc.error.ErrorHandler;
 import wacc.error.TypeError;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   private final SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymbTable;
+  private ErrorHandler errorHandler;
 
-  public WACCTypeChecker(SymbolTable<String, Binding> top) {
+  public WACCTypeChecker(SymbolTable<String, Binding> top, ErrorHandler errorHandler) {
     this.top = top;
     this.workingSymbTable = top;
+    this.errorHandler = errorHandler;
   }
 
   // Helper Methods
@@ -109,7 +108,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     Type type = visitType(ctx.type());
     if (type == null) {
       TypeError error = new TypeError();
-      error.print();
+      errorHandler.encounteredError(error);
     }
 
     return type;
@@ -182,11 +181,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   
   @Override
 	public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
-
     visitChildren(ctx);
-
     return null;
-
 	}
 
   @Override
@@ -211,7 +207,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     if (expectedReturnType == null) {
       TypeError error = new TypeError();
-      error.print();
+      errorHandler.encounteredError(error);
     }
 
     for (WACCParser.ParamContext param : ctx.paramList().param()) {
@@ -222,7 +218,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     if (actualReturnType != expectedReturnType) {
       TypeError error = new TypeError();
-      error.print();
+      errorHandler.encounteredError(error);
     }
 
     return expectedReturnType;
