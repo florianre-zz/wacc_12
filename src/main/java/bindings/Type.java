@@ -21,4 +21,28 @@ public class Type extends Binding {
   public int getMax() {
     return max;
   }
+
+  public static boolean isInt(Type type) {
+    return type.getName().equals("INT_T");
+  }
+
+  public static boolean isBool(Type type) {
+    return type.getName().equals("BOOL_T");
+  }
+
+  public static boolean isChar(Type type) {
+    return type.getName().equals("CHAR_T");
+  }
+
+  public static boolean isString(Type type) {
+    return type.getName().equals("STRING_T");
+  }
+
+  public static boolean isArray(Type type) {
+    return type.getName().equals("ARRAY");
+  }
+
+  public static boolean isPair(Type type) {
+    return type.getName().equals("PAIR");
+  }
 }
