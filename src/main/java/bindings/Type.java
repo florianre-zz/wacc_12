@@ -23,19 +23,19 @@ public class Type extends Binding {
   }
 
   public static boolean isInt(Type type) {
-    return type.getName().equals("INT_T");
+    return Types.INT_T.isEqualTo(type.getName());
   }
 
   public static boolean isBool(Type type) {
-    return type.getName().equals("BOOL_T");
+    return Types.BOOL_T.isEqualTo(type.getName());
   }
 
   public static boolean isChar(Type type) {
-    return type.getName().equals("CHAR_T");
+    return Types.CHAR_T.isEqualTo(type.getName());
   }
 
   public static boolean isString(Type type) {
-    return type.getName().equals("STRING_T");
+    return Types.STRING_T.isEqualTo(type.getName());
   }
 
   public static boolean isArray(Type type) {

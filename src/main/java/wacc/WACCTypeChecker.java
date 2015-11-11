@@ -2,10 +2,7 @@ package wacc;
 
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
-import bindings.Binding;
-import bindings.Function;
-import bindings.Type;
-import bindings.Variable;
+import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
@@ -66,9 +63,9 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
 
-    changeWorkingSymbolTableTo(ctx);
-
+    currentScope = (Function) workingSymbTable.lookupAll(ctx.IDENT().getText());
     Type expectedReturnType = currentScope.getType();
+    changeWorkingSymbolTableTo(ctx);
 
     if (expectedReturnType == null) {
       TypeError error = new TypeError(ctx);
@@ -76,7 +73,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     }
 
     visitParamList(ctx.paramList());
-
     visitStatList(ctx.statList());
 
     return expectedReturnType;
@@ -307,7 +303,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       return (Type) top.lookupAll(ctx.CHR().getText());
     }
 
-    return (Type) top.lookupAll("INT_T");
+    return (Type) top.lookupAll(Types.INT_T.toString());
   }
 
   @Override
@@ -318,15 +314,15 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitCharExpr(@NotNull WACCParser.CharExprContext ctx) {
     if (ctx.ORD() != null) {
-      return (Type) top.lookupAll(ctx.ORD().getText());
+      return (Type) top.lookupAll(Types.INT_T.toString());
     }
 
-    return (Type) top.lookupAll("CHAR_T");
+    return (Type) top.lookupAll(Types.CHAR_T.toString());
   }
 
   @Override
   public Type visitStringExpr(@NotNull WACCParser.StringExprContext ctx) {
-    return (Type) top.lookupAll(ctx.STRING().getText());
+    return (Type) top.lookupAll(Types.STRING_T.toString());
   }
 
   @Override
@@ -337,14 +333,14 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitArrayExpr(@NotNull WACCParser.ArrayExprContext ctx) {
     if (ctx.LEN() != null) {
-      return (Type) top.lookupAll("INT_T");
+      return (Type) top.lookupAll(Types.INT_T.toString());
     }
     return visitArrayElem(ctx.arrayElem());
   }
 
   @Override
   public Type visitBoolLitr(@NotNull WACCParser.BoolLitrContext ctx) {
-    return (Type) top.lookupAll("BOOL_T");
+    return (Type) top.lookupAll(Types.BOOL_T.toString());
   }
 
   @Override
@@ -398,10 +394,10 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       return (Type) top.lookupAll("INT_T");
     } else if (ctx.ORD() != null && !Type.isChar(exprType)) {
       IncorrectType(ctx, exprType, "'char'");
-      return (Type) top.lookupAll("INT_T");
+      return (Type) top.lookupAll(Types.INT_T.toString());
     } else if (ctx.CHR() != null && !Type.isInt(exprType)) {
       IncorrectType(ctx, exprType, "'int'");
-      return (Type) top.lookupAll("CHAR_T");
+      return (Type) top.lookupAll(Types.CHAR_T.toString());
     }
 
 		return exprType;
