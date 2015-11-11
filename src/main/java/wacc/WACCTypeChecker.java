@@ -102,6 +102,11 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return type;
   }
 
+  @Override
+  public Type visitMain(@NotNull WACCParser.MainContext ctx) {
+    return visitStatList(ctx.statList());
+  }
+
   // Statements
 
   @Override
