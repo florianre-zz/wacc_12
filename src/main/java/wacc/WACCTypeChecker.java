@@ -200,6 +200,17 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitIfStat(@NotNull WACCParser.IfStatContext ctx) {
+
+    Type predicateType = visitExpr(ctx.expr());
+
+    if (Type.isBool(predicateType)) {
+      errorHandler.complain(
+          new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
+    }
+
+    visitStatList(ctx.thenStat);
+    visitStatList(ctx.elseStat);
+
     return null;
   }
 
