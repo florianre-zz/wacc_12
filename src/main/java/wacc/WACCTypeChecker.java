@@ -3,20 +3,24 @@ package wacc;
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.Binding;
+import bindings.Function;
 import bindings.Type;
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.ErrorHandler;
+import wacc.error.TypeAssignmentError;
 import wacc.error.TypeError;
 
 public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   private final SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymbTable;
+  private Function currentScope;
   private ErrorHandler errorHandler;
 
-  public WACCTypeChecker(SymbolTable<String, Binding> top, ErrorHandler errorHandler) {
-    this.top = top;
-    this.workingSymbTable = top;
+  public WACCTypeChecker(SymbolTable<String, Binding> top,
+                         ErrorHandler errorHandler) {
+    this.top = this.workingSymbTable = top;
     this.errorHandler = errorHandler;
   }
 
@@ -30,8 +34,18 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
+    TypeError error = new TypeError(ctx);
+    errorHandler.encounteredError(error);
+    changeWorkingSymbolTableTo(ctx);
     visitChildren(ctx);
     return null;
+  }
+
+  private void changeWorkingSymbolTableTo(ParserRuleContext ctx) {
+    Function b = (Function) workingSymbTable.lookupAll(ctx.getText());
+    if (b != null) {
+      workingSymbTable = (SymbolTable<String, Binding>) b.getSymbolTable();
+    }
   }
 
   //  Functions
@@ -39,21 +53,18 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
 
-    Type expectedReturnType = getType(ctx.type());
+    changeWorkingSymbolTableTo(ctx);
+
+    Type expectedReturnType = currentScope.getType();
 
     if (expectedReturnType == null) {
-      TypeError error = new TypeError();
+      TypeError error = new TypeError(ctx);
       errorHandler.encounteredError(error);
     }
 
     visitParamList(ctx.paramList());
 
     Type actualReturnType = visitStatList(ctx.statList());
-
-    if (actualReturnType != expectedReturnType) {
-      TypeError error = new TypeError();
-      errorHandler.encounteredError(error);
-    }
 
     return expectedReturnType;
   }
@@ -71,7 +82,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     Type type = visitType(ctx.type());
     if (type == null) {
-      TypeError error = new TypeError();
+      TypeError error = new TypeError(ctx);
       errorHandler.encounteredError(error);
     }
 
@@ -129,7 +140,19 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitReturnStat(@NotNull WACCParser.ReturnStatContext ctx) {
-    return null;
+
+    Type actualReturnType = visitExpr(ctx.expr());
+
+    Type expectedReturnType = currentScope.getType();
+
+    if (actualReturnType != expectedReturnType) {
+      TypeAssignmentError error
+          = new TypeAssignmentError(ctx,
+          actualReturnType.getName(), expectedReturnType.getName());
+      errorHandler.encounteredError(error);
+    }
+
+    return expectedReturnType;
   }
 
   @Override
@@ -234,7 +257,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitType(@NotNull WACCParser.TypeContext ctx) {
-    return (Type) workingSymbTable.lookupAll(ctx.getText());
+    return (Type) top.lookupAll(ctx.getText());
   }
 
   @Override

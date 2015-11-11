@@ -80,51 +80,51 @@ public class WACCTypeCheckerTest {
     assertNull(type);
   }
 
-  @Test
-  public void testVisitFuncPassSameType() {
-    final WACCParser.FuncContext funcCtx
-        = context.mock(WACCParser.FuncContext.class);
-    context.checking(new Expectations() {{
-      oneOf(typeCtx).getText(); will(returnValue(INT_TYPE));
-      oneOf(funcCtx).type().getText(); will(returnValue(typeCtx));
-      oneOf(funcCtx).paramList();
-      oneOf(funcCtx).statList();
-    }});
-
-    Type type = typeChecker.visitFunc(funcCtx);
-    assertNotNull(type);
-    assertThat(type.getName(), is(INT_T));
-  }
-
-  @Test
-  public void testVisitFuncFailDifferentType() {
-    final WACCParser.FuncContext funcCtx
-        = context.mock(WACCParser.FuncContext.class);
-    context.checking(new Expectations() {{
-      oneOf(typeCtx).getText(); will(returnValue(BOOL_TYPE));
-      oneOf(funcCtx).type().getText(); will(returnValue(typeCtx));
-      oneOf(funcCtx).paramList();
-      oneOf(funcCtx).statList();
-    }});
-
-    Type type = typeChecker.visitFunc(funcCtx);
-    assertNotNull(type);
-  }
-
-  @Test
-  public void testVisitFuncFailNull() {
-    final WACCParser.FuncContext funcCtx
-        = context.mock(WACCParser.FuncContext.class);
-    context.checking(new Expectations() {{
-      oneOf(typeCtx).getText(); will(returnValue(INVALID_TYPE));
-      oneOf(funcCtx).type().getText(); will(returnValue(typeCtx));
-      oneOf(funcCtx).paramList();
-      oneOf(funcCtx).statList();
-    }});
-
-    Type type = typeChecker.visitFunc(funcCtx);
-    assertNull(type);
-
-  }
+//  @Test
+//  public void testVisitFuncPassSameType() {
+//    final WACCParser.FuncContext funcCtx
+//        = context.mock(WACCParser.FuncContext.class);
+//    context.checking(new Expectations() {{
+//      oneOf(typeCtx).getText(); will(returnValue(INT_TYPE));
+//      oneOf(funcCtx).type().getText(); will(returnValue(typeCtx));
+//      oneOf(funcCtx).paramList();
+//      oneOf(funcCtx).statList();
+//    }});
+//
+//    Type type = typeChecker.visitFunc(funcCtx);
+//    assertNotNull(type);
+//    assertThat(type.getName(), is(INT_T));
+//  }
+//
+//  @Test
+//  public void testVisitFuncFailDifferentType() {
+//    final WACCParser.FuncContext funcCtx
+//        = context.mock(WACCParser.FuncContext.class);
+//    context.checking(new Expectations() {{
+//      oneOf(typeCtx).getText(); will(returnValue(BOOL_TYPE));
+//      oneOf(funcCtx).type().getText(); will(returnValue(typeCtx));
+//      oneOf(funcCtx).paramList();
+//      oneOf(funcCtx).statList();
+//    }});
+//
+//    Type type = typeChecker.visitFunc(funcCtx);
+//    assertNotNull(type);
+//  }
+//
+//  @Test
+//  public void testVisitFuncFailNull() {
+//    final WACCParser.FuncContext funcCtx
+//        = context.mock(WACCParser.FuncContext.class);
+//    context.checking(new Expectations() {{
+//      oneOf(typeCtx).getText(); will(returnValue(INVALID_TYPE));
+//      oneOf(funcCtx).type().getText(); will(returnValue(typeCtx));
+//      oneOf(funcCtx).paramList();
+//      oneOf(funcCtx).statList();
+//    }});
+//
+//    Type type = typeChecker.visitFunc(funcCtx);
+//    assertNull(type);
+//
+//  }
 
 }
