@@ -37,10 +37,12 @@ public class WACCCompile {
     System.out.println("Symbol Tables: ");
     System.out.println(top);
     System.out.println(((NewScope) top.get("prog")).getSymbolTable());
-    ErrorHandler errorHandler = new ErrorHandler();
+
+    ErrorHandler errorHandler = new ErrorHandler(parser.getInputStream());
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
-    DeclarationError error = new DeclarationError();
-    error.print();
+    typeChecker.visit(tree);
+    System.out.println(errorHandler);
+
     System.out.println("====");
   }
 

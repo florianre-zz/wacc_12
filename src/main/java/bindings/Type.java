@@ -1,7 +1,5 @@
 package bindings;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 public class Type extends Binding {
 
   private Integer min, max;
