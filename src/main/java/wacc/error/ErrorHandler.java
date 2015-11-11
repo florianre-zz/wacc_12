@@ -22,7 +22,7 @@ public class ErrorHandler {
     this.tokenStream = tokenStream;
   }
 
-  public void encounteredError(Error e) {
+  public void complain(Error e) {
     errors.add(e);
   }
 
