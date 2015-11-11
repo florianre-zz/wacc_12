@@ -8,6 +8,7 @@ import bindings.Type;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.ErrorHandler;
+import wacc.error.ReadTypeAssignmentError;
 import wacc.error.TypeAssignmentError;
 import wacc.error.TypeError;
 
@@ -30,12 +31,20 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return (Type) top.lookupAll(ctx.getText());
   }
 
+  private boolean isReadable(Type lhsType) {
+    return Type.isInt(lhsType) || Type.isChar(lhsType);
+  }
+
+  private boolean isFreeable(Type exprType) {
+    return Type.isArray(exprType) || Type.isPair(exprType);
+  }
+
   // Visit Methods
 
   @Override
   public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
     TypeError error = new TypeError(ctx);
-    errorHandler.encounteredError(error);
+    errorHandler.complain(error);
     changeWorkingSymbolTableTo(ctx);
     visitChildren(ctx);
     return null;
@@ -59,12 +68,12 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     if (expectedReturnType == null) {
       TypeError error = new TypeError(ctx);
-      errorHandler.encounteredError(error);
+      errorHandler.complain(error);
     }
 
     visitParamList(ctx.paramList());
 
-    Type actualReturnType = visitStatList(ctx.statList());
+    visitStatList(ctx.statList());
 
     return expectedReturnType;
   }
@@ -83,7 +92,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     Type type = visitType(ctx.type());
     if (type == null) {
       TypeError error = new TypeError(ctx);
-      errorHandler.encounteredError(error);
+      errorHandler.complain(error);
     }
 
     return type;
@@ -115,27 +124,56 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    return null;
+    return getType(ctx.type());
   }
 
   @Override
   public Type visitAssignStat(@NotNull WACCParser.AssignStatContext ctx) {
-    return null;
+    Type lhsType = visitAssignLHS(ctx.assignLHS());
+    Type rhsType = visitAssignRHS(ctx.assignRHS());
+
+    if (!lhsType.equals(rhsType)) {
+      errorHandler.complain(
+          new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
+    }
+
+    return lhsType;
   }
 
   @Override
   public Type visitReadStat(@NotNull WACCParser.ReadStatContext ctx) {
-    return null;
+    Type lhsType = visitAssignLHS(ctx.assignLHS());
+
+    if (!isReadable(lhsType)) {
+      errorHandler.complain(
+          new ReadTypeAssignmentError(ctx, lhsType.getName()));
+    }
+
+    return lhsType;
   }
 
   @Override
   public Type visitFreeStat(@NotNull WACCParser.FreeStatContext ctx) {
-    return null;
+    Type exprType = visitExpr(ctx.expr());
+
+    if (!isFreeable(exprType)) {
+      errorHandler.complain(
+          new ReadTypeAssignmentError(ctx, exprType.getName()));
+    }
+
+    return exprType;
   }
 
   @Override
   public Type visitExitStat(@NotNull WACCParser.ExitStatContext ctx) {
-    return null;
+    Type exprType = visitExpr(ctx.expr());
+
+    if (!Type.isInt(exprType)) { // exit codes are Integers
+      errorHandler.complain(
+          new ReadTypeAssignmentError(ctx, exprType.getName()));
+    }
+
+    return exprType;
   }
 
   @Override
@@ -149,7 +187,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       TypeAssignmentError error
           = new TypeAssignmentError(ctx,
           actualReturnType.getName(), expectedReturnType.getName());
-      errorHandler.encounteredError(error);
+      errorHandler.complain(error);
     }
 
     return expectedReturnType;
