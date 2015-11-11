@@ -5,6 +5,7 @@ import antlr.WACCParserBaseVisitor;
 import bindings.Binding;
 import bindings.Function;
 import bindings.Type;
+import bindings.Variable;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.ErrorHandler;
@@ -28,6 +29,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   // Helper Methods
 
   private Type getType(WACCParser.TypeContext ctx) {
+    // Post: Returns type of binding if entry exists, otherwise returns null
     return (Type) top.lookupAll(ctx.getText());
   }
 
@@ -216,19 +218,41 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitWhileStat(@NotNull WACCParser.WhileStatContext ctx) {
+    Type predicateType = visitExpr(ctx.expr());
+
+    if (Type.isBool(predicateType)) {
+      errorHandler.complain(
+          new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
+    }
+
+    visitStatList(ctx.statList());
+
     return null;
   }
 
   @Override
   public Type visitBeginStat(@NotNull WACCParser.BeginStatContext ctx) {
-    return null;
+    return visitStatList(ctx.statList());
   }
 
   // Statement Helpers
 
   @Override
   public Type visitAssignLHS(@NotNull WACCParser.AssignLHSContext ctx) {
-    return null;
+
+    if (ctx.IDENT() != null) {
+
+      Binding b = workingSymbTable.lookupAll(ctx.getText());
+      if (b instanceof Variable) {
+        return ((Variable) b).getType();
+      }
+      return null;
+    } else if (ctx.arrayElem() != null) {
+      return visitArrayElem(ctx.arrayElem());
+    } else {
+      return visitPairElem(ctx.pairElem());
+    }
+
   }
 
   @Override
