@@ -34,6 +34,15 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return Type.isArray(exprType) || Type.isPair(exprType);
   }
 
+  private void IncorrectType(WACCParser.UnaryOperContext ctx,
+                             Type exprType,
+                             String expectedType) {
+    String actual = exprType != null ? exprType.getName() : "'null'";
+    errorHandler.complain(
+        new TypeAssignmentError(ctx, expectedType, actual)
+    );
+  }
+
   // Visit Methods
 
   @Override
@@ -321,11 +330,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   }
 
   @Override
-  public Type visitIdentExpr(@NotNull WACCParser.IdentExprContext ctx) {
-    return null;
-  }
-
-  @Override
   public Type visitArrayExpr(@NotNull WACCParser.ArrayExprContext ctx) {
     if (ctx.LEN() != null) {
       return (Type) top.lookupAll("INT_T");
@@ -334,13 +338,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   }
 
   @Override
-  public Type visitBracketedExpr(@NotNull WACCParser.BracketedExprContext ctx) {
-    return null;
-  }
-
-  @Override
   public Type visitBoolLitr(@NotNull WACCParser.BoolLitrContext ctx) {
-    return null;
+    return (Type) top.lookupAll("BOOL_T");
   }
 
   @Override
@@ -360,11 +359,47 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return null;
   }
 
+  @Override
+  public Type visitUnaryExpr(@NotNull WACCParser.UnaryExprContext ctx) {
+    return visitUnaryOper(ctx.unaryOper());
+  }
+
   // Operations
 
   @Override
 	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
-		return null;
+
+    Type exprType = null;
+
+    if (ctx.IDENT() != null) {
+      Binding b = workingSymbTable.lookupAll(ctx.IDENT().getText());
+      if (b instanceof Variable) {
+        return ((Variable) b).getType();
+      }
+      errorHandler.complain(
+          new Error(ctx)
+      );
+    } else if (ctx.expr() != null) {
+      exprType = visitExpr(ctx.expr());
+    }
+
+    if (ctx.NOT() != null && !Type.isBool(exprType)) {
+      IncorrectType(ctx, exprType, "'bool'");
+    } else if (ctx.MINUS() != null && !Type.isInt(exprType)) {
+      IncorrectType(ctx, exprType, "'int'");
+    } else if (ctx.LEN() != null && !Type.isArray(exprType)) {
+      IncorrectType(ctx, exprType, "'T[]'");
+      // TODO: be more explicit about array type
+      return (Type) top.lookupAll("INT_T");
+    } else if (ctx.ORD() != null && !Type.isChar(exprType)) {
+      IncorrectType(ctx, exprType, "'char'");
+      return (Type) top.lookupAll("INT_T");
+    } else if (ctx.CHR() != null && !Type.isInt(exprType)) {
+      IncorrectType(ctx, exprType, "'int'");
+      return (Type) top.lookupAll("CHAR_T");
+    }
+
+		return exprType;
 	}
 
   @Override
