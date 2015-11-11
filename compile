@@ -1,6 +1,33 @@
 #!/usr/bin/ruby
-# Ruby front-end for your compiler.
-# You are free to change the language used for this script,
-# but do *not* change its name.
+# require 'optparse'
 
-puts "TODO: setup this script to call your WACC compiler"
+@file = ""
+
+usage = "Usage: ./compile filename.wacc"
+
+# options = {}
+# opts = OptionParser.new do |opts|
+#   opts.banner = usage
+#
+#   opts.on("-d", "--debug") do |d|
+#     options[:debug] = d
+#   end
+#
+#   opts.on_tail("-h", "--help") do |v|
+#     puts opts
+#     exit
+#   end
+# end.parse!
+
+if ARGV[0]
+  @file = "<" + ARGV[0]
+end
+
+def compile()
+  puts "Running WACC Compile"
+  result = `java -cp target/WACC-Compiler-0.2-BETA-jar-with-dependencies.jar wacc.WACCCompile #{@file}`
+  puts result
+  puts "Exited with: #{$?.exitstatus}"
+end
+
+compile()
