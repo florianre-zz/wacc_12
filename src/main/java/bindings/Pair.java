@@ -3,18 +3,16 @@ package bindings;
 
 public class Pair extends Variable {
 
-  private Type fstType;
   private Type sndType;
 
-  public Pair(String name, Type type, Type fstType,
+  public Pair(String name, Type fstType,
               Type sndType) {
-    super(name, type);
-    this.fstType = fstType;
+    super(name, fstType);
     this.sndType = sndType;
   }
 
   public Type getFstType() {
-    return fstType;
+    return super.getType();
   }
 
   public Type getSndType() {
