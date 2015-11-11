@@ -20,7 +20,7 @@ stat: SKIP                                                       # SkipStat
       | PRINT expr                                               # PrintStat
       | PRINTLN expr                                             # PrintStat
       | IF expr THEN thenStat=statList ELSE elseStat=statList FI # IfStat
-      | WHILE expr DO statList DONE                              # WhileStat
+      | WHILE expr DO staittList DONE                              # WhileStat
       | BEGIN statList END                                       # BeginStat
       ;
 assignLHS: IDENT | arrayElem | pairElem;

@@ -26,7 +26,7 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
   // Helper Methods
 
   private Type getType(WACCParser.TypeContext ctx) {
-    return (Type) top.lookupAll(ctx.getText());
+    return (Type) top.get(ctx.getText());
   }
 
   private void goUpWorkingSymTable() {
@@ -57,6 +57,29 @@ public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
         = new Function((Type) top.lookupAll("int"), s, params, symTable);
     workingSymTable.put(s, function);
     return fillNewSymbolTable(ctx, symTable);
+  }
+
+  private Array getArrayType(WACCParser.ArrayTypeContext ctx) {
+    Array arrayType;
+    if () {
+      int arrayDimensionality = ctx.OPEN_BRACKET().size();
+      Type arrayElemsType;
+      if (ctx.nonArrayType().baseType() != null) {
+        arrayElemsType = (Type) top.get(ctx.nonArrayType().baseType().getText());
+      } else {
+        arrayElemsType = getPairType(ctx.nonArrayType().pairType());
+      }
+      arrayType = new Array(arrayElemsType.getName(), arrayElemsType,
+                                  arrayDimensionality);
+    } else {
+
+    }
+    return arrayType;
+  }
+
+  private Pair getPairType(WACCParser.PairTypeContext ctx) {
+
+    return null;
   }
 
   // Visit Functions
