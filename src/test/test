@@ -1,0 +1,25 @@
+#!/usr/bin/ruby
+require 'find'
+require 'shellwords'
+
+errFile = "errors.log"
+
+open(errFile, 'w') { |f| f.puts "" }
+testFolder = "#{Dir.pwd}/src/test/resources/examples/valid"
+testFiles = []
+Find.find(testFolder) do |path|
+  testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+end
+puts "Starting tests..."
+trees = []
+numTests = testFiles.length
+i = 1
+testFiles.each do |test|
+  print "Running Test: #{i}/#{numTests}\r"
+  open(errFile, 'a') { |f| f.puts "Running Test: #{File.basename test}" }
+  trees << `./grun -tree #{test[/src.*/]} 2>>errors.log`
+  open(errFile, 'a') { |f| f.puts "\n" }
+  i += 1
+end
+puts "\n"
+puts "Finished tests..."
