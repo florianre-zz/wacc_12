@@ -26,11 +26,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   // Helper Methods
 
-  private Type getType(WACCParser.TypeContext ctx) {
-    // Post: Returns type of binding if entry exists, otherwise returns null
-    return (Type) top.lookupAll(ctx.getText());
-  }
-
   private boolean isReadable(Type lhsType) {
     return Type.isInt(lhsType) || Type.isChar(lhsType);
   }
@@ -124,7 +119,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    return getType(ctx.type());
+    return visitType(ctx.type());
   }
 
   @Override
@@ -282,8 +277,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
 	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
 
-
-
 		return null;
 	}
 
@@ -296,7 +289,11 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitIntExpr(@NotNull WACCParser.IntExprContext ctx) {
-    return null;
+    if (ctx.CHR() != null) {
+      return (Type) top.lookupAll(ctx.CHR().getText());
+    }
+
+    return (Type) top.lookupAll("INT_T");
   }
 
   @Override
@@ -306,17 +303,21 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitCharExpr(@NotNull WACCParser.CharExprContext ctx) {
-    return null;
+    if (ctx.ORD() != null) {
+      return (Type) top.lookupAll(ctx.ORD().getText());
+    }
+
+    return (Type) top.lookupAll("CHAR_T");
   }
 
   @Override
   public Type visitStringExpr(@NotNull WACCParser.StringExprContext ctx) {
-    return null;
+    return (Type) top.lookupAll(ctx.STRING().getText());
   }
 
   @Override
   public Type visitPairExpr(@NotNull WACCParser.PairExprContext ctx) {
-    return null;
+    return visitPairLitr(ctx.pairLitr());
   }
 
   @Override
@@ -326,12 +327,10 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitArrayExpr(@NotNull WACCParser.ArrayExprContext ctx) {
-    return null;
-  }
-
-  @Override
-  public Type visitBinaryExpr(@NotNull WACCParser.BinaryExprContext ctx) {
-    return null;
+    if (ctx.LEN() != null) {
+      return (Type) top.lookupAll("INT_T");
+    }
+    return visitArrayElem(ctx.arrayElem());
   }
 
   @Override
