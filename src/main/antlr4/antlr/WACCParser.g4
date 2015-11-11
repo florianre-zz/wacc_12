@@ -37,15 +37,15 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr: (CHR)? (sign)? INTEGER
-      | (NOT)? boolLitr
-      | (ORD)? CHARACTER
-      | STRING //Length?
-      | pairLitr
-      | (unaryOper)? IDENT
-      | (LEN)? arrayElem
-      | e1=expr binaryOper e2=expr
-      | (unaryOper)? OPEN_PARENTHESIS expr CLOSE_PARENTHESIS
+expr: (CHR)? (sign)? INTEGER                                  # intExpr
+      | (NOT)? boolLitr                                       # boolExpr
+      | (ORD)? CHARACTER                                      # charExpr
+      | STRING                                                # stringExpr
+      | pairLitr                                              # pairExpr
+      | (unaryOper)? IDENT                                    # identExpr
+      | (LEN)? arrayElem                                      # arrayExpr
+      | e1=expr binaryOper e2=expr                            # binaryExpr
+      | (unaryOper)? OPEN_PARENTHESIS expr CLOSE_PARENTHESIS  # bracketedExpr
       ;
 sign: MINUS | PLUS;
 unaryOper: NOT | MINUS | LEN | ORD | CHR;
