@@ -2,11 +2,11 @@ package wacc.error;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-public abstract class Error {
+public class Error {
 
   private final ParserRuleContext ctx;
 
-  protected Error(ParserRuleContext ctx) {
+  public Error(ParserRuleContext ctx) {
     this.ctx = ctx;
   }
 
