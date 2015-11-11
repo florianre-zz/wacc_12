@@ -8,10 +8,8 @@ import bindings.Type;
 import bindings.Variable;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
-import wacc.error.ErrorHandler;
-import wacc.error.ReadTypeAssignmentError;
-import wacc.error.TypeAssignmentError;
-import wacc.error.TypeError;
+import wacc.error.*;
+import wacc.error.Error;
 
 public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
@@ -246,6 +244,11 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       if (b instanceof Variable) {
         return ((Variable) b).getType();
       }
+
+      errorHandler.complain(
+          new Error(ctx)
+      );
+
       return null;
     } else if (ctx.arrayElem() != null) {
       return visitArrayElem(ctx.arrayElem());
@@ -257,16 +260,30 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitAssignRHS(@NotNull WACCParser.AssignRHSContext ctx) {
+
+    if (ctx.expr() != null) {
+      return visitExpr(ctx.expr(0));
+    } else if (ctx.arrayLitr() != null) {
+      return visitArrayLitr(ctx.arrayLitr());
+    }
+
     return null;
   }
 
   @Override
   public Type visitArrayLitr(@NotNull WACCParser.ArrayLitrContext ctx) {
+
+  /* TODO:| Come back to this when Florian has worked out how to deal with
+     TODO:| array types */
+
     return null;
   }
 
   @Override
 	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
+
+
+
 		return null;
 	}
 
@@ -274,6 +291,51 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitExpr(@NotNull WACCParser.ExprContext ctx) {
+    return visitChildren(ctx);
+  }
+
+  @Override
+  public Type visitIntExpr(@NotNull WACCParser.IntExprContext ctx) {
+    return null;
+  }
+
+  @Override
+  public Type visitBoolExpr(@NotNull WACCParser.BoolExprContext ctx) {
+    return visitBoolLitr(ctx.boolLitr());
+  }
+
+  @Override
+  public Type visitCharExpr(@NotNull WACCParser.CharExprContext ctx) {
+    return null;
+  }
+
+  @Override
+  public Type visitStringExpr(@NotNull WACCParser.StringExprContext ctx) {
+    return null;
+  }
+
+  @Override
+  public Type visitPairExpr(@NotNull WACCParser.PairExprContext ctx) {
+    return null;
+  }
+
+  @Override
+  public Type visitIdentExpr(@NotNull WACCParser.IdentExprContext ctx) {
+    return null;
+  }
+
+  @Override
+  public Type visitArrayExpr(@NotNull WACCParser.ArrayExprContext ctx) {
+    return null;
+  }
+
+  @Override
+  public Type visitBinaryExpr(@NotNull WACCParser.BinaryExprContext ctx) {
+    return null;
+  }
+
+  @Override
+  public Type visitBracketedExpr(@NotNull WACCParser.BracketedExprContext ctx) {
     return null;
   }
 
@@ -333,36 +395,5 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return (Type) top.lookupAll(ctx.getText());
   }
 
-  @Override
-  public Type visitArrayType(@NotNull WACCParser.ArrayTypeContext ctx) {
-    return null;
-  }
-
-  @Override
-  public Type visitNonArrayType(@NotNull WACCParser.NonArrayTypeContext ctx) {
-    return null;
-  }
-
-  @Override
-  public Type visitBaseType(@NotNull WACCParser.BaseTypeContext ctx) {
-    return null;
-  }
-
-  @Override
-  public Type visitPairType(@NotNull WACCParser.PairTypeContext ctx) {
-    return null;
-  }
-
-  @Override
-  public Type visitPairElemType(@NotNull WACCParser.PairElemTypeContext ctx) {
-    return null;
-  }
-
-  // Other
-
-  @Override
-	public Type visitSign(@NotNull WACCParser.SignContext ctx) {
-		return null;
-	}
 
 }

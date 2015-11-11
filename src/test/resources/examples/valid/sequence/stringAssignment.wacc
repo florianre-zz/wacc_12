@@ -7,5 +7,5 @@
 
 begin
   string s = "foo" ;
-  s = "bar"
+  s = "bar" 
 end
