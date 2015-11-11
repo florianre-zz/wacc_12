@@ -43,12 +43,11 @@ atom: (CHR)? (sign)? INTEGER                                  # intExpr
       | (ORD)? CHARACTER                                      # charExpr
       | STRING                                                # stringExpr
       | pairLitr                                              # pairExpr
-      | (unaryOper)? IDENT                                    # identExpr
+      | unaryOper                                             # unaryExpr
       | (LEN)? arrayElem                                      # arrayExpr
-      | (unaryOper)? OPEN_PARENTHESIS expr CLOSE_PARENTHESIS  # bracketedExpr
       ;
 sign: MINUS | PLUS;
-unaryOper: NOT | MINUS | LEN | ORD | CHR;
+unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (IDENT | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
 binaryOper: logicalOper*;
 arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
 comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)*;
