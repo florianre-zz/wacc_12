@@ -30,20 +30,20 @@ public class TypeTest {
     assertThat(intType.toString(), is("string"));
   }
 
-  @Test
-  public void testBaseArrayType() {
-    Type baseType = new Type(Types.INT_T.toString());
-    ArrayType arrayType = new ArrayType(baseType);
-    assertThat(arrayType.toString(), is("int[]"));
-  }
+//  @Test
+//  public void testBaseArrayType() {
+//    Type baseType = new Type(Types.INT_T.toString());
+//    ArrayType arrayType = new ArrayType(baseType);
+//    assertThat(arrayType.toString(), is("int[]"));
+//  }
 
-  @Test
-  public void testMultiArrayType() {
-    Type baseType = new Type(Types.INT_T.toString());
-    ArrayType innerArray = new ArrayType(baseType);
-    ArrayType outerArray = new ArrayType(innerArray);
-    assertThat(outerArray.toString(), is("int[][]"));
-  }
+//  @Test
+//  public void testMultiArrayType() {
+//    Type baseType = new Type(Types.INT_T.toString());
+//    ArrayType innerArray = new ArrayType(baseType);
+//    ArrayType outerArray = new ArrayType(innerArray);
+//    assertThat(outerArray.toString(), is("int[][]"));
+//  }
 
   @Test
   public void testPairType() {
@@ -56,8 +56,9 @@ public class TypeTest {
   @Test
   public void testPairLitrPairType() {
     Type pairLitr = new Type(Types.PAIR_T.toString());
-    PairType pairType = new PairType(pairLitr, pairLitr);
-    assertThat(pairType.toString(), is("pair(pair, pair)"));
+    Type baseType = new Type(Types.INT_T.toString());
+    PairType pairType = new PairType(baseType, pairLitr);
+    assertThat(pairType.toString(), is("pair(int, pair)"));
   }
 
   @Test
@@ -73,29 +74,29 @@ public class TypeTest {
     PairType outerPair
         = new PairType(fstInnerPair, sndInnerPair);
 
-    String type = "pair(pair(int, string), pair(string, int))";
+    String type = "pair(pair, pair)";
     assertThat(outerPair.toString(), is(type));
   }
 
-  @Test
-  public void testPairOfArrays() {
-    Type fstBaseType = new Type(Types.INT_T.toString());
-    Type sndBaseType = new Type(Types.CHAR_T.toString());
-    ArrayType fstArrayType = new ArrayType(fstBaseType);
-    ArrayType sndArrayType = new ArrayType(sndBaseType);
-    PairType pairType = new PairType(fstArrayType, sndArrayType);
-    String type = "pair(int[], char[])";
-    assertThat(pairType.toString(), is(type));
-  }
+//  @Test
+//  public void testPairOfArrays() {
+//    Type fstBaseType = new Type(Types.INT_T.toString());
+//    Type sndBaseType = new Type(Types.CHAR_T.toString());
+//    ArrayType fstArrayType = new ArrayType(fstBaseType);
+//    ArrayType sndArrayType = new ArrayType(sndBaseType);
+//    PairType pairType = new PairType(fstArrayType, sndArrayType);
+//    String type = "pair(int[], char[])";
+//    assertThat(pairType.toString(), is(type));
+//  }
 
-  @Test
-  public void testArrayOfPairs() {
-    Type fstBaseType = new Type(Types.INT_T.toString());
-    Type sndBaseType = new Type(Types.CHAR_T.toString());
-    PairType pairType = new PairType(fstBaseType, sndBaseType);
-    ArrayType arrayType = new ArrayType(pairType);
-    String type = "pair(int, char)[]";
-    assertThat(arrayType.toString(), is(type));
-  }
+//  @Test
+//  public void testArrayOfPairs() {
+//    Type fstBaseType = new Type(Types.INT_T.toString());
+//    Type sndBaseType = new Type(Types.CHAR_T.toString());
+//    PairType pairType = new PairType(fstBaseType, sndBaseType);
+//    ArrayType arrayType = new ArrayType(pairType);
+//    String type = "pair(int, char)[]";
+//    assertThat(arrayType.toString(), is(type));
+//  }
 
 }
