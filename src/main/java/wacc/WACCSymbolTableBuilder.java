@@ -24,18 +24,27 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   }
 
   // Helper Methods
-
+  
+  // Returns a Type object for the given context 
   private Type getType(WACCParser.TypeContext ctx) {
     return (Type) top.lookupAll(ctx.getText());
   }
-
+  
+  /* Sets the working symbol table to the parent of the working 
+   * symbol table 
+   */
   private void goUpWorkingSymTable() {
     SymbolTable<String, Binding> enclosingST = workingSymTable.getEnclosingST();
     if (enclosingST != null) {
       setWorkingSymTable(enclosingST);
     }
   }
-
+ 
+  /* Given a context which requires a new scope, its symbol table is filled 
+   * with all relevant elements of its children
+   * Once all elements are added, the working symbol table is reset to its 
+   * value before method call 
+   */
   private Void fillNewSymbolTable(ParserRuleContext ctx,
                                   SymbolTable<String, Binding> symTab) {
     setWorkingSymTable(symTab);
@@ -44,28 +53,50 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
+  /* Creates a new symbol table and binding for a context which requires a 
+   * new scope  
+   */
   private Void setANewScope(ParserRuleContext ctx, String scopeName) {
     SymbolTable<String, Binding> symTab = new SymbolTable<>(workingSymTable);
     workingSymTable.put(scopeName, new NewScope(scopeName, symTab));
     return fillNewSymbolTable(ctx, symTab);
   }
 
-  private Void createFunc(ParserRuleContext ctx, String s,
-                          List<Variable> params) {
+  /* Creates a new function binding which is stored in the working 
+   * symbol table
+   * Creates associated symbol table for function and calls for it to be filled 
+   */
+  // TODO: change "int"
+  private Void createFunc(WACCParser.FuncContext ctx, List<Variable> params) {
     SymbolTable<String, Binding> symTable = new SymbolTable<>(workingSymTable);
+    String funcName = ctx.funcName.getText();
     Function function
-        = new Function((Type) top.lookupAll("int"), s, params, symTable);
-    workingSymTable.put(s, function);
+        = new Function((Type) top.lookupAll("int"), funcName, params, symTable);
+    workingSymTable.put(funcName, function);
     return fillNewSymbolTable(ctx, symTable);
   }
 
   // Visit Functions
 
+  // Calls for a new scope to be created for the program
   @Override
-  public Void visitMain(WACCParser.MainContext ctx) {
-    return createFunc(ctx, "0main", new ArrayList<Variable>());
+  public Void visitProg(WACCParser.ProgContext ctx) {
+    return setANewScope(ctx, "prog");
   }
 
+  //TODO: Change main to NewScope()
+  // Creates a new scope for the body of the program 
+  @Override
+  public Void visitMain(WACCParser.MainContext ctx) {
+    return null; //createFunc(ctx, new ArrayList<Variable>());
+  }
+
+  /* Finds the information about a function definition and calls for a new 
+   * scope to be created 
+   */
+  // TODO: consider collapsing private helper method
+  // TODO: visit paramList first
+  // TODO: then visit statList
   @Override
   public Void visitFunc(WACCParser.FuncContext ctx) {
     List<? extends WACCParser.ParamContext> paramContexts
@@ -79,32 +110,45 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
       funcParams.add(param);
     }
 
-    return createFunc(ctx, ctx.funcName.getText(), funcParams);
-  }
+    return createFunc(ctx, funcParams);
 
-  @Override
-  public Void visitProg(WACCParser.ProgContext ctx) {
-    return setANewScope(ctx, "prog");
   }
-
+  
+  /* Calls for a new scope to be created for every new BEGIN - END
+   * Each begin scope is given a unique name using a counter
+   */
   @Override
   public Void visitBeginStat(WACCParser.BeginStatContext ctx) {
     String scopeName = "begin" + ++beginCount;
     return setANewScope(ctx, scopeName);
   }
 
+  /* Calls for a new scope to be created for every new if statement
+   * Each if scope is given a unique name using a counter
+   */
+  // TODO: create separate scopes for the then and else statements
   @Override
   public Void visitIfStat(WACCParser.IfStatContext ctx) {
     String scopeName = "if" + ++ifCount;
     return setANewScope(ctx, scopeName);
   }
 
+  /* Calls for a new scope to be created for every new while loop
+   * Each while is given a unique name using a counter
+   */
   @Override
   public Void visitWhileStat(WACCParser.WhileStatContext ctx) {
     String scopeName = "while" + ++whileCount;
     return setANewScope(ctx, scopeName);
   }
 
+  /* Adds a newly initialised variable to the working symbol table
+   * The variable is checked so that it is not declared twice in the same scope
+   * and has at least been declared in an ancestor scope
+   * If the RHS includes functions or variables, these also have to be
+   * checked for existence
+   */
+  // TODO: check RHS identifiers exist
   @Override
   public Void visitInitStat(WACCParser.InitStatContext ctx) {
     String varName = ctx.varName.getText();
@@ -134,4 +178,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
+  // TODO: write visitIdent()
+  // TODO: write visitParamList()
+  // TODO: write visitStatList() IF NECESSARY (i.e. for order)
+  // TODO: check with Elliot on atom identifiers
 }
