@@ -24,6 +24,9 @@ stat: SKIP                                                       # SkipStat
       | BEGIN statList END                                       # BeginStat
       ;
 assignLHS: IDENT | arrayElem | pairElem;
+/*
+  TODO: add labels
+*/
 assignRHS: expr
       | arrayLitr
       | NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS
