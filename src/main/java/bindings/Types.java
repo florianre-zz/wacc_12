@@ -2,10 +2,11 @@ package bindings;
 
 public enum Types {
 
-  INT_T("INT_T"),
-  BOOL_T("BOOL_T"),
-  CHAR_T("CHAR_T"),
-  STRING_T("STRING_T");
+  INT_T("int"),
+  BOOL_T("bool"),
+  CHAR_T("char"),
+  STRING_T("string"),
+  PAIR_T("pair");
 
   private final String name;
 

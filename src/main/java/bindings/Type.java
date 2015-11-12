@@ -38,11 +38,8 @@ public class Type extends Binding {
     return Types.STRING_T.isEqualTo(type.getName());
   }
 
-  public static boolean isArray(Type type) {
-    return type.getName().equals("ARRAY");
-  }
-
-  public static boolean isPair(Type type) {
-    return type.getName().equals("PAIR");
+  @Override
+  public String toString() {
+    return getName();
   }
 }

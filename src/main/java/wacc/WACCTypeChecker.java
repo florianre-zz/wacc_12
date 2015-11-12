@@ -28,7 +28,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   }
 
   private boolean isFreeable(Type exprType) {
-    return Type.isArray(exprType) || Type.isPair(exprType);
+    return ArrayType.isArray(exprType) || PairType.isPair(exprType);
   }
 
   private void IncorrectType(WACCParser.UnaryOperContext ctx,
@@ -208,7 +208,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     Type predicateType = visitExpr(ctx.expr());
 
-    if (Type.isBool(predicateType)) {
+    if (!Type.isBool(predicateType)) {
       errorHandler.complain(
           new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
     }
@@ -388,7 +388,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       IncorrectType(ctx, exprType, "'bool'");
     } else if (ctx.MINUS() != null && !Type.isInt(exprType)) {
       IncorrectType(ctx, exprType, "'int'");
-    } else if (ctx.LEN() != null && !Type.isArray(exprType)) {
+    } else if (ctx.LEN() != null && !ArrayType.isArray(exprType)) {
       IncorrectType(ctx, exprType, "'T[]'");
       // TODO: be more explicit about array type
       return (Type) top.lookupAll("INT_T");
