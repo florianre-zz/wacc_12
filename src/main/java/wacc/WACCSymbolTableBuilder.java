@@ -58,8 +58,52 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
+  /* Creates a new symbol table and binding for a context which requires a
+   * new scope
+   */
+  private Void setANewScope(ParserRuleContext ctx, String scopeName) {
+    if (ctx instanceof WACCParser.IfStatContext) {
+      return setIfStatScope((WACCParser.IfStatContext) ctx);
+    }
+
+    SymbolTable<String, Binding> newScopeSymTab = new SymbolTable<>(workingSymTable);
+    NewScope newScope;
+
+    // Dealing with prog
+    if (ctx instanceof WACCParser.ProgContext) {
+      newScope = storeFunctionNames((WACCParser.ProgContext) ctx, scopeName,
+                                    newScopeSymTab);
+
+
+    // Dealing with function
+    } else if (ctx instanceof WACCParser.FuncContext) {
+      newScope = getFuncScope((WACCParser.FuncContext) ctx, newScopeSymTab);
+
+    // Dealing with other scopes
+    } else {
+      newScope = new NewScope(scopeName, newScopeSymTab);
+    }
+
+    workingSymTable.put(scopeName, newScope);
+
+    WACCParser.StatListContext statListContext = getStatListContext(ctx);
+
+    return fillNewSymbolTable(statListContext, newScopeSymTab);
+  }
+
+  //Store names of functions in prog (if any) in thw working symbol table
+  private NewScope storeFunctionNames(WACCParser.ProgContext ctx,
+                                      String scopeName,
+                                      SymbolTable<String, Binding> symTable) {
+    List<? extends WACCParser.FuncContext> progFuncContexts = ctx.func();
+    for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
+      workingSymTable.put(progFuncContext.funcName.getText(), null);
+    }
+    return new NewScope(scopeName, symTable);
+  }
+
   /* Create a function scope
-   * Puts all the function's params in its symbol table and stores them in as a
+   * Put all the function's params in its symbol table and stores them in as a
    * List in the Function that is returned
    */
   private NewScope getFuncScope(WACCParser.FuncContext funcContext,
@@ -89,36 +133,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
                         newScopeSymTab);
   }
 
-  /* Creates a new symbol table and binding for a context which requires a
-   * new scope
-   */
-  private Void setANewScope(ParserRuleContext ctx, String scopeName) {
-
-    if (ctx instanceof WACCParser.IfStatContext) {
-      return setIfStatScopes((WACCParser.IfStatContext) ctx);
-    }
-    SymbolTable<String, Binding> newScopeSymTab = new SymbolTable<>(workingSymTable);
-    NewScope newScope;
-
-    // Dealing with function
-    if (ctx instanceof WACCParser.FuncContext) {
-      newScope = getFuncScope((WACCParser.FuncContext) ctx, newScopeSymTab);
-
-
-      // Dealing with other scopes
-    } else {
-      newScope = new NewScope(scopeName, newScopeSymTab);
-    }
-
-    workingSymTable.put(scopeName, newScope);
-
-    WACCParser.StatListContext statListContext = getStatlistContext(ctx);
-
-    return fillNewSymbolTable(statListContext, newScopeSymTab);
-  }
-
-  // Deals with special case of if statement where 2 scopes are required
-  private Void setIfStatScopes(WACCParser.IfStatContext ctx) {
+  // Deal with special case of if statement where 2 scopes are required
+  private Void setIfStatScope(WACCParser.IfStatContext ctx) {
     setIfBranchScope("0then", ctx.thenStat);
     setIfBranchScope("0else", ctx.elseStat);
     return null;
@@ -137,8 +153,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   /* Given a context with only one statList this statList is returned
    * The if statement case is dealt with in setIfStatScopes()
    */
-  private WACCParser.StatListContext getStatlistContext(ParserRuleContext ctx) {
-
+  private WACCParser.StatListContext getStatListContext(ParserRuleContext ctx) {
     if (ctx instanceof WACCParser.FuncContext) {
       WACCParser.FuncContext funcContext = (WACCParser.FuncContext) ctx;
       return funcContext.statList();
@@ -146,10 +161,12 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
       WACCParser.MainContext mainContext = (WACCParser.MainContext) ctx;
       return mainContext.statList();
     } else if (ctx instanceof WACCParser.BeginStatContext) {
-      WACCParser.BeginStatContext beginContext = (WACCParser.BeginStatContext) ctx;
+      WACCParser.BeginStatContext beginContext
+          = (WACCParser.BeginStatContext) ctx;
       return beginContext.statList();
     } else { // ctx instanceof WACCParser.WhileStatContext
-      WACCParser.WhileStatContext whileContext = (WACCParser.WhileStatContext) ctx;
+      WACCParser.WhileStatContext whileContext
+          = (WACCParser.WhileStatContext) ctx;
       return whileContext.statList();
     }
   }
@@ -249,5 +266,4 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   // TODO: IF & WHILE: stop redeclaration of variables in ancestor scopes
   // TODO: Allow for mutual recursion
   // TODO: Allow funcName and variableName to be the same
-  // TODO: Ask Elliot who checks number of params
 }
