@@ -5,6 +5,7 @@ import antlr.WACCParser;
 import bindings.Binding;
 import bindings.NewScope;
 import bindings.Type;
+import bindings.Types;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -47,13 +48,12 @@ public class WACCCompile {
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
-    // TODO: replace with Types enum
     SymbolTable<String, Binding> top = new SymbolTable<>();
-    top.put("int", new Type("INT_T", Integer.MIN_VALUE, Integer.MAX_VALUE));
-    top.put("bool", new Type("BOOL_T", 0, 1));
-    top.put("char", new Type("CHAR_T", 0, 255));
-    top.put("string", new Type("STRING_T"));
-    top.put("pair", new Type("PAIR"));
+    top.put("int", new Type(Types.INT_T, Integer.MIN_VALUE, Integer.MAX_VALUE));
+    top.put("bool", new Type(Types.BOOL_T, 0, 1));
+    top.put("char", new Type(Types.CHAR_T, 0, 255));
+    top.put("string", new Type(Types.STRING_T));
+    top.put("pair", new Type(Types.PAIR_T));
     return top;
   }
 
