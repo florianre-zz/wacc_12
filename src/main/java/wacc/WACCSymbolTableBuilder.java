@@ -8,13 +8,13 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WACCBuildSTVisitor extends WACCParserBaseVisitor<Void> {
+public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
   private SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymTable;
   private int ifCount, whileCount, beginCount;
 
-  public WACCBuildSTVisitor(SymbolTable<String, Binding> top) {
+  public WACCSymbolTableBuilder(SymbolTable<String, Binding> top) {
     this.top = this.workingSymTable = top;
     ifCount = whileCount =  beginCount = 0;
   }

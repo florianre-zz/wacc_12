@@ -7,9 +7,9 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Rule;
 import org.junit.Test;
 import wacc.SymbolTable;
-import wacc.WACCBuildSTVisitor;
+import wacc.WACCSymbolTableBuilder;
 
-public class WACCBuildSTVisitorTest {
+public class WACCSymbolTableBuilderTest {
 
   @Rule
   public JUnitRuleMockery context = new JUnitRuleMockery() {{
@@ -18,7 +18,7 @@ public class WACCBuildSTVisitorTest {
 
   @SuppressWarnings("unchecked")
   SymbolTable<String, Binding> top = context.mock(SymbolTable.class);
-  WACCBuildSTVisitor buildSTVisitor = new WACCBuildSTVisitor(top);
+  WACCSymbolTableBuilder buildSTVisitor = new WACCSymbolTableBuilder(top);
 
   @Test
   public void visitProgAddsNewProgramSymbolTableToTop()
