@@ -155,8 +155,10 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * If the RHS includes functions or variables, these also have to be
    * checked for existence
    */
+  // TODO: check if while or if to deal with declaration
   // TODO: check RHS identifiers exist
   // TODO: visit RHS before LHS (avoid int a = a)
+  // TODO: boolean startsWith(String prefix)
   @Override
   public Void visitInitStat(WACCParser.InitStatContext ctx) {
     String varName = ctx.varName.getText();
@@ -186,6 +188,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
+  // TODO: name ifs and while "0with"/"0if"
   // TODO: write visitIdent()
   // TODO: write visitParamList()
   // TODO: write visitStatList() IF NECESSARY (i.e. for order)
