@@ -18,22 +18,4 @@ public class ArrayType extends Type {
     return type.toString() + "[]";
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
-
-    ArrayType arrayType = (ArrayType) o;
-
-    return type == arrayType.type;
-
-  }
-
-  @Override
-  public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + type.hashCode();
-    return result;
-  }
 }

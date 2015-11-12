@@ -24,12 +24,15 @@ public class Binding {
 
     Binding binding = (Binding) o;
 
-    return !(name != null ? !name.equals(binding.name) : binding.name != null);
-
+    if (this.toString() != null) {
+      return this.toString().equals(binding.toString());
+    } else {
+      return binding.toString() == null;
+    }
   }
 
   @Override
   public int hashCode() {
-    return name != null ? name.hashCode() : 0;
+    return this.toString() != null ? this.toString().hashCode() : 0;
   }
 }
