@@ -52,7 +52,7 @@ binaryOper: logicalOper*;
 arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
 comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)*;
 logicalOper: comparisonOper ((AND | OR) comparisonOper)*;
-pairElem: FST expr | SND expr;
+pairElem: (FST | SND) IDENT;
 arrayElem: varName=IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
 arrayLitr: OPEN_BRACKET (expr (COMMA expr)*)? CLOSE_BRACKET;
