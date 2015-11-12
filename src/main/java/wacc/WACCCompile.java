@@ -47,6 +47,7 @@ public class WACCCompile {
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
+    // TODO: replace with Types enum
     SymbolTable<String, Binding> top = new SymbolTable<>();
     top.put("int", new Type("INT_T", Integer.MIN_VALUE, Integer.MAX_VALUE));
     top.put("bool", new Type("BOOL_T", 0, 1));

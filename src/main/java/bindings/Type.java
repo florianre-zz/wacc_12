@@ -38,6 +38,8 @@ public class Type extends Binding {
     return Types.STRING_T.isEqualTo(type.getName());
   }
 
+  //TODO: define equals on types
+
   @Override
   public String toString() {
     return getName();
