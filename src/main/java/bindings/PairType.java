@@ -39,4 +39,12 @@ public class PairType extends Type {
     result = 31 * result + snd.hashCode();
     return result;
   }
+
+  public Type getFst() {
+    return fst;
+  }
+
+  public Type getSnd() {
+    return snd;
+  }
 }
