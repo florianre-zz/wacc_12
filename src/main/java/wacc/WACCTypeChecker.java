@@ -12,7 +12,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   private final SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymbTable;
-  private Function currentScope;
+  private Function currentFunction;
   private ErrorHandler errorHandler;
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
@@ -40,31 +40,40 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     );
   }
 
-  // Visit Methods
-
-  @Override
-  public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
-    TypeError error = new TypeError(ctx);
-    errorHandler.complain(error);
-    changeWorkingSymbolTableTo(ctx);
-    visitChildren(ctx);
-    return null;
-  }
-
   private void changeWorkingSymbolTableTo(ParserRuleContext ctx) {
-    Function b = (Function) workingSymbTable.lookupAll(ctx.getText());
+    NewScope b = (NewScope) workingSymbTable.lookupAll(ctx.getText());
     if (b != null) {
       workingSymbTable = (SymbolTable<String, Binding>) b.getSymbolTable();
     }
   }
 
+  // Visit Methods
+  /**
+  * prog: BEGIN func* main END EOF;
+  * change Scope
+  * visit children, to type check children */
+  @Override
+  public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
+    changeWorkingSymbolTableTo(ctx);
+    visitChildren(ctx);
+    return null;
+  }
+
   //  Functions
 
+  /**
+  * func: type funcName ( (paramList)? ) IS body END;
+  * get return type of function
+  * change scope to function
+  * visit Params, to type check
+  * visit body to type check
+  * return type check is deferred */
   @Override
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
 
-    currentScope = (Function) workingSymbTable.lookupAll(ctx.IDENT().getText());
-    Type expectedReturnType = currentScope.getType();
+    String funcName = ctx.funcName.getText();
+    currentFunction = (Function) workingSymbTable.lookupAll(funcName);
+    Type expectedReturnType = currentFunction.getType();
     changeWorkingSymbolTableTo(ctx);
 
     if (expectedReturnType == null) {
@@ -78,6 +87,9 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return expectedReturnType;
   }
 
+  /**
+  * paramList: param (COMMA param)*;
+  * type check each param in the list */
   @Override
   public Type visitParamList(@NotNull WACCParser.ParamListContext ctx) {
     for (WACCParser.ParamContext param : ctx.param()) {
@@ -86,9 +98,13 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return null;
   }
 
+  /**
+  * param: type name;
+  * check type is a valid Type
+  * returns null if not valid */
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
-
+    //TODO: revisit how we get the type
     Type type = visitType(ctx.type());
     if (type == null) {
       TypeError error = new TypeError(ctx);
@@ -98,40 +114,87 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return type;
   }
 
+  /**
+  * main: statList;
+  * change scope to 0main
+  * type check children */
   @Override
   public Type visitMain(@NotNull WACCParser.MainContext ctx) {
+    //TODO: change scope
     return visitStatList(ctx.statList());
   }
 
   // Statements
 
+  /**
+  * statList: stat (SEMICOLON stat)*;
+  * visit each stat in the list */
   @Override
   public Type visitStatList(@NotNull WACCParser.StatListContext ctx) {
-    Type returnType = null;
     for (WACCParser.StatContext stat : ctx.stat()) {
-      Type tmp = visitStat(stat);
-      if (visitStat(stat) != null) {
-        returnType = tmp;
-      }
+      visitStat(stat);
     }
-    return returnType;
+    return null;
   }
 
+  /**
+  * dummy function that defers to child, may be deleted
+  * TODO: delete later */
   @Override
   public Type visitStat(@NotNull WACCParser.StatContext ctx) {
     return visitChildren(ctx);
   }
 
+  /**
+  * SKIP
+  * return null
+  * TODO: delete later*/
   @Override
   public Type visitSkipStat(@NotNull WACCParser.SkipStatContext ctx) {
     return null;
   }
 
+  /**
+  * type varName EQUALS assignRHS
+  * get lhs & rhs types
+  * check that they are equal
+  *  - if it is a pair, check the inner types */
   @Override
   public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    return visitType(ctx.type());
+    Type lhsType = visitType(ctx.type());
+    Type rhsType = visitAssignRHS(ctx.assignRHS());
+
+    if (!lhsType.equals(rhsType)) {
+      errorHandler.complain(
+          new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
+    } else if (PairType.isPair(lhsType)) {
+      Type lhsFstType = ((PairType) lhsType).getFst();
+      Type lhsSndType = ((PairType) lhsType).getSnd();
+
+      Type rhsFstType = ((PairType) rhsType).getFst();
+      Type rhsSndType = ((PairType) rhsType).getSnd();
+
+      if (!lhsFstType.equals(rhsFstType)) {
+        errorHandler.complain(
+            new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
+      }
+
+      if (!lhsSndType.equals(rhsSndType)) {
+        errorHandler.complain(
+            new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
+      }
+
+    }
+
+    return lhsType;
   }
 
+  /**
+  * assignLHS EQUALS assignRHS
+  * get lhs & rhs types
+  * check that they are equal
+  *  - if it is a pair, check the inner types
+  *  TODO: refactor with Init stat */
   @Override
   public Type visitAssignStat(@NotNull WACCParser.AssignStatContext ctx) {
     Type lhsType = visitAssignLHS(ctx.assignLHS());
@@ -145,6 +208,9 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return lhsType;
   }
 
+  /**
+  * READ assignLHS
+  * type check isReadable */
   @Override
   public Type visitReadStat(@NotNull WACCParser.ReadStatContext ctx) {
     Type lhsType = visitAssignLHS(ctx.assignLHS());
@@ -157,6 +223,9 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return lhsType;
   }
 
+  /**
+  * FREE expr
+  * type check isFreeable */
   @Override
   public Type visitFreeStat(@NotNull WACCParser.FreeStatContext ctx) {
     Type exprType = visitExpr(ctx.expr());
@@ -169,6 +238,9 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return exprType;
   }
 
+  /**
+  * EXIT expr
+  * type check: int */
   @Override
   public Type visitExitStat(@NotNull WACCParser.ExitStatContext ctx) {
     Type exprType = visitExpr(ctx.expr());
@@ -181,12 +253,17 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return exprType;
   }
 
+  /**
+  * RETURN expr
+  * get type of expr
+  * get the type of the current (function) scope
+  * check both are equal */
   @Override
   public Type visitReturnStat(@NotNull WACCParser.ReturnStatContext ctx) {
 
     Type actualReturnType = visitExpr(ctx.expr());
 
-    Type expectedReturnType = currentScope.getType();
+    Type expectedReturnType = currentFunction.getType();
 
     if (actualReturnType != expectedReturnType) {
       TypeAssignmentError error
@@ -198,11 +275,25 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return expectedReturnType;
   }
 
+  /**
+  * (PRINT | PRINTLN) expr
+  * no checking to be done
+  * return null
+  * TODO: delete later */
   @Override
   public Type visitPrintStat(@NotNull WACCParser.PrintStatContext ctx) {
     return null;
   }
 
+  /**
+  * IF predicate THEN thenStat ELSE elseStat FI
+  * type check predicate is bool
+  * change scope to thenStat
+  * visit thenStat
+  * reset scope to enclosing table
+  * change scope to elseStat
+  * visit elseStat
+  * reset scope to enclosing table */
   @Override
   public Type visitIfStat(@NotNull WACCParser.IfStatContext ctx) {
 
@@ -213,12 +304,18 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
           new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
     }
 
+    //TODO: changes scopes
     visitStatList(ctx.thenStat);
     visitStatList(ctx.elseStat);
 
     return null;
   }
 
+  /** WHILE expr DO body DONE
+  * type check predicate is bool
+  * change scope to body 
+  * visit body 
+  * reset scope to enclosing table */
   @Override
   public Type visitWhileStat(@NotNull WACCParser.WhileStatContext ctx) {
     Type predicateType = visitExpr(ctx.expr());
@@ -228,18 +325,36 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
           new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
     }
 
+    //TODO: changes scopes
     visitStatList(ctx.statList());
 
     return null;
   }
 
+  /**
+   * BEGIN body END
+   * change scope to body
+   * visit body
+   * reset scope to enclosing table
+   */
   @Override
   public Type visitBeginStat(@NotNull WACCParser.BeginStatContext ctx) {
+    //TODO: changes scopes
     return visitStatList(ctx.statList());
   }
 
   // Statement Helpers
 
+  /**
+   * assignLHS: IDENT | arrayElem | pairElem;
+   * if IDENT
+   *  - lookup binding, check is Variable
+   *  - return type
+   * if arrayElem
+   *  - visit arrayElem to get Type
+   * if pairElem
+   *  - visit pairElem
+   */
   @Override
   public Type visitAssignLHS(@NotNull WACCParser.AssignLHSContext ctx) {
 
@@ -263,6 +378,10 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   }
 
+  /**
+   * visit children
+   * TODO: delete later
+   */
   @Override
   public Type visitAssignRHS(@NotNull WACCParser.AssignRHSContext ctx) {
 
@@ -275,15 +394,20 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return null;
   }
 
+  /**
+   * arrayLitr: [(T, T, T, ...)?];
+   * check all types are the same
+   * else return null
+   */
   @Override
   public Type visitArrayLitr(@NotNull WACCParser.ArrayLitrContext ctx) {
-
-  /* TODO:| Come back to this when Florian has worked out how to deal with
-     TODO:| array types */
-
     return null;
   }
 
+  /**
+   * argList: expr (COMMA expr)*;
+   * TODO: delete? not sure we will use this...
+   */
   @Override
 	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
 
@@ -292,6 +416,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   // Expressions
 
+  /**
+   * */
   @Override
   public Type visitExpr(@NotNull WACCParser.ExprContext ctx) {
     return visitChildren(ctx);
@@ -357,6 +483,27 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitPairElem(@NotNull WACCParser.PairElemContext ctx) {
+    // TODO: revisit parser rule
+    Variable var = (Variable) workingSymbTable.lookupAll(ctx.IDENT().getText());
+
+    Type varType = var.getType();
+
+    if (PairType.isPair(varType)) {
+      PairType pairType = (PairType) varType;
+
+      Type innerPairType = null;
+      if (ctx.FST() != null) {
+        innerPairType = pairType.getFst();
+      } else if (ctx.SND() != null) {
+        innerPairType = pairType.getSnd();
+      }
+
+      return innerPairType;
+    } else {
+      errorHandler.complain(
+          new TypeAssignmentError(ctx, "'pair'", varType.getName()));
+    }
+
     return null;
   }
 
@@ -369,7 +516,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
 	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
-
     Type exprType = null;
 
     if (ctx.IDENT() != null) {
@@ -427,6 +573,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   @Override
   public Type visitType(@NotNull WACCParser.TypeContext ctx) {
+    //TODO: revisit, should we look at the children?
+
     return (Type) top.lookupAll(ctx.getText());
   }
 
