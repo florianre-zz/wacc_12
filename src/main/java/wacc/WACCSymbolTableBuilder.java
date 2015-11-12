@@ -45,6 +45,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * Once all elements are added, the working symbol table is reset to its 
    * value before method call 
    */
+  // TODO: accept StatListContext
   private Void fillNewSymbolTable(ParserRuleContext ctx,
                                   SymbolTable<String, Binding> symTab) {
     setWorkingSymTable(symTab);
@@ -53,18 +54,22 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
-  /* Creates a new symbol table and binding for a context which requires a 
-   * new scope  
+  /* Creates a new symbol table and binding for a context which requires a
+   * new scope
    */
+  // TODO: Create addParamsToSymbolTable()
+  // TODO: Use addParamsToSymbolTable here
   private Void setANewScope(ParserRuleContext ctx, String scopeName) {
     SymbolTable<String, Binding> symTab = new SymbolTable<>(workingSymTable);
+    // if (istanceof Function)
+    // then setANewFunctionScope() -> adding parameters to symbol table
     workingSymTable.put(scopeName, new NewScope(scopeName, symTab));
     return fillNewSymbolTable(ctx, symTab);
   }
 
-  /* Creates a new function binding which is stored in the working 
+  /* Creates a new function binding which is stored in the working
    * symbol table
-   * Creates associated symbol table for function and calls for it to be filled 
+   * Creates associated symbol table for function and calls for it to be filled
    */
   // TODO: change "int"
   private Void createFunc(WACCParser.FuncContext ctx, List<Variable> params) {
@@ -88,7 +93,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   // Creates a new scope for the body of the program 
   @Override
   public Void visitMain(WACCParser.MainContext ctx) {
-    return null; //createFunc(ctx, new ArrayList<Variable>());
+    return setANewScope(ctx, "0main");
+    // ());
   }
 
   /* Finds the information about a function definition and calls for a new 
@@ -136,6 +142,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   /* Calls for a new scope to be created for every new while loop
    * Each while is given a unique name using a counter
    */
+  // TODO: visit expr first then create new scope with statList
   @Override
   public Void visitWhileStat(WACCParser.WhileStatContext ctx) {
     String scopeName = "while" + ++whileCount;
@@ -149,6 +156,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * checked for existence
    */
   // TODO: check RHS identifiers exist
+  // TODO: visit RHS before LHS (avoid int a = a)
   @Override
   public Void visitInitStat(WACCParser.InitStatContext ctx) {
     String varName = ctx.varName.getText();
@@ -163,11 +171,11 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
       }
     } else {
       if (ctx.type().nonArrayType().pairType() != null) {
-//        workingSymTable.put(varName,
-//                            new Pair(varName,
-//                                     new Type(),
-//                                     ctx.type().nonArrayType().pairType()
-//                                         .secondType));
+        //        workingSymTable.put(varName,
+        //                            new Pair(varName,
+        //                                     new Type(),
+        //                                     ctx.type().nonArrayType().pairType()
+        //                                         .secondType));
       } else {
         workingSymTable.put(varName,
                             new Variable(varName, new Type(ctx.type().nonArrayType().baseType().getText())));
@@ -181,5 +189,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   // TODO: write visitIdent()
   // TODO: write visitParamList()
   // TODO: write visitStatList() IF NECESSARY (i.e. for order)
-  // TODO: check with Elliot on atom identifiers
+  // TODO: g4: atom identifiers
+  // TODO: g4: comparisonOper?
+  // TODO: IF & WHILE: stop redeclaration of variables in ancestor scopes
 }
