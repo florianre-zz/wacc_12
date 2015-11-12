@@ -1,13 +1,13 @@
 package wacc;
 
-import antlr.*;
+import antlr.WACCLexer;
+import antlr.WACCParser;
 import bindings.Binding;
 import bindings.NewScope;
 import bindings.Type;
-import bindings.Variable;
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
-import wacc.error.DeclarationError;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
 import wacc.error.ErrorHandler;
 
 public class WACCCompile {
@@ -32,7 +32,7 @@ public class WACCCompile {
     System.out.println("====");
     System.out.println("Visiting...");
     SymbolTable<String, Binding> top = createTopSymbolTable();
-    WACCBuildSTVisitor buildSTVisitor = new WACCBuildSTVisitor(top);
+    WACCSymbolTableBuilder buildSTVisitor = new WACCSymbolTableBuilder(top);
     buildSTVisitor.visit(tree);
     System.out.println("Symbol Tables: ");
     System.out.println(top);
@@ -52,6 +52,7 @@ public class WACCCompile {
     top.put("bool", new Type("BOOL_T", 0, 1));
     top.put("char", new Type("CHAR_T", 0, 255));
     top.put("string", new Type("STRING_T"));
+    top.put("pair", new Type("PAIR"));
     return top;
   }
 

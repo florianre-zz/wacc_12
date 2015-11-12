@@ -20,7 +20,7 @@ stat: SKIP                                                       # SkipStat
       | PRINT expr                                               # PrintStat
       | PRINTLN expr                                             # PrintStat
       | IF expr THEN thenStat=statList ELSE elseStat=statList FI # IfStat
-      | WHILE expr DO staittList DONE                              # WhileStat
+      | WHILE expr DO statList DONE                              # WhileStat
       | BEGIN statList END                                       # BeginStat
       ;
 assignLHS: IDENT | arrayElem | pairElem;
@@ -37,22 +37,21 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr: (CHR)? (sign)? INTEGER                                  # intExpr
+expr: binaryOper;
+atom: (CHR)? (sign)? INTEGER                                  # intExpr
       | (NOT)? boolLitr                                       # boolExpr
       | (ORD)? CHARACTER                                      # charExpr
       | STRING                                                # stringExpr
       | pairLitr                                              # pairExpr
-      | (unaryOper)? IDENT                                    # identExpr
+      | unaryOper                                             # unaryExpr
       | (LEN)? arrayElem                                      # arrayExpr
-      | e1=expr binaryOper e2=expr                            # binaryExpr
-      | (unaryOper)? OPEN_PARENTHESIS expr CLOSE_PARENTHESIS  # bracketedExpr
       ;
 sign: MINUS | PLUS;
-unaryOper: NOT | MINUS | LEN | ORD | CHR;
-binaryOper: arithmeticOper | comparisonOper | logicalOper;
-arithmeticOper: MUL | DIV | MOD | PLUS | MINUS;
-comparisonOper: GT | GTE | LT | LTE | EQ | NE;
-logicalOper: AND | OR;
+unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (IDENT | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
+binaryOper: logicalOper*;
+arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
+comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)*;
+logicalOper: comparisonOper ((AND | OR) comparisonOper)*;
 pairElem: FST expr | SND expr;
 arrayElem: varName=IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
