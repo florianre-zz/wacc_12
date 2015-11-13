@@ -130,8 +130,12 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * type check children */
   @Override
   public Type visitMain(@NotNull WACCParser.MainContext ctx) {
-    //TODO: change scope
-    return visitStatList(ctx.statList());
+    NewScope newScope = (NewScope) workingSymbTable.lookupAll("0main");
+    workingSymbTable
+        = (SymbolTable<String, Binding>) newScope.getSymbolTable();
+    Type type = visitStatList(ctx.statList());
+    workingSymbTable = workingSymbTable.getEnclosingST();
+    return type;
   }
 
   // Statements
@@ -343,7 +347,30 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   }
 
-  // TODO: Implement AssignRHS children
+  /**
+   * NEW_PAIR (first , second)
+   * return pair type that has two subTypes where
+   *  - fst = first.type
+   *  - snd = second.type
+   */
+  @Override
+  public Type visitNewPair(@NotNull WACCParser.NewPairContext ctx) {
+    Type fstType = visitExpr(ctx.first);
+    Type sndType = visitExpr(ctx.second);
+    return new PairType(fstType, sndType);
+  }
+
+  /**
+   * CALL funcName ( (argList)? )
+   * type check each argument
+   * return the functions return type
+   */
+  @Override
+  public Type visitFunctionCall(@NotNull WACCParser.FunctionCallContext ctx) {
+    // TODO: set scope
+    visitArgList(ctx.argList());
+    return getVariableType(ctx.funcName.getText());
+  }
 
   /**
    * arrayLitr: [(T, T, T, ...)?];
@@ -352,17 +379,39 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    */
   @Override
   public Type visitArrayLitr(@NotNull WACCParser.ArrayLitrContext ctx) {
+
+    if (ctx.expr().size() != 0) {
+      Type firstType = visitExpr(ctx.expr(0));
+      for (WACCParser.ExprContext exprCtx : ctx.expr()) {
+        Type currentType = visitExpr(exprCtx);
+        if (!currentType.equals(firstType)) {
+          return null;
+        }
+      }
+      return firstType;
+    }
+
+    // TODO: create null Array...
+
     return null;
   }
 
   /**
    * argList: expr (COMMA expr)*;
-   *
+   * check each expr(s) type with the corresponding type
    */
   @Override
 	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
+    for (int i = 0; i < ctx.expr().size(); i++) {
+      WACCParser.ExprContext exprCtx = ctx.expr(i);
+      Type actualType = visitExpr(exprCtx);
+      Type expectedType = currentFunction.getParams().get(i).getType();
+      if (!actualType.equals(expectedType)) {
+        IncorrectType(exprCtx, actualType, expectedType.toString());
+      }
+    }
 
-		return null;
+    return null;
 	}
 
   // Expressions
@@ -486,26 +535,24 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    */
   @Override
   public Type visitPairElem(@NotNull WACCParser.PairElemContext ctx) {
-    // TODO: revisit parser rule
     Type varType = getVariableType(ctx.IDENT().getText());
+
+    Type returnType = null;
 
     if (PairType.isPair(varType)) {
       PairType pairType = (PairType) varType;
 
-      Type innerPairType = null;
       if (ctx.FST() != null) {
-        innerPairType = pairType.getFst();
+        returnType = pairType.getFst();
       } else if (ctx.SND() != null) {
-        innerPairType = pairType.getSnd();
+        returnType = pairType.getSnd();
       }
-
-      return innerPairType;
     } else {
       errorHandler.complain(
           new TypeAssignmentError(ctx, "'pair'", varType.getName()));
     }
 
-    return null;
+    return returnType;
   }
 
   // Operations
@@ -524,7 +571,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    */
   @Override
   // TODO: when visitIdent is implemented, it should be used to get the type
-  // TODO: shorten! (with a sense of urgency)
+  // TODO: shorten! (with a sense of urgency) - but last!!!
 	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
     Type exprType = null;
 
