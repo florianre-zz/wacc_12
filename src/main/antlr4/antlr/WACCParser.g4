@@ -51,7 +51,7 @@ atom: (CHR)? (sign)? INTEGER                                  # intExpr
       ;
 sign: MINUS | PLUS;
 unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (IDENT | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
-binaryOper: logicalOper*;
+binaryOper: logicalOper;
 arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
 comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)?;
 logicalOper: comparisonOper ((AND | OR) comparisonOper)*;
