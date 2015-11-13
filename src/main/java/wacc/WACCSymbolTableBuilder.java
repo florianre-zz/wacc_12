@@ -11,6 +11,9 @@ import java.util.List;
 
 public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
+  private static final int regularScope = 0;
+  private static final int oneWayScope  = 1;
+
   private SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymTable;
   private int ifCount, whileCount, beginCount;
@@ -70,7 +73,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     }
 
     SymbolTable<String, Binding> newScopeSymTable
-        = new SymbolTable<>(workingSymTable);
+        = new SymbolTable<>(scopeName, workingSymTable);
     NewScope newScope;
     ParserRuleContext contextToVisit;
 
@@ -159,8 +162,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * Deal with special case of if statement where 2 scopes are required
    */
   private Void setIfStatScope(WACCParser.IfStatContext ctx) {
-    setIfBranchScope("0then", ctx.thenStat);
-    setIfBranchScope("0else", ctx.elseStat);
+    setIfBranchScope("then", ctx.thenStat);
+    setIfBranchScope("else", ctx.elseStat);
     return null;
   }
 
@@ -170,9 +173,9 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   private void setIfBranchScope(String name,
                                 WACCParser.StatListContext statList) {
     SymbolTable<String, Binding> symbolTable
-        = new SymbolTable<>(workingSymTable);
+        = new SymbolTable<>(name, workingSymTable);
     NewScope newScope = new NewScope(name + ifCount, symbolTable);
-    workingSymTable.put(name + ifCount, newScope);
+    workingSymTable.put(oneWayScope + name + ifCount, newScope);
     fillNewSymbolTable(statList, symbolTable);
   }
 
@@ -198,6 +201,17 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     }
   }
 
+  /**
+   * Given a symbol table for a particular scope, this returns whether that scope is a one way scope
+   * i.e. if it is a scope within an if statement or a while statement
+   * One way scope names begin with the digit '1'
+   * Regular scopes begin with the digit '0'
+   */
+  private boolean isScopeOneWay(SymbolTable<String, Binding> temp) {
+    return temp.getName().startsWith(oneWayScope);
+  }
+
+
   /************************** Visit Functions ****************************/
 
   /**
@@ -205,7 +219,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitProg(WACCParser.ProgContext ctx) {
-    setANewScope(ctx, "0prog");
+    setANewScope(ctx, regularScope + "prog");
     return visitChildren(ctx);
   }
 
@@ -214,7 +228,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitMain(WACCParser.MainContext ctx) {
-    return setANewScope(ctx, "0main");
+    return setANewScope(ctx, regularScope + "main");
   }
 
   /**
@@ -232,7 +246,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitBeginStat(WACCParser.BeginStatContext ctx) {
-    String scopeName = "0begin" + ++beginCount;
+    String scopeName = regularScope + "begin" + ++beginCount;
     return setANewScope(ctx, scopeName);
   }
 
@@ -253,7 +267,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitWhileStat(WACCParser.WhileStatContext ctx) {
-    String scopeName = "0while" + ++whileCount;
+    String scopeName = oneWayScope + "while" + ++whileCount;
     visitExpr(ctx.expr());
     return setANewScope(ctx, scopeName);
   }
@@ -265,19 +279,26 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * If the RHS includes functions or variables, these also have to be
    * checked for existence
    */
-  // reminder: boolean startsWith(String prefix)
-  // TODO: IF & WHILE: stop redeclaration of variables in ancestor scopes
   @Override
   public Void visitInitStat(WACCParser.InitStatContext ctx) {
     String varName = ctx.ident().IDENT().getText();
     visitAssignRHS(ctx.assignRHS());
-    Binding binding = workingSymTable.get(varName);
+    Binding binding = workingSymTable.put(varName, new Variable(varName, getType(ctx.type())));
 
-    // Variable not declared in current scope
-    if (binding == null || binding instanceof  Function) {
-      workingSymTable.put(varName, new Variable(varName, getType(ctx.type())));
+    // check if exists in current scope
+    // no need to check if function since this can never ba called within the program scope or TOP
+    if (binding != null) {
+      // TODO: ERROR - variable is already declared in current scope
     } else {
-      // TODO: ERROR - variable is already declared
+      SymbolTable<String, Binding> temp = workingSymTable;
+      while (isScopeOneWay(temp)) {
+        temp = temp.getEnclosingST();
+        binding = temp.get(varName);
+        if (binding != null) {
+          // TODO: ERROR - cannot redefine variable in this scope
+          break;
+        }
+      }
     }
     return null;
   }
