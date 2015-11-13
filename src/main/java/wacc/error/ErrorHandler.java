@@ -11,12 +11,6 @@ public class ErrorHandler {
   ArrayList<Error> errors;
   TokenStream tokenStream;
 
-
-//  TODO: Delete this!
-  public ErrorHandler() {
-    this.errors = new ArrayList<>();
-  }
-
   public ErrorHandler(TokenStream tokenStream) {
     this.errors = new ArrayList<>();
     this.tokenStream = tokenStream;

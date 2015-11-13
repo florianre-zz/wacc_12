@@ -23,13 +23,16 @@ stat: SKIP                                                       # SkipStat
       | WHILE expr DO statList DONE                              # WhileStat
       | BEGIN statList END                                       # BeginStat
       ;
+
 assignLHS: ident | arrayElem | pairElem;
-assignRHS: expr
-      | arrayLitr
-      | NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS
-      | pairElem
-      | call
-      ;
+assignRHS:
+  expr                                                           #RHSExpr
+  | arrayLitr                                                    #RHSArray
+  | NEW_PAIR OPEN_PARENTHESIS first=expr
+      COMMA second=expr CLOSE_PARENTHESIS                        #newPair
+  | pairElem                                                     #RHSPairElem
+  | call                                                         #functionCall
+  ;
 call: CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS;
 argList: expr (COMMA expr)*;
 type: nonArrayType | arrayType;
@@ -39,6 +42,29 @@ arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
 expr: binaryOper;
+sign: MINUS | PLUS;
+binaryOper: logicalOper;
+logicalOper: first=comparisonOper ((AND | OR) otherExprs+=comparisonOper)*
+{
+  WACCParser.ComparisonOperContext first;
+  List<WACCParser.ComparisonOperContext> otherExprs = new ArrayList();
+};
+comparisonOper: orderingOper | equalityOper;
+orderingOper: first=arithmeticOper ((GT | GTE | LT | LTE) second=arithmeticOper)?
+{
+  WACCParser.ArithmeticOperContext first;
+  WACCParser.ArithmeticOperContext second;
+};
+equalityOper: first=arithmeticOper ((EQ | NE) second=arithmeticOper)?
+{
+  WACCParser.ArithmeticOperContext first;
+  WACCParser.ArithmeticOperContext second;
+};
+arithmeticOper: first=atom ((MUL | DIV | MOD | PLUS | MINUS) otherExprs+=atom)*
+{
+  WACCParser.AtomContext first;
+  List<WACCParser.AtomContext> otherExprs = new ArrayList();
+};
 atom: (CHR)? (sign)? INTEGER                                  # intExpr
       | (NOT)? boolLitr                                       # boolExpr
       | (ORD)? CHARACTER                                      # charExpr
@@ -47,13 +73,8 @@ atom: (CHR)? (sign)? INTEGER                                  # intExpr
       | unaryOper                                             # unaryExpr
       | (LEN)? arrayElem                                      # arrayExpr
       ;
-sign: MINUS | PLUS;
 unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
-binaryOper: logicalOper*;
-arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
-comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)?;
-logicalOper: comparisonOper ((AND | OR) comparisonOper)*;
-pairElem: FST expr | SND expr;
+pairElem: (FST | SND) ident;
 arrayElem: varName=ident (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
 arrayLitr: OPEN_BRACKET (expr (COMMA expr)*)? CLOSE_BRACKET;

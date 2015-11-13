@@ -5,38 +5,28 @@ public class PairType extends Type {
   private Type fst, snd;
 
   public PairType(Type fst, Type snd) {
-    super(Types.PAIR_T.toString());
+    super(Types.PAIR_T);
     this.fst = fst;
     this.snd = snd;
   }
 
-  public static boolean isPair(Type type) {
-    return type instanceof PairType;
-  }
-
   @Override
   public String toString() {
-    return super.toString() + "(" + fst + ", " + snd + ")";
+
+    String fstString = (fst instanceof PairType ?
+        Types.PAIR_T.toString() : fst.toString());
+
+    String sndString = (snd instanceof PairType ?
+        Types.PAIR_T.toString() : snd.toString());
+
+    return super.toString() + "(" + fstString + ", " + sndString + ")";
   }
 
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
-
-    PairType pairType = (PairType) o;
-
-    return !(!fst.equals(pairType.fst) || !snd.equals(pairType.snd));
-
+  public Type getFst() {
+    return fst;
   }
 
-  @Override
-  public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + fst.hashCode();
-    result = 31 * result + snd.hashCode();
-    return result;
+  public Type getSnd() {
+    return snd;
   }
 }

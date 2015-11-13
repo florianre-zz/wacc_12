@@ -8,8 +8,12 @@ public class Type extends Binding {
     super(name);
   }
 
-  public Type(String name, int min, int max) {
-    this(name);
+  public Type(Types type) {
+    this(type.toString());
+  }
+
+  public Type(Types type, int min, int max) {
+    this(type);
     this.min = min;
     this.max = max;
   }
@@ -36,6 +40,10 @@ public class Type extends Binding {
 
   public static boolean isString(Type type) {
     return Types.STRING_T.isEqualTo(type.getName());
+  }
+
+  public static boolean isPair(Type type) {
+    return Types.PAIR_T.isEqualTo(type.getName());
   }
 
   @Override

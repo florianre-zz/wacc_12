@@ -2,11 +2,28 @@ package bindings;
 
 public class ArrayType extends Type {
 
-  private Type type;
+  private Type base;
+  private int dimensionality;
 
-  public ArrayType(Type type) {
-    super(type.getName());
-    this.type = type;
+  public ArrayType(Type base) {
+    // Created array from type
+    // T -> T[], or T[] -> T[][]
+
+    super(base.getName());
+    this.dimensionality = 1;
+    if (base instanceof ArrayType) {
+      this.dimensionality += ((ArrayType) base).getDimensionality();
+      this.base = ((ArrayType) base).base;
+    } else {
+      this.base = base;
+    }
+  }
+
+  public ArrayType(Type base, int dimensionality) {
+    super(base.getName());
+    assert dimensionality > 0 : "Dimensionality must be greater than 0";
+    this.dimensionality = dimensionality;
+    this.base = base;
   }
 
   public static boolean isArray(Type type) {
@@ -15,25 +32,15 @@ public class ArrayType extends Type {
 
   @Override
   public String toString() {
-    return type.toString() + "[]";
+    String brackets = new String(new char[dimensionality]).replace("\0", "[]");
+    return base.toString() + brackets;
   }
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    if (!super.equals(o)) return false;
-
-    ArrayType arrayType = (ArrayType) o;
-
-    return type == arrayType.type;
-
+  public int getDimensionality() {
+    return dimensionality;
   }
 
-  @Override
-  public int hashCode() {
-    int result = super.hashCode();
-    result = 31 * result + type.hashCode();
-    return result;
+  public Type getBase() {
+    return base;
   }
 }

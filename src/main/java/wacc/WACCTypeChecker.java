@@ -8,12 +8,16 @@ import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 import wacc.error.Error;
 
+// TODO: do we check if a function has a return function on every branch? *
+// TODO: who checks if an int assignment is too large? *
+// * (run: /src/test/test)
+
 public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   private final SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymbTable;
-  private Function currentScope;
-  private ErrorHandler errorHandler;
+  private Function currentFunction;
+  private final ErrorHandler errorHandler;
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          ErrorHandler errorHandler) {
@@ -31,40 +35,56 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return ArrayType.isArray(exprType) || PairType.isPair(exprType);
   }
 
-  private void IncorrectType(WACCParser.UnaryOperContext ctx,
+  private void checkTypes(ParserRuleContext ctx, Type lhsType, Type rhsType) {
+    if (!lhsType.equals(rhsType)) {
+      IncorrectType(ctx, rhsType, lhsType.toString());
+    }
+  }
+
+  private void IncorrectType(ParserRuleContext ctx,
                              Type exprType,
                              String expectedType) {
-    String actual = exprType != null ? exprType.getName() : "'null'";
+    String actual = exprType != null ? exprType.toString() : "'null'";
     errorHandler.complain(
         new TypeAssignmentError(ctx, expectedType, actual)
     );
   }
 
-  // Visit Methods
-
-  @Override
-  public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
-    TypeError error = new TypeError(ctx);
-    errorHandler.complain(error);
-    changeWorkingSymbolTableTo(ctx);
-    visitChildren(ctx);
-    return null;
-  }
-
   private void changeWorkingSymbolTableTo(ParserRuleContext ctx) {
-    Function b = (Function) workingSymbTable.lookupAll(ctx.getText());
+    NewScope b = (NewScope) workingSymbTable.lookupAll(ctx.getText());
     if (b != null) {
       workingSymbTable = (SymbolTable<String, Binding>) b.getSymbolTable();
     }
   }
 
+  // Visit Methods
+
+  /**
+  * prog: BEGIN func* main END EOF;
+  * change Scope
+  * visit children, to type check children */
+  @Override
+  public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
+    changeWorkingSymbolTableTo(ctx);
+    visitChildren(ctx);
+    return null;
+  }
+
   //  Functions
 
+  /**
+  * func: type funcName ( (paramList)? ) IS body END;
+  * get return type of function
+  * change scope to function
+  * visit Params, to type check
+  * visit body to type check
+  * return type check is deferred */
   @Override
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
 
-    currentScope = (Function) workingSymbTable.lookupAll(ctx.ident().IDENT().getText());
-    Type expectedReturnType = currentScope.getType();
+    String funcName = ctx.funcName.getText();
+    currentFunction = (Function) workingSymbTable.lookupAll(funcName);
+    Type expectedReturnType = currentFunction.getType();
     changeWorkingSymbolTableTo(ctx);
 
     if (expectedReturnType == null) {
@@ -78,6 +98,9 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return expectedReturnType;
   }
 
+  /**
+  * paramList: param (COMMA param)*;
+  * type check each param in the list */
   @Override
   public Type visitParamList(@NotNull WACCParser.ParamListContext ctx) {
     for (WACCParser.ParamContext param : ctx.param()) {
@@ -86,10 +109,13 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return null;
   }
 
+  /**
+  * param: type name;
+  * check type is a valid Type
+  * returns null if not valid */
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
-
-    Type type = visitType(ctx.type());
+    Type type = visitIdent(ctx.ident());
     if (type == null) {
       TypeError error = new TypeError(ctx);
       errorHandler.complain(error);
@@ -98,95 +124,120 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return type;
   }
 
+  /**
+  * main: statList;
+  * change scope to 0main
+  * type check children */
   @Override
   public Type visitMain(@NotNull WACCParser.MainContext ctx) {
-    return visitStatList(ctx.statList());
+    NewScope newScope = (NewScope) workingSymbTable.lookupAll("0main");
+    workingSymbTable
+        = (SymbolTable<String, Binding>) newScope.getSymbolTable();
+    Type type = visitStatList(ctx.statList());
+    workingSymbTable = workingSymbTable.getEnclosingST();
+    return type;
   }
 
   // Statements
 
+  /**
+  * statList: stat (SEMICOLON stat)*;
+  * visit each stat in the list */
   @Override
   public Type visitStatList(@NotNull WACCParser.StatListContext ctx) {
-    Type returnType = null;
     for (WACCParser.StatContext stat : ctx.stat()) {
-      Type tmp = visitStat(stat);
-      if (visitStat(stat) != null) {
-        returnType = tmp;
-      }
+      visitStat(stat);
     }
-    return returnType;
-  }
-
-  @Override
-  public Type visitStat(@NotNull WACCParser.StatContext ctx) {
-    return visitChildren(ctx);
-  }
-
-  @Override
-  public Type visitSkipStat(@NotNull WACCParser.SkipStatContext ctx) {
     return null;
   }
 
+  /**
+  * type varName EQUALS assignRHS
+  * get lhs & rhs types
+  * check that they are equal
+  *  - if it is a pair, check the inner types */
   @Override
-  public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    return visitType(ctx.type());
-  }
+    public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
+      Type lhsType = visitIdent(ctx.ident());
+      Type rhsType = visitAssignRHS(ctx.assignRHS());
 
-  @Override
-  public Type visitAssignStat(@NotNull WACCParser.AssignStatContext ctx) {
-    Type lhsType = visitAssignLHS(ctx.assignLHS());
-    Type rhsType = visitAssignRHS(ctx.assignRHS());
+      checkTypes(ctx, lhsType, rhsType);
 
-    if (!lhsType.equals(rhsType)) {
-      errorHandler.complain(
-          new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
+      return lhsType;
     }
 
-    return lhsType;
+    /**
+     * assignLHS EQUALS assignRHS
+     * get lhs & rhs types
+     * check that they are equal
+     *  - if it is a pair, check the inner types
+     */
+    @Override
+    public Type visitAssignStat(@NotNull WACCParser.AssignStatContext ctx) {
+      Type lhsType = visitAssignLHS(ctx.assignLHS());
+      Type rhsType = visitAssignRHS(ctx.assignRHS());
+
+      checkTypes(ctx, lhsType, rhsType);
+
+      return lhsType;
   }
 
+  /**
+  * READ assignLHS
+  * type check isReadable */
   @Override
   public Type visitReadStat(@NotNull WACCParser.ReadStatContext ctx) {
     Type lhsType = visitAssignLHS(ctx.assignLHS());
 
     if (!isReadable(lhsType)) {
       errorHandler.complain(
-          new ReadTypeAssignmentError(ctx, lhsType.getName()));
+          new ReadTypeAssignmentError(ctx, lhsType.toString()));
     }
 
     return lhsType;
   }
 
+  /**
+  * FREE expr
+  * type check isFreeable */
   @Override
   public Type visitFreeStat(@NotNull WACCParser.FreeStatContext ctx) {
     Type exprType = visitExpr(ctx.expr());
 
     if (!isFreeable(exprType)) {
       errorHandler.complain(
-          new ReadTypeAssignmentError(ctx, exprType.getName()));
+          new FreeTypeAssignmentError(ctx, exprType.toString()));
     }
 
     return exprType;
   }
 
+  /**
+  * EXIT expr
+  * type check: int */
   @Override
   public Type visitExitStat(@NotNull WACCParser.ExitStatContext ctx) {
     Type exprType = visitExpr(ctx.expr());
 
     if (!Type.isInt(exprType)) { // exit codes are Integers
       errorHandler.complain(
-          new ReadTypeAssignmentError(ctx, exprType.getName()));
+          new ExitTypeAssignmentError(ctx, exprType.toString()));
     }
 
     return exprType;
   }
 
+  /**
+  * RETURN expr
+  * get type of expr
+  * get the type of the current (function) scope
+  * check both are equal */
   @Override
   public Type visitReturnStat(@NotNull WACCParser.ReturnStatContext ctx) {
 
     Type actualReturnType = visitExpr(ctx.expr());
 
-    Type expectedReturnType = currentScope.getType();
+    Type expectedReturnType = currentFunction.getType();
 
     if (actualReturnType != expectedReturnType) {
       TypeAssignmentError error
@@ -198,11 +249,15 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return expectedReturnType;
   }
 
-  @Override
-  public Type visitPrintStat(@NotNull WACCParser.PrintStatContext ctx) {
-    return null;
-  }
-
+  /**
+  * IF predicate THEN thenStat ELSE elseStat FI
+  * type check predicate is bool
+  * change scope to thenStat
+  * visit thenStat
+  * reset scope to enclosing table
+  * change scope to elseStat
+  * visit elseStat
+  * reset scope to enclosing table */
   @Override
   public Type visitIfStat(@NotNull WACCParser.IfStatContext ctx) {
 
@@ -213,33 +268,56 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
           new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
     }
 
+    //TODO: changes scopes
     visitStatList(ctx.thenStat);
     visitStatList(ctx.elseStat);
 
     return null;
   }
 
+  /** WHILE expr DO body DONE
+  * type check predicate is bool
+  * change scope to body
+  * visit body
+  * reset scope to enclosing table */
   @Override
   public Type visitWhileStat(@NotNull WACCParser.WhileStatContext ctx) {
     Type predicateType = visitExpr(ctx.expr());
 
     if (Type.isBool(predicateType)) {
-      errorHandler.complain(
-          new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
+      IncorrectType(ctx, predicateType, "'bool'");
     }
 
+    //TODO: changes scopes
     visitStatList(ctx.statList());
 
     return null;
   }
 
+  /**
+   * BEGIN body END
+   * change scope to body
+   * visit body
+   * reset scope to enclosing table
+   */
   @Override
   public Type visitBeginStat(@NotNull WACCParser.BeginStatContext ctx) {
+    //TODO: changes scopes
     return visitStatList(ctx.statList());
   }
 
   // Statement Helpers
 
+  /**
+   * assignLHS: IDENT | arrayElem | pairElem;
+   * if IDENT
+   *  - lookup binding, check is Variable
+   *  - return type
+   * if arrayElem
+   *  - visit arrayElem to get Type
+   * if pairElem
+   *  - visit pairElem
+   */
   @Override
   public Type visitAssignLHS(@NotNull WACCParser.AssignLHSContext ctx) {
 
@@ -263,54 +341,99 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   }
 
+  /**
+   * NEW_PAIR (first , second)
+   * return pair type that has two subTypes where
+   *  - fst = first.type
+   *  - snd = second.type
+   */
   @Override
-  public Type visitAssignRHS(@NotNull WACCParser.AssignRHSContext ctx) {
-
-    if (ctx.expr() != null) {
-      return visitExpr(ctx.expr(0));
-    } else if (ctx.arrayLitr() != null) {
-      return visitArrayLitr(ctx.arrayLitr());
-    }
-
-    return null;
+  public Type visitNewPair(@NotNull WACCParser.NewPairContext ctx) {
+    Type fstType = visitExpr(ctx.first);
+    Type sndType = visitExpr(ctx.second);
+    return new PairType(fstType, sndType);
   }
 
+  /**
+   * CALL funcName ( (argList)? )
+   * type check each argument
+   * return the functions return type
+   */
+  @Override
+  public Type visitFunctionCall(@NotNull WACCParser.FunctionCallContext ctx) {
+    // TODO: set scope
+    visitArgList(ctx.call().argList());
+    return visitIdent(ctx.call().ident());
+  }
+
+  /**
+   * arrayLitr: [(T, T, T, ...)?];
+   * check all types are the same
+   * else return null
+   */
   @Override
   public Type visitArrayLitr(@NotNull WACCParser.ArrayLitrContext ctx) {
 
-  /* TODO:| Come back to this when Florian has worked out how to deal with
-     TODO:| array types */
+    if (ctx.expr().size() != 0) {
+      Type firstType = visitExpr(ctx.expr(0));
+      for (WACCParser.ExprContext exprCtx : ctx.expr()) {
+        Type currentType = visitExpr(exprCtx);
+        if (!currentType.equals(firstType)) {
+          return null;
+        }
+      }
+      return firstType;
+    }
 
-    return null;
+    return new ArrayType(new Type(Types.NULL));
   }
 
+  /**
+   * argList: expr (COMMA expr)*;
+   * check each expr(s) type with the corresponding type
+   */
   @Override
 	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
+    for (int i = 0; i < ctx.expr().size(); i++) {
+      WACCParser.ExprContext exprCtx = ctx.expr(i);
+      Type actualType = visitExpr(exprCtx);
+      Type expectedType = currentFunction.getParams().get(i).getType();
+      checkTypes(ctx, actualType, expectedType);
+    }
 
-		return null;
+    return null;
 	}
 
   // Expressions
 
-  @Override
-  public Type visitExpr(@NotNull WACCParser.ExprContext ctx) {
-    return visitChildren(ctx);
-  }
-
+  /**
+   * intExpr: (CHR)? (sign)? INTEGER
+   * check if it is a char (if CHR is set)
+   * otherwise it should be an int
+   */
   @Override
   public Type visitIntExpr(@NotNull WACCParser.IntExprContext ctx) {
     if (ctx.CHR() != null) {
-      return (Type) top.lookupAll(ctx.CHR().getText());
+      return (Type) top.lookupAll(Types.CHAR_T.toString());
     }
 
     return (Type) top.lookupAll(Types.INT_T.toString());
   }
 
+  /**
+   * boolExpr: (NOT)? boolLitr
+   * check if literal is bool
+   */
   @Override
   public Type visitBoolExpr(@NotNull WACCParser.BoolExprContext ctx) {
     return visitBoolLitr(ctx.boolLitr());
   }
 
+  /**
+   * (ORD)? CHARACTER
+   * check if it is an int (if ORD is set)
+   * otherwise it should be a char
+   */
   @Override
   public Type visitCharExpr(@NotNull WACCParser.CharExprContext ctx) {
     if (ctx.ORD() != null) {
@@ -320,16 +443,23 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return (Type) top.lookupAll(Types.CHAR_T.toString());
   }
 
+  /**
+   * stringExpr: STRING
+   * it is of type string (parser asserts this)
+   */
   @Override
   public Type visitStringExpr(@NotNull WACCParser.StringExprContext ctx) {
     return (Type) top.lookupAll(Types.STRING_T.toString());
   }
 
-  @Override
-  public Type visitPairExpr(@NotNull WACCParser.PairExprContext ctx) {
-    return visitPairLitr(ctx.pairLitr());
-  }
-
+  /**
+   * arrayExpr: (LEN)? arrayElem
+   * if we are checking the length of the array
+   *  - we return an int
+   * otherwise
+   * check that ident is of type array
+   *  - return the inner type
+   */
   @Override
   public Type visitArrayExpr(@NotNull WACCParser.ArrayExprContext ctx) {
     if (ctx.LEN() != null) {
@@ -338,11 +468,19 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return visitArrayElem(ctx.arrayElem());
   }
 
+  /**
+   * boolLitr: TRUE | FALSE;
+   * return bool type
+   */
   @Override
   public Type visitBoolLitr(@NotNull WACCParser.BoolLitrContext ctx) {
     return (Type) top.lookupAll(Types.BOOL_T.toString());
   }
 
+  /**
+   * pairLitr: NULL;
+   * return null
+   */
   @Override
   public Type visitPairLitr(@NotNull WACCParser.PairLitrContext ctx) {
     return null;
@@ -350,84 +488,244 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   // Expression Helpers
 
+  /**
+   * arrayElem: varName[expr];
+   *
+   *  int[][][] a;
+   *  b = a[]
+   *  :t b = int[][]
+   *
+   * check that each expr evaluates to an int
+   */
   @Override
 	public Type visitArrayElem(@NotNull WACCParser.ArrayElemContext ctx) {
+    for (WACCParser.ExprContext expr : ctx.expr()) {
+      Type index = visitExpr(expr);
+      if (!Type.isInt(index)) {
+        errorHandler.complain(new TypeError(ctx));
+      }
+    }
+
+    Type type = visitIdent(ctx.ident());
+
+    if (type instanceof ArrayType) {
+      ArrayType arrayType = (ArrayType) type;
+      int totalDimensionality = arrayType.getDimensionality();
+      int wantedDimensionality = ctx.OPEN_BRACKET().size();
+      if (wantedDimensionality > totalDimensionality) {
+        errorHandler.complain(new TypeError(ctx));
+      } else {
+        int returnDimensionality = totalDimensionality-wantedDimensionality;
+        if (returnDimensionality == 0) {
+          return arrayType.getBase();
+        } else {
+          return new ArrayType(arrayType.getBase(), returnDimensionality);
+        }
+      }
+    }
+
+    IncorrectType(ctx, type, "'T[]'");
+
 		return null;
 	}
 
+  /**
+   * pairElem: (FST | SND) IDENT;
+   * check that ident is a pair
+   * if fst is set
+   *   return type of the first element
+   * otherwise (snd)
+   *   return type of the second element
+   */
   @Override
   public Type visitPairElem(@NotNull WACCParser.PairElemContext ctx) {
-    return null;
-  }
+    Type varType = visitIdent(ctx.ident());
 
-  @Override
-  public Type visitUnaryExpr(@NotNull WACCParser.UnaryExprContext ctx) {
-    return visitUnaryOper(ctx.unaryOper());
+    Type returnType = null;
+
+    if (PairType.isPair(varType)) {
+      PairType pairType = (PairType) varType;
+
+      if (ctx.FST() != null) {
+        returnType = pairType.getFst();
+      } else if (ctx.SND() != null) {
+        returnType = pairType.getSnd();
+      }
+    } else {
+      IncorrectType(ctx, new Type(Types.PAIR_T), varType.toString());
+    }
+
+    return returnType;
   }
 
   // Operations
 
+  /**
+   * unaryOper: (! | - | len | ord | chr)? ( IDENT | (expr) );
+   * if ident
+   *   check ident is a variable
+   *   get its type
+   * otherwise (expr)
+   *   visit to get type
+   * for each unary operator check
+   *   return the result type of the unary operator
+   * otherwise
+   *   return type of expression (as no unary operator)
+   */
   @Override
+  // TODO: shorten! (with a sense of urgency) - but last!!!
 	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
-
     Type exprType = null;
 
     if (ctx.ident().IDENT() != null) {
-      Binding b = workingSymbTable.lookupAll(ctx.ident().IDENT().getText());
-      if (b instanceof Variable) {
-        return ((Variable) b).getType();
-      }
-      errorHandler.complain(
-          new Error(ctx)
-      );
+      exprType = visitIdent(ctx.ident());
     } else if (ctx.expr() != null) {
       exprType = visitExpr(ctx.expr());
     }
 
-    if (ctx.NOT() != null && !Type.isBool(exprType)) {
-      IncorrectType(ctx, exprType, "'bool'");
-    } else if (ctx.MINUS() != null && !Type.isInt(exprType)) {
-      IncorrectType(ctx, exprType, "'int'");
-    } else if (ctx.LEN() != null && !ArrayType.isArray(exprType)) {
-      IncorrectType(ctx, exprType, "'T[]'");
-      // TODO: be more explicit about array type
-      return (Type) top.lookupAll("INT_T");
-    } else if (ctx.ORD() != null && !Type.isChar(exprType)) {
-      IncorrectType(ctx, exprType, "'char'");
+    if (ctx.NOT() != null) {
+      if (!Type.isBool(exprType)) {
+        IncorrectType(ctx, exprType, "'bool'");
+      }
+      return (Type) top.lookupAll(Types.BOOL_T.toString());
+    }
+    else if (ctx.MINUS() != null) {
+      if (!Type.isInt(exprType)) {
+        IncorrectType(ctx, exprType, "'int'");
+      }
       return (Type) top.lookupAll(Types.INT_T.toString());
-    } else if (ctx.CHR() != null && !Type.isInt(exprType)) {
-      IncorrectType(ctx, exprType, "'int'");
+    }
+    else if (ctx.LEN() != null) {
+      if (!ArrayType.isArray(exprType)) {
+        IncorrectType(ctx, exprType, "'T[]'");
+      }
+      return (Type) top.lookupAll(Types.INT_T.toString());
+    }
+    else if (ctx.ORD() != null) {
+      if (!Type.isChar(exprType)) {
+        IncorrectType(ctx, exprType, "'char'");
+      }
+      return (Type) top.lookupAll(Types.INT_T.toString());
+    }
+    else if (ctx.CHR() != null) {
+      if (!Type.isInt(exprType)) {
+        IncorrectType(ctx, exprType, "'int'");
+      }
       return (Type) top.lookupAll(Types.CHAR_T.toString());
     }
 
 		return exprType;
 	}
 
-  @Override
-  public Type visitBinaryOper(@NotNull WACCParser.BinaryOperContext ctx) {
-    return null;
-  }
-
-  @Override
-  public Type visitArithmeticOper(@NotNull WACCParser.ArithmeticOperContext ctx) {
-    return null;
-  }
-
-  @Override
-  public Type visitComparisonOper(@NotNull WACCParser.ComparisonOperContext ctx) {
-    return null;
-  }
-
+  /**
+   * logicalOper: first ((AND | OR) otherExprs)*
+   * if there are no otherExprs
+   *  - return type of first
+   * otherwise
+   *  - check all exprs are bool(s)
+   */
   @Override
   public Type visitLogicalOper(@NotNull WACCParser.LogicalOperContext ctx) {
-    return null;
+    if (ctx.otherExprs.size() > 0) {
+      for (WACCParser.ComparisonOperContext operCtx : ctx.comparisonOper()) {
+        Type type = visitComparisonOper(operCtx);
+        if (!Type.isBool(type)) {
+          IncorrectType(operCtx, type, "'bool'");
+        }
+      }
+      return (Type) top.lookupAll(Types.BOOL_T.toString());
+    } else {
+      return visitComparisonOper(ctx.first);
+    }
   }
 
-  //Types
-
+  /**
+   * orderingOper: first ((GT | GTE | LT | LTE) second)?
+   * if there is no second
+   *  - return type of first
+   * otherwise
+   *  - check both are int(s) or both are char(s)
+   */
   @Override
-  public Type visitType(@NotNull WACCParser.TypeContext ctx) {
-    return (Type) top.lookupAll(ctx.getText());
+  public Type visitOrderingOper(@NotNull WACCParser.OrderingOperContext ctx) {
+    if (ctx.second != null) {
+      Type fstType = visitArithmeticOper(ctx.first);
+      Type sndType = visitArithmeticOper(ctx.second);
+
+      if (!fstType.equals(sndType)) {
+        errorHandler.complain(new TypeError(ctx.first));
+        errorHandler.complain(new TypeError(ctx.second));
+      } else if (!(Type.isInt(fstType) || Type.isChar(fstType))) {
+        IncorrectType(ctx.first, fstType, "'int' or 'char'");
+        IncorrectType(ctx.second, sndType, "'int' or 'char'");
+      }
+      return (Type) top.lookupAll(Types.BOOL_T.toString());
+    } else {
+      return visitArithmeticOper(ctx.first);
+    }
+  }
+
+  /**
+   * equalityOper: first ((EQ | NE) second)?
+   * if there is no second
+   *  - return type of first
+   * otherwise
+   *  - check both are the same type
+   */
+  @Override
+  public Type visitEqualityOper(@NotNull WACCParser.EqualityOperContext ctx) {
+    if (ctx.second != null) {
+      Type fstType = visitArithmeticOper(ctx.first);
+      Type sndType = visitArithmeticOper(ctx.second);
+
+      if (!fstType.equals(sndType)) {
+        errorHandler.complain(new TypeError(ctx.first));
+        errorHandler.complain(new TypeError(ctx.second));
+      }
+
+      return (Type) top.lookupAll(Types.BOOL_T.toString());
+    } else {
+      return visitArithmeticOper(ctx.first);
+    }
+  }
+
+  /**
+   * arithmeticOper: first ((MUL | DIV | MOD | PLUS | MINUS) otherExprs)*;
+   * if there are no otherExprs
+   *  - return type of first
+   * otherwise
+   *  - check all exprs are int(s)
+   */
+  @Override
+  public Type visitArithmeticOper(@NotNull WACCParser.ArithmeticOperContext ctx) {
+    if (ctx.otherExprs.size() > 0) {
+      for (WACCParser.AtomContext atomCtx : ctx.atom()) {
+        Type type = visitAtom(atomCtx);
+        if (!Type.isBool(type)) {
+          IncorrectType(atomCtx, type, "'bool'");
+        }
+      }
+      return (Type) top.lookupAll(Types.INT_T.toString());
+    } else {
+      return visitAtom(ctx.first);
+    }
+  }
+
+  //Other
+
+  /**
+   * IDENT
+   * lookup and return the type
+   */
+  @Override
+  public Type visitIdent(WACCParser.IdentContext ctx) {
+    Binding b = workingSymbTable.lookupAll(ctx.getText());
+    if (b instanceof Variable) {
+      return ((Variable) b).getType();
+    }
+    // TODO: what about functions?
+
+    return null;
   }
 
 }

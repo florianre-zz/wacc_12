@@ -2,24 +2,42 @@
 require 'find'
 require 'shellwords'
 
-errFile = "errors.log"
+@errFile = "errors.log"
+open(@errFile, 'w') { |f| f.print "" }
 
-open(errFile, 'w') { |f| f.puts "" }
-testFolder = "#{Dir.pwd}/src/test/resources/examples/valid"
+def runTests(testPath, isValid)
+  testFiles = []
+  Find.find(testPath) do |path|
+    testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+  end
+  numTests = testFiles.length
+  i = 1
+  testFiles.each do |test|
+    print "Running Test: #{i}/#{numTests}\r"
+    testRun = `./grun -tree #{test[/src.*/]} 2>tmp`
+    tmp = File.open("tmp", "r")
+    if isValid && !File.zero?("tmp")
+      error = "Running Test: #{File.basename test} \n Error(s): \n #{tmp.read}"
+      open(@errFile, 'a') { |f| f.puts error}
+    elsif !isValid && File.zero?("tmp")
+      error = "Running Test: #{File.basename test} \n No Errors!"
+      open(@errFile, 'a') { |f| f.puts error}
+    end
+    `rm tmp`
+    i += 1
+  end
+  puts "\n"
+end
+
+testFolder = "#{Dir.pwd}/src/test/resources/examples/"
 testFiles = []
 Find.find(testFolder) do |path|
   testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
 end
-puts "Starting tests..."
-trees = []
-numTests = testFiles.length
-i = 1
-testFiles.each do |test|
-  print "Running Test: #{i}/#{numTests}\r"
-  open(errFile, 'a') { |f| f.puts "Running Test: #{File.basename test}" }
-  trees << `./grun -tree #{test[/src.*/]} 2>>errors.log`
-  open(errFile, 'a') { |f| f.puts "\n" }
-  i += 1
-end
-puts "\n"
+puts "Starting Valid tests..."
+open(@errFile, 'a') { |f| f.puts "Running Valid Tests:\n" }
+runTests(testFolder+"valid", true)
+puts "Starting Invalid tests..."
+open(@errFile, 'a') { |f| f.puts "Running Invalid Tests:\n" }
+runTests(testFolder+"invalid/syntaxErr", false)
 puts "Finished tests..."
