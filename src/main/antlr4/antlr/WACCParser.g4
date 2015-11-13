@@ -24,15 +24,15 @@ stat: SKIP                                                       # SkipStat
       | BEGIN statList END                                       # BeginStat
       ;
 assignLHS: IDENT | arrayElem | pairElem;
-/*
-  TODO: add labels
-*/
-assignRHS: expr
-      | arrayLitr
-      | NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS
-      | pairElem
-      | CALL funcName=IDENT OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
-      ;
+assignRHS:
+  expr                                                           #rhsExpr
+  | arrayLitr                                                    #rhsArray
+  | NEW_PAIR OPEN_PARENTHESIS first=expr
+      COMMA second=expr CLOSE_PARENTHESIS                        #newPair
+  | pairElem                                                     #rhsPairElem
+  | CALL funcName=IDENT
+      OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS              #functionCall
+  ;
 argList: expr (COMMA expr)*;
 type: nonArrayType | arrayType;
 nonArrayType: baseType | pairType;
