@@ -13,7 +13,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   private final SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymbTable;
   private Function currentFunction;
-  private ErrorHandler errorHandler;
+  private final ErrorHandler errorHandler;
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          ErrorHandler errorHandler) {
@@ -23,15 +23,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   // Helper Methods
 
-  // TODO: this is visitIdent()
-  private Type getVariableType(String name) {
-    Binding b = workingSymbTable.lookupAll(name);
-    if (b instanceof Variable) {
-      return ((Variable) b).getType();
-    }
-    return null;
-  }
-
   private boolean isReadable(Type lhsType) {
     return Type.isInt(lhsType) || Type.isChar(lhsType);
   }
@@ -40,7 +31,12 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return ArrayType.isArray(exprType) || PairType.isPair(exprType);
   }
 
-  // TODO: check all complain(s) to see if this helper method could be used
+  private void checkTypes(ParserRuleContext ctx, Type lhsType, Type rhsType) {
+    if (!lhsType.equals(rhsType)) {
+      IncorrectType(ctx, rhsType, lhsType.toString());
+    }
+  }
+
   private void IncorrectType(ParserRuleContext ctx,
                              Type exprType,
                              String expectedType) {
@@ -115,7 +111,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * returns null if not valid */
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
-    Type type = getVariableType(ctx.name.getText());
+    Type type = visitIdent(ctx.ident());
     if (type == null) {
       TypeError error = new TypeError(ctx);
       errorHandler.complain(error);
@@ -161,9 +157,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       Type lhsType = visitIdent(ctx.ident());
       Type rhsType = visitAssignRHS(ctx.assignRHS());
 
-      if (!lhsType.equals(rhsType)) {
-        IncorrectType(ctx, rhsType, lhsType.toString());
-      }
+      checkTypes(ctx, lhsType, rhsType);
 
       return lhsType;
     }
@@ -173,15 +167,13 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
      * get lhs & rhs types
      * check that they are equal
      *  - if it is a pair, check the inner types
-     *  TODO: refactor with Init stat */
+     */
     @Override
     public Type visitAssignStat(@NotNull WACCParser.AssignStatContext ctx) {
       Type lhsType = visitAssignLHS(ctx.assignLHS());
       Type rhsType = visitAssignRHS(ctx.assignRHS());
 
-      if (!lhsType.equals(rhsType)) {
-        IncorrectType(ctx, rhsType, lhsType.toString());
-      }
+      checkTypes(ctx, lhsType, rhsType);
 
       return lhsType;
   }
@@ -288,10 +280,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   public Type visitWhileStat(@NotNull WACCParser.WhileStatContext ctx) {
     Type predicateType = visitExpr(ctx.expr());
 
-    // TODO: make 'bool' an enum not string
     if (Type.isBool(predicateType)) {
-      errorHandler.complain(
-          new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
+      IncorrectType(ctx, predicateType, "'bool'");
     }
 
     //TODO: changes scopes
@@ -404,9 +394,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       WACCParser.ExprContext exprCtx = ctx.expr(i);
       Type actualType = visitExpr(exprCtx);
       Type expectedType = currentFunction.getParams().get(i).getType();
-      if (!actualType.equals(expectedType)) {
-        IncorrectType(exprCtx, actualType, expectedType.toString());
-      }
+      checkTypes(ctx, actualType, expectedType);
     }
 
     return null;
@@ -514,7 +502,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       }
     }
 
-    Type type = getVariableType(ctx.varName.getText());
+    Type type = visitIdent(ctx.ident());
 
     if (type instanceof ArrayType) {
       ArrayType arrayType = (ArrayType) type;
@@ -581,19 +569,12 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    *   return type of expression (as no unary operator)
    */
   @Override
-  // TODO: when visitIdent is implemented, it should be used to get the type
   // TODO: shorten! (with a sense of urgency) - but last!!!
 	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
     Type exprType = null;
 
     if (ctx.ident().IDENT() != null) {
-      Binding b = workingSymbTable.lookupAll(ctx.ident().IDENT().getText());
-      if (b instanceof Variable) {
-        return ((Variable) b).getType();
-      }
-      errorHandler.complain(
-          new Error(ctx)
-      );
+      exprType = visitIdent(ctx.ident());
     } else if (ctx.expr() != null) {
       exprType = visitExpr(ctx.expr());
     }
@@ -724,6 +705,23 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     } else {
       return visitAtom(ctx.first);
     }
+  }
+
+  //Other
+
+  /**
+   * IDENT
+   * lookup and return the type
+   */
+  @Override
+  public Type visitIdent(WACCParser.IdentContext ctx) {
+    Binding b = workingSymbTable.lookupAll(ctx.getText());
+    if (b instanceof Variable) {
+      return ((Variable) b).getType();
+    }
+    // TODO: what about functions?
+
+    return null;
   }
 
 }
