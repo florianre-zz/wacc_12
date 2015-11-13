@@ -15,13 +15,11 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   private int ifCount, whileCount, beginCount;
 
   public WACCSymbolTableBuilder(SymbolTable<String, Binding> top) {
-
     this.top = this.workingSymTable = top;
     ifCount = whileCount = beginCount = 0;
   }
 
   private void setWorkingSymTable(SymbolTable<String, Binding> workingSymTable) {
-
     this.workingSymTable = workingSymTable;
   }
 
@@ -30,7 +28,6 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   // Returns a Type object for the given context n
   // TODO: if type doesn't exist, create it and put it in top
   private Type getType(WACCParser.TypeContext ctx) {
-
     return (Type) top.lookupAll(ctx.getText());
   }
 
@@ -38,7 +35,6 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * symbol table 
    */
   private void goUpWorkingSymTable() {
-
     SymbolTable<String, Binding> enclosingST = workingSymTable.getEnclosingST();
     if (enclosingST != null) {
       setWorkingSymTable(enclosingST);
@@ -50,7 +46,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * Once all elements are added, the working symbol table is reset to its 
    * value before method call 
    */
-  private Void fillNewSymbolTable(WACCParser.StatListContext ctx,
+  private Void fillNewSymbolTable(ParserRuleContext ctx,
                                   SymbolTable<String, Binding> symTab) {
     setWorkingSymTable(symTab);
     super.visitChildren(ctx);
@@ -62,42 +58,54 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * new scope
    */
   private Void setANewScope(ParserRuleContext ctx, String scopeName) {
+    // Deal with if scope
     if (ctx instanceof WACCParser.IfStatContext) {
       return setIfStatScope((WACCParser.IfStatContext) ctx);
     }
 
-    SymbolTable<String, Binding> newScopeSymTab = new SymbolTable<>(workingSymTable);
+    SymbolTable<String, Binding> newScopeSymTable
+        = new SymbolTable<>(workingSymTable);
     NewScope newScope;
+    ParserRuleContext contextToVisit;
 
     // Dealing with prog
     if (ctx instanceof WACCParser.ProgContext) {
-      newScope = storeFunctionNames((WACCParser.ProgContext) ctx, scopeName,
-                                    newScopeSymTab);
+      newScope = setProgScope((WACCParser.ProgContext) ctx,
+                              scopeName,
+                              newScopeSymTable);
+      contextToVisit = ctx;
 
-
-    // Dealing with function
+    // Deal with function
     } else if (ctx instanceof WACCParser.FuncContext) {
-      newScope = getFuncScope((WACCParser.FuncContext) ctx, newScopeSymTab);
+      newScope = getFuncScope((WACCParser.FuncContext) ctx, newScopeSymTable);
+      contextToVisit = getStatListContext(ctx);
 
-    // Dealing with other scopes
+    // Deal with other scopes
     } else {
-      newScope = new NewScope(scopeName, newScopeSymTab);
+      newScope = new NewScope(scopeName, newScopeSymTable);
+      contextToVisit = getStatListContext(ctx);
     }
 
     workingSymTable.put(scopeName, newScope);
 
-    WACCParser.StatListContext statListContext = getStatListContext(ctx);
-
-    return fillNewSymbolTable(statListContext, newScopeSymTab);
+    return fillNewSymbolTable(contextToVisit, newScopeSymTable);
   }
 
   //Store names of functions in prog (if any) in thw working symbol table
-  private NewScope storeFunctionNames(WACCParser.ProgContext ctx,
+  private NewScope setProgScope(WACCParser.ProgContext ctx,
                                       String scopeName,
                                       SymbolTable<String, Binding> symTable) {
     List<? extends WACCParser.FuncContext> progFuncContexts = ctx.func();
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
-      workingSymTable.put(progFuncContext.funcName.getText(), null);
+      /* Working symbol table will be TOP at this point
+       * Allow mutual recursion but does not allow overloading
+       */
+      Binding dummy = new Binding("dummy");
+      Binding checker = workingSymTable.put(progFuncContext.funcName.getText(),
+                                            dummy);
+      if (checker != null){
+        // TODO: Error - Function name has been used already
+      }
     }
     return new NewScope(scopeName, symTable);
   }
@@ -176,7 +184,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   // Calls for a new scope to be created for the program
   @Override
   public Void visitProg(WACCParser.ProgContext ctx) {
-    return setANewScope(ctx, "prog");
+    setANewScope(ctx, "0prog");
+    return visitChildren(ctx);
   }
 
   // Creates a new scope for the body of the program
@@ -260,10 +269,6 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   }
 
   // TODO: write visitIdent()
-  // TODO: write visitStatList() IF NECESSARY (i.e. for order)
-  // TODO: g4: atom identifiers
-  // TODO: g4: comparisonOper?
   // TODO: IF & WHILE: stop redeclaration of variables in ancestor scopes
-  // TODO: Allow for mutual recursion
   // TODO: Allow funcName and variableName to be the same
 }
