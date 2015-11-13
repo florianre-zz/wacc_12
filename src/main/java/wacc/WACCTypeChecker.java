@@ -23,6 +23,13 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   // Helper Methods
 
+  // TODO: this is visitIdent()
+  private Type getVariableType(String name) {
+    Variable var = (Variable) workingSymbTable.lookupAll(name);
+
+    return var.getType();
+  }
+
   private boolean isReadable(Type lhsType) {
     return Type.isInt(lhsType) || Type.isChar(lhsType);
   }
@@ -49,6 +56,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   }
 
   // Visit Methods
+
   /**
   * prog: BEGIN func* main END EOF;
   * change Scope
@@ -105,8 +113,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * returns null if not valid */
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
-    //TODO: revisit how we get the type - look up in symbol table
-    Type type = visitType(ctx.type());
+    Type type = getVariableType(ctx.name.getText());
     if (type == null) {
       TypeError error = new TypeError(ctx);
       errorHandler.complain(error);
@@ -314,8 +321,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   /** WHILE expr DO body DONE
   * type check predicate is bool
-  * change scope to body 
-  * visit body 
+  * change scope to body
+  * visit body
   * reset scope to enclosing table */
   @Override
   public Type visitWhileStat(@NotNull WACCParser.WhileStatContext ctx) {
@@ -380,21 +387,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   }
 
-  /**
-   * visit children
-   * TODO: delete later
-   */
-  @Override
-  public Type visitAssignRHS(@NotNull WACCParser.AssignRHSContext ctx) {
-
-    if (ctx.expr() != null) {
-      return visitExpr(ctx.expr(0));
-    } else if (ctx.arrayLitr() != null) {
-      return visitArrayLitr(ctx.arrayLitr());
-    }
-
-    return null;
-  }
+  // TODO: Implement AssignRHS children
 
   /**
    * arrayLitr: [(T, T, T, ...)?];
@@ -556,9 +549,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitPairElem(@NotNull WACCParser.PairElemContext ctx) {
     // TODO: revisit parser rule
-    Variable var = (Variable) workingSymbTable.lookupAll(ctx.IDENT().getText());
-
-    Type varType = var.getType();
+    Type varType = getVariableType(ctx.IDENT().getText());
 
     if (PairType.isPair(varType)) {
       PairType pairType = (PairType) varType;
