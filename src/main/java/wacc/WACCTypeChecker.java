@@ -31,6 +31,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return ArrayType.isArray(exprType) || PairType.isPair(exprType);
   }
 
+  // TODO: check all complain(s) to see if this helper method could be used
   private void IncorrectType(WACCParser.UnaryOperContext ctx,
                              Type exprType,
                              String expectedType) {
@@ -486,10 +487,9 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    * if we are checking the length of the array
    *  - we return an int
    * otherwise
-   * check that ident of of type array
-   *
+   * check that ident is of type array
+   *  - return the inner type
    */
-
   @Override
   public Type visitArrayExpr(@NotNull WACCParser.ArrayExprContext ctx) {
     if (ctx.LEN() != null) {
@@ -498,11 +498,19 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return visitArrayElem(ctx.arrayElem());
   }
 
+  /**
+   * boolLitr: TRUE | FALSE;
+   * return bool type
+   */
   @Override
   public Type visitBoolLitr(@NotNull WACCParser.BoolLitrContext ctx) {
     return (Type) top.lookupAll(Types.BOOL_T.toString());
   }
 
+  /**
+   * pairLitr: NULL;
+   * return null
+   */
   @Override
   public Type visitPairLitr(@NotNull WACCParser.PairLitrContext ctx) {
     return null;
@@ -510,11 +518,41 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   // Expression Helpers
 
+  /**
+   * arrayElem: varName[expr];
+   *
+   *  int[][][] a;
+   *  b = a[]
+   *  :t b = int[][]
+   *
+   * check that each expr evaluates to an int
+   */
   @Override
 	public Type visitArrayElem(@NotNull WACCParser.ArrayElemContext ctx) {
+    // TODO: implement this method
+    for (WACCParser.ExprContext expr : ctx.expr()) {
+      Type index = visitExpr(expr);
+      if (!Type.isInt(index)) {
+        errorHandler.complain(new TypeError(ctx));
+      }
+    }
+
+    // lookup varName, get dimensionality
+    // check that brackets <= dimensionality
+
+    // call array type lookup function
+
 		return null;
 	}
 
+  /**
+   * pairElem: (FST | SND) IDENT;
+   * check that ident is a pair
+   * if fst is set
+   *   return type of the first element
+   * otherwise (snd)
+   *   return type of the second element
+   */
   @Override
   public Type visitPairElem(@NotNull WACCParser.PairElemContext ctx) {
     // TODO: revisit parser rule
@@ -541,6 +579,9 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return null;
   }
 
+  /**
+   * TODO: delete later
+   */
   @Override
   public Type visitUnaryExpr(@NotNull WACCParser.UnaryExprContext ctx) {
     return visitUnaryOper(ctx.unaryOper());
@@ -548,7 +589,20 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   // Operations
 
+  /**
+   * unaryOper: (! | - | len | ord | chr)? ( IDENT | (expr) );
+   * if ident
+   *   check ident is a variable
+   *   get its type
+   * otherwise (expr)
+   *   visit to get type
+   * for each unary operator check
+   *   return the result type of the unary operator
+   * otherwise
+   *   return type of expression (as no unary operator)
+   */
   @Override
+  // TODO: when visitIdent is implemented, it should be used to get the type
 	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
     Type exprType = null;
 
@@ -564,24 +618,40 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       exprType = visitExpr(ctx.expr());
     }
 
-    if (ctx.NOT() != null && !Type.isBool(exprType)) {
-      IncorrectType(ctx, exprType, "'bool'");
-    } else if (ctx.MINUS() != null && !Type.isInt(exprType)) {
-      IncorrectType(ctx, exprType, "'int'");
-    } else if (ctx.LEN() != null && !ArrayType.isArray(exprType)) {
-      IncorrectType(ctx, exprType, "'T[]'");
-      // TODO: be more explicit about array type
-      return (Type) top.lookupAll("INT_T");
-    } else if (ctx.ORD() != null && !Type.isChar(exprType)) {
-      IncorrectType(ctx, exprType, "'char'");
+    if (ctx.NOT() != null) {
+      if (!Type.isBool(exprType)) {
+        IncorrectType(ctx, exprType, "'bool'");
+      }
+      return (Type) top.lookupAll(Types.BOOL_T.toString());
+    }
+    else if (ctx.MINUS() != null) {
+      if (!Type.isInt(exprType)) {
+        IncorrectType(ctx, exprType, "'int'");
+      }
       return (Type) top.lookupAll(Types.INT_T.toString());
-    } else if (ctx.CHR() != null && !Type.isInt(exprType)) {
-      IncorrectType(ctx, exprType, "'int'");
+    }
+    else if (ctx.LEN() != null) {
+      if (!ArrayType.isArray(exprType)) {
+        IncorrectType(ctx, exprType, "'T[]'");
+      }
+      return (Type) top.lookupAll(Types.INT_T.toString());
+    }
+    else if (ctx.ORD() != null) {
+      if (!Type.isChar(exprType)) {
+        IncorrectType(ctx, exprType, "'char'");
+      }
+      return (Type) top.lookupAll(Types.INT_T.toString());
+    }
+    else if (ctx.CHR() != null) {
+      if (!Type.isInt(exprType)) {
+        IncorrectType(ctx, exprType, "'int'");
+      }
       return (Type) top.lookupAll(Types.CHAR_T.toString());
     }
 
 		return exprType;
 	}
+
 
   @Override
   public Type visitBinaryOper(@NotNull WACCParser.BinaryOperContext ctx) {
