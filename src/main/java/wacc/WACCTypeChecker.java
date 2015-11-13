@@ -152,29 +152,12 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   *  - if it is a pair, check the inner types */
   @Override
   public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    Type lhsType = visitType(ctx.type());
+    Type lhsType = getVariableType(ctx.varName.getText());
     Type rhsType = visitAssignRHS(ctx.assignRHS());
 
     if (!lhsType.equals(rhsType)) {
       errorHandler.complain(
           new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
-    } else if (PairType.isPair(lhsType)) {
-      Type lhsFstType = ((PairType) lhsType).getFst();
-      Type lhsSndType = ((PairType) lhsType).getSnd();
-
-      Type rhsFstType = ((PairType) rhsType).getFst();
-      Type rhsSndType = ((PairType) rhsType).getSnd();
-
-      if (!lhsFstType.equals(rhsFstType)) {
-        errorHandler.complain(
-            new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
-      }
-
-      if (!lhsSndType.equals(rhsSndType)) {
-        errorHandler.complain(
-            new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
-      }
-
     }
 
     return lhsType;
@@ -729,15 +712,5 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       return visitAtom(ctx.first);
     }
   }
-
-  //Types
-
-  @Override
-  public Type visitType(@NotNull WACCParser.TypeContext ctx) {
-    //TODO: revisit, should we look at the children?
-
-    return (Type) top.lookupAll(ctx.getText());
-  }
-
 
 }
