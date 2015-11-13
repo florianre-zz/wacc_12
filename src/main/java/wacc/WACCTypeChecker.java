@@ -146,23 +146,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   }
 
   /**
-  * dummy function that defers to child, may be deleted
-  * TODO: delete later */
-  @Override
-  public Type visitStat(@NotNull WACCParser.StatContext ctx) {
-    return visitChildren(ctx);
-  }
-
-  /**
-  * SKIP
-  * return null
-  * TODO: delete later*/
-  @Override
-  public Type visitSkipStat(@NotNull WACCParser.SkipStatContext ctx) {
-    return null;
-  }
-
-  /**
   * type varName EQUALS assignRHS
   * get lhs & rhs types
   * check that they are equal
