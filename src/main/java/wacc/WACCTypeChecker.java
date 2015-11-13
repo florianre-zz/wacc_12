@@ -63,7 +63,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
 
-    currentScope = (Function) workingSymbTable.lookupAll(ctx.IDENT().getText());
+    currentScope = (Function) workingSymbTable.lookupAll(ctx.ident().IDENT().getText());
     Type expectedReturnType = currentScope.getType();
     changeWorkingSymbolTableTo(ctx);
 
@@ -243,7 +243,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitAssignLHS(@NotNull WACCParser.AssignLHSContext ctx) {
 
-    if (ctx.IDENT() != null) {
+    if (ctx.ident().IDENT() != null) {
 
       Binding b = workingSymbTable.lookupAll(ctx.getText());
       if (b instanceof Variable) {
@@ -372,8 +372,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     Type exprType = null;
 
-    if (ctx.IDENT() != null) {
-      Binding b = workingSymbTable.lookupAll(ctx.IDENT().getText());
+    if (ctx.ident().IDENT() != null) {
+      Binding b = workingSymbTable.lookupAll(ctx.ident().IDENT().getText());
       if (b instanceof Variable) {
         return ((Variable) b).getType();
       }
