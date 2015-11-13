@@ -43,15 +43,16 @@ pairElemType: baseType | arrayType | PAIR;
 expr: binaryOper;
 sign: MINUS | PLUS;
 binaryOper: logicalOper;
-logicalOper: first=orderingOper ((AND | OR) otherExprs+=orderingOper)*
+logicalOper: first=comparisonOper ((AND | OR) otherExprs+=comparisonOper)*
 {
-  WACCParser.OrderingOperContext first;
-  List<WACCParser.OrderingOperContext> otherExprs = new ArrayList();
+  WACCParser.ComparisonOperContext first;
+  List<WACCParser.ComparisonOperContext> otherExprs = new ArrayList();
 };
-orderingOper: first=equalityOper ((GT | GTE | LT | LTE) second=equalityOper)?
+comparisonOper: orderingOper | equalityOper;
+orderingOper: first=arithmeticOper ((GT | GTE | LT | LTE) second=arithmeticOper)?
 {
-  WACCParser.EqualityOperContext first;
-  WACCParser.EqualityOperContext second;
+  WACCParser.ArithmeticOperContext first;
+  WACCParser.ArithmeticOperContext second;
 };
 equalityOper: first=arithmeticOper ((EQ | NE) second=arithmeticOper)?
 {
