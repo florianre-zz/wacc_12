@@ -46,6 +46,22 @@ public class TypeTest {
   }
 
   @Test
+  public void testMultiArrayType2() {
+    Type baseType = new Type(Types.INT_T.toString());
+    ArrayType array = new ArrayType(baseType, 2);
+    assertThat(array.toString(), is("int[][]"));
+  }
+
+  @Test
+  public void testMultiArrayType3() {
+    Type baseType = new Type(Types.INT_T.toString());
+    ArrayType innerArray = new ArrayType(baseType);
+    ArrayType outerArray = new ArrayType(innerArray);
+    outerArray = new ArrayType(outerArray);
+    assertThat(outerArray.toString(), is("int[][][]"));
+  }
+
+  @Test
   public void testPairType() {
     Type fstType = new Type(Types.INT_T.toString());
     Type sndType = new Type(Types.STRING_T.toString());

@@ -2,23 +2,28 @@ package bindings;
 
 public class ArrayType extends Type {
 
-  private Type type;
+  private Type base;
   private int dimensionality;
 
-  public ArrayType(Type type) {
-    super(type.getName());
-    dimensionality = 1;
-    if (type instanceof ArrayType) {
-      dimensionality += ((ArrayType) type).getDimensionality();
+  public ArrayType(Type base) {
+    // Created array from type
+    // T -> T[], or T[] -> T[][]
+
+    super(base.getName());
+    this.dimensionality = 1;
+    if (base instanceof ArrayType) {
+      this.dimensionality += ((ArrayType) base).getDimensionality();
+      this.base = ((ArrayType) base).base;
+    } else {
+      this.base = base;
     }
-    this.type = type;
   }
 
-  public ArrayType(Type type, int dimensionality) {
-    super(type.getName());
+  public ArrayType(Type base, int dimensionality) {
+    super(base.getName());
     assert dimensionality > 0 : "Dimensionality must be greater than 0";
     this.dimensionality = dimensionality;
-    this.type = type;
+    this.base = base;
   }
 
   public static boolean isArray(Type type) {
@@ -27,7 +32,8 @@ public class ArrayType extends Type {
 
   @Override
   public String toString() {
-    return type.toString() + "[]";
+    String brackets = new String(new char[dimensionality]).replace("\0", "[]");
+    return base.toString() + brackets;
   }
 
   public int getDimensionality() {
