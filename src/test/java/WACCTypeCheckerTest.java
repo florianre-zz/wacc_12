@@ -1,6 +1,7 @@
 import antlr.WACCParser;
 import bindings.Binding;
 import bindings.Type;
+import bindings.Types;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -38,10 +39,10 @@ public class WACCTypeCheckerTest {
     errorHandler = new ErrorHandler();
 
     SymbolTable<String, Binding> top = new SymbolTable<>();
-    top.put("int", new Type("INT_T", Integer.MIN_VALUE, Integer.MAX_VALUE));
-    top.put("bool", new Type("BOOL_T", 0, 1));
-    top.put("char", new Type("CHAR_T", 0, 255));
-    top.put("string", new Type("STRING_T"));
+    top.put("int", new Type(Types.INT_T, Integer.MIN_VALUE, Integer.MAX_VALUE));
+    top.put("bool", new Type(Types.BOOL_T, 0, 1));
+    top.put("char", new Type(Types.CHAR_T, 0, 255));
+    top.put("string", new Type(Types.STRING_T));
 
     typeChecker = new WACCTypeChecker(top, errorHandler);
   }

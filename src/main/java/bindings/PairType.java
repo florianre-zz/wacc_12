@@ -12,7 +12,14 @@ public class PairType extends Type {
 
   @Override
   public String toString() {
-    return super.toString() + "(" + fst + ", " + snd + ")";
+
+    String fstString = (fst instanceof PairType ?
+        Types.PAIR_T.toString() : fst.toString());
+
+    String sndString = (snd instanceof PairType ?
+        Types.PAIR_T.toString() : snd.toString());
+
+    return super.toString() + "(" + fstString + ", " + sndString + ")";
   }
 
   public Type getFst() {
