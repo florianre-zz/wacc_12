@@ -12,7 +12,8 @@ import java.util.List;
 
 public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
-  // TODO: This is horrible...
+  // TODO: This is horrible... perhaps enum or completely rethink
+  // Get it working first though
   private static final String regularScope = "0";
   private static final String oneWayScope  = "1";
 
@@ -22,7 +23,9 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   private SymbolTable<String, Binding> workingSymTable;
   private int ifCount, whileCount, beginCount;
 
-  public WACCSymbolTableBuilder(SymbolTable<String, Binding> top) {
+  public WACCSymbolTableBuilder(SymbolTable<String, Binding> top,
+                                ErrorHandler errorHandler) {
+    this.errorHandler = errorHandler;
     this.top = this.workingSymTable = top;
     ifCount = whileCount = beginCount = 0;
   }
