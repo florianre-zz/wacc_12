@@ -32,7 +32,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   }
 
   // TODO: check all complain(s) to see if this helper method could be used
-  private void IncorrectType(WACCParser.UnaryOperContext ctx,
+  private void IncorrectType(ParserRuleContext ctx,
                              Type exprType,
                              String expectedType) {
     String actual = exprType != null ? exprType.getName() : "'null'";
@@ -603,6 +603,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    */
   @Override
   // TODO: when visitIdent is implemented, it should be used to get the type
+  // TODO: shorten! (with a sense of urgency)
 	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
     Type exprType = null;
 
@@ -653,24 +654,82 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 	}
 
 
+  /**
+   * TODO: delete later
+   */
   @Override
   public Type visitBinaryOper(@NotNull WACCParser.BinaryOperContext ctx) {
     return null;
   }
 
-  @Override
-  public Type visitArithmeticOper(@NotNull WACCParser.ArithmeticOperContext ctx) {
-    return null;
-  }
-
-  @Override
-  public Type visitComparisonOper(@NotNull WACCParser.ComparisonOperContext ctx) {
-    return null;
-  }
-
+  /**
+   * logicalOper: first ((AND | OR) otherExprs)*
+   * if there are no otherExprs
+   *  - return type of first
+   * otherwise
+   *  - check all exprs are bool(s)
+   */
   @Override
   public Type visitLogicalOper(@NotNull WACCParser.LogicalOperContext ctx) {
-    return null;
+    if (ctx.otherExprs.size() > 0) {
+      for (WACCParser.OrderingOperContext operCtx : ctx.orderingOper()) {
+        Type type = visitOrderingOper(operCtx);
+        if (!Type.isBool(type)) {
+          IncorrectType(operCtx, type, "'bool'");
+        }
+      }
+      return (Type) top.lookupAll(Types.BOOL_T.toString());
+    } else {
+      return visitOrderingOper(ctx.first);
+    }
+  }
+
+  /**
+   * orderingOper: first ((GT | GTE | LT | LTE) second)?
+   * if there is no second
+   *  - return type of first
+   * otherwise
+   *  - check both are int(s) or both are char(s)
+   */
+  @Override
+  public Type visitOrderingOper(@NotNull WACCParser.OrderingOperContext ctx) {
+    if (ctx.second != null) {
+      Type fstType = visitEqualityOper(ctx.first);
+      Type sndType = visitEqualityOper(ctx.second);
+
+      if (!fstType.equals(sndType)) {
+        errorHandler.complain(new TypeError(ctx.first));
+        errorHandler.complain(new TypeError(ctx.second));
+      } else if (!(Type.isInt(fstType) || Type.isChar(fstType))) {
+        IncorrectType(ctx.first, fstType, "'int' or 'char'");
+        IncorrectType(ctx.second, sndType, "'int' or 'char'");
+      }
+      return (Type) top.lookupAll(Types.BOOL_T.toString());
+    } else {
+      return visitEqualityOper(ctx.first);
+    }
+  }
+
+  /**
+   * arithmeticOper: first ((MUL | DIV | MOD | PLUS | MINUS) otherExprs)*;
+   * if there are no otherExprs
+   *  - return type of first
+   * otherwise
+   *  - check all exprs are int(s)
+   */
+  @Override
+  public Type visitArithmeticOper(@NotNull WACCParser.ArithmeticOperContext ctx) {
+    if (ctx.otherExprs.size() > 0) {
+      for (WACCParser.AtomContext atomCtx : ctx.atom()) {
+        Type type = visitAtom(atomCtx);
+        if (!Type.isBool(type)) {
+          IncorrectType(atomCtx, type, "'bool'");
+        }
+      }
+      return (Type) top.lookupAll(Types.INT_T.toString());
+    } else {
+      return visitAtom(ctx.first);
+    }
   }
 
   //Types
