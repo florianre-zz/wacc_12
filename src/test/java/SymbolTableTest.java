@@ -35,14 +35,14 @@ public class SymbolTableTest {
 
   @Test
   public void testLookupAllInChildWithParent() throws Exception {
-    symbolTable = new SymbolTable<>(parentSymbolTable);
+    symbolTable = new SymbolTable<>("child", parentSymbolTable);
     symbolTable.put(TEST_KEY, binding);
     assertThat(symbolTable.lookupAll(TEST_KEY), is(binding));
   }
 
   @Test
   public void testLookupAllInChildAndParent() throws Exception {
-    symbolTable = new SymbolTable<>(parentSymbolTable);
+    symbolTable = new SymbolTable<>("child", parentSymbolTable);
     symbolTable.put(TEST_KEY, binding);
     Binding parentBinding = context.mock(Binding.class, "parentBinding");
     parentSymbolTable.put(TEST_KEY, parentBinding);
@@ -51,7 +51,7 @@ public class SymbolTableTest {
 
   @Test
   public void testLookupAllInParentNotChild() throws Exception {
-    symbolTable = new SymbolTable<>(parentSymbolTable);
+    symbolTable = new SymbolTable<>("child", parentSymbolTable);
     parentSymbolTable.put(TEST_KEY, binding);
     assertThat(symbolTable.lookupAll(TEST_KEY), is(binding));
   }
@@ -59,8 +59,8 @@ public class SymbolTableTest {
   @Test
   public void testLookupAllInGrandparentNotChildren() throws Exception {
     SymbolTable<String, Binding> grandparentSymbolTable = new SymbolTable<>();
-    parentSymbolTable = new SymbolTable<>(grandparentSymbolTable);
-    symbolTable = new SymbolTable<>(parentSymbolTable);
+    parentSymbolTable = new SymbolTable<>("parent", grandparentSymbolTable);
+    symbolTable = new SymbolTable<>("child",parentSymbolTable);
     grandparentSymbolTable.put(TEST_KEY, binding);
     assertThat(symbolTable.lookupAll(TEST_KEY), is(binding));
   }
@@ -72,7 +72,7 @@ public class SymbolTableTest {
 
   @Test
   public void testGetEnclosingSTParent() throws Exception {
-    symbolTable = new SymbolTable<>(parentSymbolTable);
+    symbolTable = new SymbolTable<>("child", parentSymbolTable);
     assertThat(symbolTable.getEnclosingST(), is(parentSymbolTable));
   }
 }

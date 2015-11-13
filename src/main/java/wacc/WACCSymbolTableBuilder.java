@@ -11,8 +11,8 @@ import java.util.List;
 
 public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
-  private static final int regularScope = 0;
-  private static final int oneWayScope  = 1;
+  private static final String regularScope = "0";
+  private static final String oneWayScope  = "1";
 
   private SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymTable;
