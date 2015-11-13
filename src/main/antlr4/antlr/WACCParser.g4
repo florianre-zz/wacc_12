@@ -25,11 +25,11 @@ stat: SKIP                                                       # SkipStat
       ;
 assignLHS: IDENT | arrayElem | pairElem;
 assignRHS:
-  expr                                                           #rhsExpr
-  | arrayLitr                                                    #rhsArray
+  expr                                                           #RHSExpr
+  | arrayLitr                                                    #RHSArray
   | NEW_PAIR OPEN_PARENTHESIS first=expr
       COMMA second=expr CLOSE_PARENTHESIS                        #newPair
-  | pairElem                                                     #rhsPairElem
+  | pairElem                                                     #RHSPairElem
   | CALL funcName=IDENT
       OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS              #functionCall
   ;
