@@ -44,7 +44,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   private void IncorrectType(ParserRuleContext ctx,
                              Type exprType,
                              String expectedType) {
-    String actual = exprType != null ? exprType.getName() : "'null'";
+    String actual = exprType != null ? exprType.toString() : "'null'";
     errorHandler.complain(
         new TypeAssignmentError(ctx, expectedType, actual)
     );
@@ -162,7 +162,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       Type rhsType = visitAssignRHS(ctx.assignRHS());
 
       if (!lhsType.equals(rhsType)) {
-        IncorrectType(ctx, rhsType, lhsType.getName());
+        IncorrectType(ctx, rhsType, lhsType.toString());
       }
 
       return lhsType;
@@ -180,7 +180,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       Type rhsType = visitAssignRHS(ctx.assignRHS());
 
       if (!lhsType.equals(rhsType)) {
-        IncorrectType(ctx, rhsType, lhsType.getName());
+        IncorrectType(ctx, rhsType, lhsType.toString());
       }
 
       return lhsType;
@@ -195,7 +195,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     if (!isReadable(lhsType)) {
       errorHandler.complain(
-          new ReadTypeAssignmentError(ctx, lhsType.getName()));
+          new ReadTypeAssignmentError(ctx, lhsType.toString()));
     }
 
     return lhsType;
@@ -210,7 +210,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     if (!isFreeable(exprType)) {
       errorHandler.complain(
-          new ReadTypeAssignmentError(ctx, exprType.getName()));
+          new FreeTypeAssignmentError(ctx, exprType.toString()));
     }
 
     return exprType;
@@ -225,7 +225,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     if (!Type.isInt(exprType)) { // exit codes are Integers
       errorHandler.complain(
-          new ReadTypeAssignmentError(ctx, exprType.getName()));
+          new ExitTypeAssignmentError(ctx, exprType.toString()));
     }
 
     return exprType;
@@ -560,8 +560,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
         returnType = pairType.getSnd();
       }
     } else {
-      errorHandler.complain(
-          new TypeAssignmentError(ctx, "'pair'", varType.getName()));
+      IncorrectType(ctx, new Type(Types.PAIR_T), varType.toString());
     }
 
     return returnType;
