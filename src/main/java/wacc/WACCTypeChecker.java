@@ -104,7 +104,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * returns null if not valid */
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
-    //TODO: revisit how we get the type
+    //TODO: revisit how we get the type - look up in symbol table
     Type type = visitType(ctx.type());
     if (type == null) {
       TypeError error = new TypeError(ctx);
@@ -320,6 +320,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   public Type visitWhileStat(@NotNull WACCParser.WhileStatContext ctx) {
     Type predicateType = visitExpr(ctx.expr());
 
+    // TODO: make 'bool' an enum not string
     if (Type.isBool(predicateType)) {
       errorHandler.complain(
           new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
@@ -417,26 +418,42 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   // Expressions
 
   /**
+   * expr: binaryOper;
    * */
   @Override
+  //TODO: delete later
   public Type visitExpr(@NotNull WACCParser.ExprContext ctx) {
     return visitChildren(ctx);
   }
 
+  /**
+   * intExpr: (CHR)? (sign)? INTEGER
+   * check if it is a char (if CHR is set)
+   * otherwise it should be an int
+   */
   @Override
   public Type visitIntExpr(@NotNull WACCParser.IntExprContext ctx) {
     if (ctx.CHR() != null) {
-      return (Type) top.lookupAll(ctx.CHR().getText());
+      return (Type) top.lookupAll(Types.CHAR_T.toString());
     }
 
     return (Type) top.lookupAll(Types.INT_T.toString());
   }
 
+  /**
+   * boolExpr: (NOT)? boolLitr
+   * check if literal is bool
+   */
   @Override
   public Type visitBoolExpr(@NotNull WACCParser.BoolExprContext ctx) {
     return visitBoolLitr(ctx.boolLitr());
   }
 
+  /**
+   * (ORD)? CHARACTER
+   * check if it is an int (if ORD is set)
+   * otherwise it should be a char
+   */
   @Override
   public Type visitCharExpr(@NotNull WACCParser.CharExprContext ctx) {
     if (ctx.ORD() != null) {
@@ -446,15 +463,32 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return (Type) top.lookupAll(Types.CHAR_T.toString());
   }
 
+  /**
+   * stringExpr: STRING
+   * it is of type string (parser asserts this)
+   */
   @Override
   public Type visitStringExpr(@NotNull WACCParser.StringExprContext ctx) {
     return (Type) top.lookupAll(Types.STRING_T.toString());
   }
 
+  /**
+   * pairExpr: pairLitr
+   * TODO: delete later
+   */
   @Override
   public Type visitPairExpr(@NotNull WACCParser.PairExprContext ctx) {
     return visitPairLitr(ctx.pairLitr());
   }
+
+  /**
+   * arrayExpr: (LEN)? arrayElem
+   * if we are checking the length of the array
+   *  - we return an int
+   * otherwise
+   * check that ident of of type array
+   *
+   */
 
   @Override
   public Type visitArrayExpr(@NotNull WACCParser.ArrayExprContext ctx) {
