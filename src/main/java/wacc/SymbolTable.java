@@ -6,13 +6,15 @@ import java.util.Hashtable;
 public class SymbolTable<S, T> extends Hashtable<S, T> {
 
   private SymbolTable<S, T> enclosingST;
+  private String name;
 
   public SymbolTable() {
-    this(null);
+    this("TOP", null);
   }
 
-  public SymbolTable(SymbolTable<S, T> enclosingST) {
+  public SymbolTable(String name, SymbolTable<S, T> enclosingST) {
     this.enclosingST = enclosingST;
+    this.name = name;
   }
 
   public T lookupAll(S key){
@@ -47,5 +49,9 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
     }
     sb.append("}");
     return sb.toString();
+  }
+
+  public String getName() {
+    return name;
   }
 }

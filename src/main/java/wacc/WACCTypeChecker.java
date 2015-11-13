@@ -158,7 +158,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   *  - if it is a pair, check the inner types */
   @Override
     public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-      Type lhsType = getVariableType(ctx.varName.getText());
+      Type lhsType = visitIdent(ctx.ident());
       Type rhsType = visitAssignRHS(ctx.assignRHS());
 
       if (!lhsType.equals(rhsType)) {
@@ -327,7 +327,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitAssignLHS(@NotNull WACCParser.AssignLHSContext ctx) {
 
-    if (ctx.IDENT() != null) {
+    if (ctx.ident().IDENT() != null) {
 
       Binding b = workingSymbTable.lookupAll(ctx.getText());
       if (b instanceof Variable) {
@@ -368,8 +368,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitFunctionCall(@NotNull WACCParser.FunctionCallContext ctx) {
     // TODO: set scope
-    visitArgList(ctx.argList());
-    return getVariableType(ctx.funcName.getText());
+    visitArgList(ctx.call().argList());
+    return visitIdent(ctx.call().ident());
   }
 
   /**
@@ -547,7 +547,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    */
   @Override
   public Type visitPairElem(@NotNull WACCParser.PairElemContext ctx) {
-    Type varType = getVariableType(ctx.IDENT().getText());
+    Type varType = visitIdent(ctx.ident());
 
     Type returnType = null;
 
@@ -586,8 +586,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
     Type exprType = null;
 
-    if (ctx.IDENT() != null) {
-      Binding b = workingSymbTable.lookupAll(ctx.IDENT().getText());
+    if (ctx.ident().IDENT() != null) {
+      Binding b = workingSymbTable.lookupAll(ctx.ident().IDENT().getText());
       if (b instanceof Variable) {
         return ((Variable) b).getType();
       }
