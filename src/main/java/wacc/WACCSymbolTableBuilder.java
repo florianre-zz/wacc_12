@@ -4,6 +4,7 @@ import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -236,10 +237,11 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * If the RHS includes functions or variables, these also have to be
    * checked for existence
    */
-  // TODO: check if while or else or then to deal with declaration
   // TODO: check RHS identifiers exist
   // TODO: visit RHS before LHS (avoid int a = a)
   // TODO: boolean startsWith(String prefix)
+  // TODO: IF & WHILE: stop redeclaration of variables in ancestor scopes
+  // TODO: Allow funcName and variableName to be the same
   @Override
   public Void visitInitStat(WACCParser.InitStatContext ctx) {
     String varName = ctx.varName.getText();
@@ -268,7 +270,20 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
-  // TODO: write visitIdent()
-  // TODO: IF & WHILE: stop redeclaration of variables in ancestor scopes
-  // TODO: Allow funcName and variableName to be the same
+  /* This assumes that the current ident is not the LHS of an initStat or the
+   * name of a function in a callStat
+   * Throws error for undeclared variable (includes when IDENT is only a
+   * function name)
+   */
+  @Override
+  public Void visitIdent(@NotNull WACCParser.IdentContext ctx) {
+    Binding binding = workingSymTable.lookupAll(ctx.IDENT().getText());
+    if (binding == null || binding instanceof Function) {
+      // TODO: ERROR - variable has not been declared
+    }
+    return null;
+  }
+
+  //TODO: write visitCallStat()
+
 }

@@ -430,5 +430,4 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return (Type) top.lookupAll(ctx.getText());
   }
 
-
 }
