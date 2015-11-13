@@ -1,5 +1,7 @@
 package bindings;
 
+// TODO: delete this class
+
 public class Array extends Variable {
 
   private int dimensionality;
