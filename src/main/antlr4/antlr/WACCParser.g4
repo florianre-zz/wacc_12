@@ -43,13 +43,26 @@ pairElemType: baseType | arrayType | PAIR;
 expr: binaryOper;
 sign: MINUS | PLUS;
 binaryOper: logicalOper;
-logicalOper: firstExpr=comparisonOper ((AND | OR) otherExprs+=comparisonOper)*
+logicalOper: first=orderingOper ((AND | OR) otherExprs+=orderingOper)*
 {
-  WACCParser.ComparisonOperContext firstExpr;
-  List<WACCParser.ComparisonOperContext> otherExprs = new ArrayList();
+  WACCParser.OrderingOperContext first;
+  List<WACCParser.OrderingOperContext> otherExprs = new ArrayList();
 };
-comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)?;
-arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
+orderingOper: first=equalityOper ((GT | GTE | LT | LTE) second=equalityOper)?
+{
+  WACCParser.EqualityOperContext first;
+  WACCParser.EqualityOperContext second;
+};
+equalityOper: first=arithmeticOper ((EQ | NE) second=arithmeticOper)?
+{
+  WACCParser.ArithmeticOperContext first;
+  WACCParser.ArithmeticOperContext second;
+};
+arithmeticOper: first=atom ((MUL | DIV | MOD | PLUS | MINUS) otherExprs+=atom)*
+{
+  WACCParser.AtomContext first;
+  List<WACCParser.AtomContext> otherExprs = new ArrayList();
+};
 atom: (CHR)? (sign)? INTEGER                                  # intExpr
       | (NOT)? boolLitr                                       # boolExpr
       | (ORD)? CHARACTER                                      # charExpr
