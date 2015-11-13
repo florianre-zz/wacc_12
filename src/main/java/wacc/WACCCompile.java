@@ -11,6 +11,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import wacc.error.ErrorHandler;
 
+// TODO: Tidy up this main()
+
 public class WACCCompile {
   public static void main(String[] args) throws Exception {
     System.out.println("Welcome to WACC Compile...");
@@ -33,13 +35,15 @@ public class WACCCompile {
     System.out.println("====");
     System.out.println("Visiting...");
     SymbolTable<String, Binding> top = createTopSymbolTable();
-    WACCSymbolTableBuilder buildSTVisitor = new WACCSymbolTableBuilder(top);
+    ErrorHandler errorHandler = new ErrorHandler(parser.getInputStream());
+    WACCSymbolTableBuilder buildSTVisitor
+        = new WACCSymbolTableBuilder(top, errorHandler);
     buildSTVisitor.visit(tree);
+
     System.out.println("Symbol Tables: ");
     System.out.println(top);
     System.out.println(((NewScope) top.get("prog")).getSymbolTable());
 
-    ErrorHandler errorHandler = new ErrorHandler(parser.getInputStream());
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
     System.out.println(errorHandler);
