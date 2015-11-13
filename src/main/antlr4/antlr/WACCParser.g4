@@ -41,6 +41,15 @@ arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
 expr: binaryOper;
+sign: MINUS | PLUS;
+binaryOper: logicalOper;
+logicalOper: firstExpr=comparisonOper ((AND | OR) otherExprs+=comparisonOper)*
+{
+  WACCParser.ComparisonOperContext firstExpr;
+  List<WACCParser.ComparisonOperContext> otherExprs = new ArrayList();
+};
+comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)?;
+arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
 atom: (CHR)? (sign)? INTEGER                                  # intExpr
       | (NOT)? boolLitr                                       # boolExpr
       | (ORD)? CHARACTER                                      # charExpr
@@ -49,17 +58,7 @@ atom: (CHR)? (sign)? INTEGER                                  # intExpr
       | unaryOper                                             # unaryExpr
       | (LEN)? arrayElem                                      # arrayExpr
       ;
-sign: MINUS | PLUS;
 unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (IDENT | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
-binaryOper: logicalOper;
-arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
-comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)?;
-logicalOper: firstExpr=comparisonOper ((cs+=AND | cs+=OR) otherExprs+=comparisonOper)*
-{
-  List<Token> cs = new ArrayList<>();
-  WACCParser.ComparisonOperContext firstExpr;
-  List<WACCParser.ComparisonOperContext> otherExprs = new ArrayList();
-};
 pairElem: (FST | SND) IDENT;
 arrayElem: varName=IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
