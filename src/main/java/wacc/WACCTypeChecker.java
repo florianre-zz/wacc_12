@@ -25,9 +25,11 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   // TODO: this is visitIdent()
   private Type getVariableType(String name) {
-    Variable var = (Variable) workingSymbTable.lookupAll(name);
-
-    return var.getType();
+    Binding b = workingSymbTable.lookupAll(name);
+    if (b instanceof Variable) {
+      return ((Variable) b).getType();
+    }
+    return null;
   }
 
   private boolean isReadable(Type lhsType) {
@@ -151,35 +153,33 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * check that they are equal
   *  - if it is a pair, check the inner types */
   @Override
-  public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    Type lhsType = getVariableType(ctx.varName.getText());
-    Type rhsType = visitAssignRHS(ctx.assignRHS());
+    public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
+      Type lhsType = getVariableType(ctx.varName.getText());
+      Type rhsType = visitAssignRHS(ctx.assignRHS());
 
-    if (!lhsType.equals(rhsType)) {
-      errorHandler.complain(
-          new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
+      if (!lhsType.equals(rhsType)) {
+        IncorrectType(ctx, rhsType, lhsType.getName());
+      }
+
+      return lhsType;
     }
 
-    return lhsType;
-  }
+    /**
+     * assignLHS EQUALS assignRHS
+     * get lhs & rhs types
+     * check that they are equal
+     *  - if it is a pair, check the inner types
+     *  TODO: refactor with Init stat */
+    @Override
+    public Type visitAssignStat(@NotNull WACCParser.AssignStatContext ctx) {
+      Type lhsType = visitAssignLHS(ctx.assignLHS());
+      Type rhsType = visitAssignRHS(ctx.assignRHS());
 
-  /**
-  * assignLHS EQUALS assignRHS
-  * get lhs & rhs types
-  * check that they are equal
-  *  - if it is a pair, check the inner types
-  *  TODO: refactor with Init stat */
-  @Override
-  public Type visitAssignStat(@NotNull WACCParser.AssignStatContext ctx) {
-    Type lhsType = visitAssignLHS(ctx.assignLHS());
-    Type rhsType = visitAssignRHS(ctx.assignRHS());
+      if (!lhsType.equals(rhsType)) {
+        IncorrectType(ctx, rhsType, lhsType.getName());
+      }
 
-    if (!lhsType.equals(rhsType)) {
-      errorHandler.complain(
-          new TypeAssignmentError(ctx, lhsType.getName(), rhsType.getName()));
-    }
-
-    return lhsType;
+      return lhsType;
   }
 
   /**
@@ -247,16 +247,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     }
 
     return expectedReturnType;
-  }
-
-  /**
-  * (PRINT | PRINTLN) expr
-  * no checking to be done
-  * return null
-  * TODO: delete later */
-  @Override
-  public Type visitPrintStat(@NotNull WACCParser.PrintStatContext ctx) {
-    return null;
   }
 
   /**
@@ -367,7 +357,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   /**
    * argList: expr (COMMA expr)*;
-   * TODO: delete? not sure we will use this...
+   *
    */
   @Override
 	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
@@ -376,15 +366,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 	}
 
   // Expressions
-
-  /**
-   * expr: binaryOper;
-   * */
-  @Override
-  //TODO: delete later
-  public Type visitExpr(@NotNull WACCParser.ExprContext ctx) {
-    return visitChildren(ctx);
-  }
 
   /**
    * intExpr: (CHR)? (sign)? INTEGER
@@ -430,15 +411,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitStringExpr(@NotNull WACCParser.StringExprContext ctx) {
     return (Type) top.lookupAll(Types.STRING_T.toString());
-  }
-
-  /**
-   * pairExpr: pairLitr
-   * TODO: delete later
-   */
-  @Override
-  public Type visitPairExpr(@NotNull WACCParser.PairExprContext ctx) {
-    return visitPairLitr(ctx.pairLitr());
   }
 
   /**
@@ -536,14 +508,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     return null;
   }
 
-  /**
-   * TODO: delete later
-   */
-  @Override
-  public Type visitUnaryExpr(@NotNull WACCParser.UnaryExprContext ctx) {
-    return visitUnaryOper(ctx.unaryOper());
-  }
-
   // Operations
 
   /**
@@ -609,15 +573,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
 		return exprType;
 	}
-
-
-  /**
-   * TODO: delete later
-   */
-  @Override
-  public Type visitBinaryOper(@NotNull WACCParser.BinaryOperContext ctx) {
-    return null;
-  }
 
   /**
    * logicalOper: first ((AND | OR) otherExprs)*
