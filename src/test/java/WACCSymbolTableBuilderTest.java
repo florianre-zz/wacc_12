@@ -12,9 +12,9 @@ public class WACCSymbolTableBuilderTest {
     setImposteriser(ClassImposteriser.INSTANCE);
   }};
 
-  @SuppressWarnings("unchecked")
-  SymbolTable<String, Binding> top = context.mock(SymbolTable.class);
-  WACCSymbolTableBuilder buildSTVisitor = new WACCSymbolTableBuilder(top);
+//  @SuppressWarnings("unchecked")
+//  SymbolTable<String, Binding> top = context.mock(SymbolTable.class);
+//  WACCSymbolTableBuilder buildSTVisitor = new WACCSymbolTableBuilder(top);
 
 //  @Test
 //  public void visitProgAddsNewProgramSymbolTableToTop()
