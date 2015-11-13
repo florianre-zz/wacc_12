@@ -4,14 +4,19 @@ import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
+import wacc.error.DeclarationError;
+import wacc.error.ErrorHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
+  // TODO: This is horrible...
   private static final String regularScope = "0";
   private static final String oneWayScope  = "1";
+
+  private ErrorHandler errorHandler;
 
   private SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymTable;
@@ -109,14 +114,15 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     List<? extends WACCParser.FuncContext> progFuncContexts = ctx.func();
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
       /*
-	     * Working symbol table will be TOP at this point
+	     * TODO: Working symbol table will be TOP at this point
        * Allow mutual recursion but does not allow overloading
        */
       Binding dummy = new Binding("dummy");
       Binding checker = workingSymTable.put(progFuncContext.funcName.getText(),
                                             dummy);
       if (checker != null){
-        // TODO: Error - Function name has been used already
+        String errorMsg = "Function name has been used already";
+        errorHandler.complain(new DeclarationError(ctx, errorMsg));
       }
     }
     return new NewScope(scopeName, symTable);
@@ -148,7 +154,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
       Variable param = new Variable(name, type);
       Binding binding = newScopeSymTab.put(name, param);
       if (binding != null) {
-        // TODO: ERROR - parameter name already exists
+        String errorMsg = "parameter name already exists";
+        errorHandler.complain(new DeclarationError(funcContext, errorMsg));
       }
       funcParams.add(param);
     }
@@ -292,14 +299,16 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     // no need to check if function since this can never ba called within the
     // program scope or TOP
     if (binding != null) {
-      // TODO: ERROR - variable is already declared in current scope
+      String errorMsg = "Variable is already declared in current scope";
+      errorHandler.complain(new DeclarationError(ctx, errorMsg));
     } else {
       SymbolTable<String, Binding> temp = workingSymTable;
       while (isScopeOneWay(temp)) {
         temp = temp.getEnclosingST();
         binding = temp.get(varName);
         if (binding != null) {
-          // TODO: ERROR - cannot redefine variable in this scope
+          String errorMsg = "Cannot redefine variable in this scope";
+          errorHandler.complain(new DeclarationError(ctx, errorMsg));
           break;
         }
       }
@@ -317,7 +326,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   public Void visitIdent(WACCParser.IdentContext ctx) {
     Binding binding = workingSymTable.lookupAll(ctx.IDENT().getText());
     if (binding == null || binding instanceof Function) {
-      // TODO: ERROR - variable has not been declared
+      String errorMsg = "Variable has not been declared";
+      errorHandler.complain(new DeclarationError(ctx, errorMsg));
     }
     return null;
   }
@@ -328,7 +338,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     Binding binding = progScope.getSymbolTable().get(ctx.funcName.IDENT()
                                                                .getText());
     if (binding != null) {
-      // TODO: ERROR - function not defined
+      String errorMsg = "Function not defined";
+      errorHandler.complain(new DeclarationError(ctx, errorMsg));
     }
     return visitArgList(ctx.argList());
   }
