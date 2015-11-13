@@ -11,7 +11,7 @@ paramList: param (COMMA param)*;
 param: type name=ident;
 statList: stat (SEMICOLON stat)*;
 stat: SKIP                                                       # SkipStat
-      | type varName=ident EQUALS assignRHS                      # InitStat
+      | type ident EQUALS assignRHS                      # InitStat
       | assignLHS EQUALS assignRHS                               # AssignStat
       | READ assignLHS                                           # ReadStat
       | FREE expr                                                # FreeStat

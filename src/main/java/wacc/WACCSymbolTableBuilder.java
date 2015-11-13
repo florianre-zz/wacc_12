@@ -32,7 +32,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return (Type) top.lookupAll(ctx.getText());
   }
 
-  /* Sets the working symbol table to the parent of the working 
+  /**
+	 * Sets the working symbol table to the parent of the working 
    * symbol table 
    */
   private void goUpWorkingSymTable() {
@@ -42,7 +43,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     }
   }
 
-  /* Given a context which requires a new scope, its symbol table is filled 
+  /**
+   * Given a context which requires a new scope, its symbol table is filled
    * with all relevant elements of its children
    * Once all elements are added, the working symbol table is reset to its 
    * value before method call 
@@ -55,7 +57,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
-  /* Creates a new symbol table and binding for a context which requires a
+  /**
+	 * Creates a new symbol table and binding for a context which requires a
    * new scope
    */
   private Void setANewScope(ParserRuleContext ctx, String scopeName) {
@@ -98,7 +101,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
                                       SymbolTable<String, Binding> symTable) {
     List<? extends WACCParser.FuncContext> progFuncContexts = ctx.func();
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
-      /* Working symbol table will be TOP at this point
+      /**
+	     * Working symbol table will be TOP at this point
        * Allow mutual recursion but does not allow overloading
        */
       Binding dummy = new Binding("dummy");
@@ -111,7 +115,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return new NewScope(scopeName, symTable);
   }
 
-  /* Create a function scope
+  /**
+	 * Create a function scope
    * Put all the function's params in its symbol table and stores them in as a
    * List in the Function that is returned
    */
@@ -128,12 +133,16 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
       String name = paramContext.getText();
       Type type = getType(paramContext.type());
 
-      /* Create param as a variable
+      /**
+	     * Create param as a variable
        * Store it in the function's symbolTable and add the param to the
        * list of params of the function (used to create the scope)
        */
       Variable param = new Variable(name, type);
-      newScopeSymTab.put(name, param);
+      Binding binding = newScopeSymTab.put(name, param);
+      if (binding != null) {
+        // TODO: ERROR - parameter name already exists
+      }
       funcParams.add(param);
     }
 
@@ -159,7 +168,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     fillNewSymbolTable(statList, symbolTable);
   }
 
-  /* Given a context with only one statList this statList is returned
+  /**
+	 * Given a context with only one statList this statList is returned
    * The if statement case is dealt with in setIfStatScopes()
    */
   private WACCParser.StatListContext getStatListContext(ParserRuleContext ctx) {
@@ -195,7 +205,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return setANewScope(ctx, "0main");
   }
 
-  /* Finds the information about a function definition and calls for a new
+  /**
+	 * Finds the information about a function definition and calls for a new
    * scope to be created
    */
   @Override
@@ -203,7 +214,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return setANewScope(ctx, ctx.funcName.getText());
   }
 
-  /* Calls for a new scope to be created for every new BEGIN - END
+  /**
+	 * Calls for a new scope to be created for every new BEGIN - END
    * Each begin scope is given a unique name using a counter
    */
   @Override
@@ -212,16 +224,19 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return setANewScope(ctx, scopeName);
   }
 
-  /* Calls for a new scope to be created for every new if statement
+  /**
+	 * Calls for a new scope to be created for every new if statement
    * Each if scope is given a unique name using a counter
    */
   @Override
   public Void visitIfStat(WACCParser.IfStatContext ctx) {
     ++ifCount;
+    visitExpr(ctx.expr());
     return setANewScope(ctx, null);
   }
 
-  /* Calls for a new scope to be created for every new while loop
+  /**
+	 * Calls for a new scope to be created for every new while loop
    * Each while is given a unique name using a counter
    */
   @Override
@@ -231,46 +246,32 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return setANewScope(ctx, scopeName);
   }
 
-  /* Adds a newly initialised variable to the working symbol table
+  /**
+	 * Adds a newly initialised variable to the working symbol table
    * The variable is checked so that it is not declared twice in the same scope
    * and has at least been declared in an ancestor scope
    * If the RHS includes functions or variables, these also have to be
    * checked for existence
    */
-  // TODO: check RHS identifiers exist
-  // TODO: visit RHS before LHS (avoid int a = a)
-  // TODO: boolean startsWith(String prefix)
+  // reminder: boolean startsWith(String prefix)
   // TODO: IF & WHILE: stop redeclaration of variables in ancestor scopes
-  // TODO: Allow funcName and variableName to be the same
   @Override
   public Void visitInitStat(WACCParser.InitStatContext ctx) {
-    String varName = ctx.varName.getText();
-    if (ctx.type().arrayType() != null) {
-      if (ctx.type().arrayType().nonArrayType().baseType() != null) {
-        workingSymTable.put(varName, top.get(
-                                ctx.type().arrayType().nonArrayType().baseType()
-                                   .getText()));
-      } else {
+    String varName = ctx.ident().IDENT().getText();
+    visitAssignRHS(ctx.assignRHS());
+    Binding binding = workingSymTable.get(varName);
 
-      }
+    // Variable not declared in current scope
+    if (binding == null || binding instanceof  Function) {
+      workingSymTable.put(varName, new Variable(varName, getType(ctx.type())));
     } else {
-      if (ctx.type().nonArrayType().pairType() != null) {
-        //        workingSymTable.put(varName,
-        //                            new Pair(varName,
-        //                                     new Type(),
-        //                                     ctx.type().nonArrayType().pairType()
-        //                                         .secondType));
-      } else {
-        workingSymTable.put(varName, new Variable(varName, new Type(
-            ctx.type().nonArrayType().baseType().getText())));
-      }
+      // TODO: ERROR - variable is already declared
     }
-
-    //return super.visitInitStat(ctx);
     return null;
   }
 
-  /* This assumes that the current ident is not the LHS of an initStat or the
+  /**
+	 * This assumes that the current ident is not the LHS of an initStat or the
    * name of a function in a callStat
    * Throws error for undeclared variable (includes when IDENT is only a
    * function name)
@@ -284,6 +285,5 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
-  //TODO: write visitCallStat()
-
+  //TODO: write visitCallStat() - need rule and make it call visitArgList()
 }
