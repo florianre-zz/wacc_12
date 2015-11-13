@@ -672,15 +672,15 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitLogicalOper(@NotNull WACCParser.LogicalOperContext ctx) {
     if (ctx.otherExprs.size() > 0) {
-      for (WACCParser.OrderingOperContext operCtx : ctx.orderingOper()) {
-        Type type = visitOrderingOper(operCtx);
+      for (WACCParser.ComparisonOperContext operCtx : ctx.comparisonOper()) {
+        Type type = visitComparisonOper(operCtx);
         if (!Type.isBool(type)) {
           IncorrectType(operCtx, type, "'bool'");
         }
       }
       return (Type) top.lookupAll(Types.BOOL_T.toString());
     } else {
-      return visitOrderingOper(ctx.first);
+      return visitComparisonOper(ctx.first);
     }
   }
 
@@ -694,8 +694,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitOrderingOper(@NotNull WACCParser.OrderingOperContext ctx) {
     if (ctx.second != null) {
-      Type fstType = visitEqualityOper(ctx.first);
-      Type sndType = visitEqualityOper(ctx.second);
+      Type fstType = visitArithmeticOper(ctx.first);
+      Type sndType = visitArithmeticOper(ctx.second);
 
       if (!fstType.equals(sndType)) {
         errorHandler.complain(new TypeError(ctx.first));
@@ -706,7 +706,31 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       }
       return (Type) top.lookupAll(Types.BOOL_T.toString());
     } else {
-      return visitEqualityOper(ctx.first);
+      return visitArithmeticOper(ctx.first);
+    }
+  }
+
+  /**
+   * equalityOper: first ((EQ | NE) second)?
+   * if there is no second
+   *  - return type of first
+   * otherwise
+   *  - check both are the same type
+   */
+  @Override
+  public Type visitEqualityOper(@NotNull WACCParser.EqualityOperContext ctx) {
+    if (ctx.second != null) {
+      Type fstType = visitArithmeticOper(ctx.first);
+      Type sndType = visitArithmeticOper(ctx.second);
+
+      if (!fstType.equals(sndType)) {
+        errorHandler.complain(new TypeError(ctx.first));
+        errorHandler.complain(new TypeError(ctx.second));
+      }
+
+      return (Type) top.lookupAll(Types.BOOL_T.toString());
+    } else {
+      return visitArithmeticOper(ctx.first);
     }
   }
 
