@@ -20,13 +20,15 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     ifCount = whileCount = beginCount = 0;
   }
 
+  /***************************** Helper Method *******************************/
+
   private void setWorkingSymTable(SymbolTable<String, Binding> workingSymTable) {
     this.workingSymTable = workingSymTable;
   }
 
-  // Helper Methods
-
-  // Returns a Type object for the given context n
+  /**
+   * Returns a Type object for the given context n
+   */
   // TODO: if type doesn't exist, create it and put it in top
   private Type getType(WACCParser.TypeContext ctx) {
     return (Type) top.lookupAll(ctx.getText());
@@ -95,13 +97,15 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return fillNewSymbolTable(contextToVisit, newScopeSymTable);
   }
 
-  //Store names of functions in prog (if any) in thw working symbol table
+  /**
+   * Store names of functions in prog (if any) in thw working symbol table
+   */
   private NewScope setProgScope(WACCParser.ProgContext ctx,
                                       String scopeName,
                                       SymbolTable<String, Binding> symTable) {
     List<? extends WACCParser.FuncContext> progFuncContexts = ctx.func();
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
-      /**
+      /*
 	     * Working symbol table will be TOP at this point
        * Allow mutual recursion but does not allow overloading
        */
@@ -133,7 +137,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
       String name = paramContext.getText();
       Type type = getType(paramContext.type());
 
-      /**
+      /*
 	     * Create param as a variable
        * Store it in the function's symbolTable and add the param to the
        * list of params of the function (used to create the scope)
@@ -151,14 +155,18 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
                         newScopeSymTab);
   }
 
-  // Deal with special case of if statement where 2 scopes are required
+  /**
+   * Deal with special case of if statement where 2 scopes are required
+   */
   private Void setIfStatScope(WACCParser.IfStatContext ctx) {
     setIfBranchScope("0then", ctx.thenStat);
     setIfBranchScope("0else", ctx.elseStat);
     return null;
   }
 
-  // Create a newScope for if branches
+  /**
+   * Create a newScope for if branches
+   */
   private void setIfBranchScope(String name,
                                 WACCParser.StatListContext statList) {
     SymbolTable<String, Binding> symbolTable
@@ -190,16 +198,20 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     }
   }
 
-  // Visit Functions
+  /************************** Visit Functions ****************************/
 
-  // Calls for a new scope to be created for the program
+  /**
+   * Calls for a new scope to be created for the program
+   */
   @Override
   public Void visitProg(WACCParser.ProgContext ctx) {
     setANewScope(ctx, "0prog");
     return visitChildren(ctx);
   }
 
-  // Creates a new scope for the body of the program
+  /**
+   * Creates a new scope for the body of the program
+   */
   @Override
   public Void visitMain(WACCParser.MainContext ctx) {
     return setANewScope(ctx, "0main");
