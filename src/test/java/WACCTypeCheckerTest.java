@@ -16,11 +16,7 @@ import static org.junit.Assert.*;
 
 public class WACCTypeCheckerTest {
 
-
-  public static final String INT_TYPE = "int";
-  private static final String BOOL_TYPE = "bool";
   public static final String INVALID_TYPE = "0type";
-  public static final String INT_T = "INT_T";
 
   private WACCTypeChecker typeChecker;
 
@@ -58,13 +54,13 @@ public class WACCTypeCheckerTest {
         = context.mock(WACCParser.ParamContext.class);
 
     context.checking(new Expectations() {{
-      oneOf(typeCtx).getText(); will(returnValue(INT_TYPE));
+      oneOf(typeCtx).getText(); will(returnValue(Types.INT_T));
       oneOf(paramCtx).type().getText(); will(returnValue(typeCtx));
     }});
 
     Type type = typeChecker.visitParam(paramCtx);
     assertNotNull(type);
-    assertThat(type.getName(), is(INT_T));
+    assertThat(type.getName(), is(Types.INT_T.toString()));
   }
 
   @Test
