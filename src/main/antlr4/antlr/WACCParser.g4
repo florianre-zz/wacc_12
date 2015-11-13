@@ -6,12 +6,12 @@ options {
 
 prog: BEGIN func* main END EOF;
 main: statList;
-func: type funcName=IDENT OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END;
+func: type funcName=ident OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END;
 paramList: param (COMMA param)*;
-param: type name=IDENT;
+param: type name=ident;
 statList: stat (SEMICOLON stat)*;
 stat: SKIP                                                       # SkipStat
-      | type varName=IDENT EQUALS assignRHS                      # InitStat
+      | type varName=ident EQUALS assignRHS                      # InitStat
       | assignLHS EQUALS assignRHS                               # AssignStat
       | READ assignLHS                                           # ReadStat
       | FREE expr                                                # FreeStat
@@ -23,12 +23,12 @@ stat: SKIP                                                       # SkipStat
       | WHILE expr DO statList DONE                              # WhileStat
       | BEGIN statList END                                       # BeginStat
       ;
-assignLHS: IDENT | arrayElem | pairElem;
+assignLHS: ident | arrayElem | pairElem;
 assignRHS: expr
       | arrayLitr
       | NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS
       | pairElem
-      | CALL funcName=IDENT OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
+      | CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
       ;
 argList: expr (COMMA expr)*;
 type: nonArrayType | arrayType;
@@ -47,13 +47,14 @@ atom: (CHR)? (sign)? INTEGER                                  # intExpr
       | (LEN)? arrayElem                                      # arrayExpr
       ;
 sign: MINUS | PLUS;
-unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (IDENT | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
+unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
 binaryOper: logicalOper*;
 arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
-comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)*;
+comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)?;
 logicalOper: comparisonOper ((AND | OR) comparisonOper)*;
 pairElem: FST expr | SND expr;
-arrayElem: varName=IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
+arrayElem: varName=ident (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
 arrayLitr: OPEN_BRACKET (expr (COMMA expr)*)? CLOSE_BRACKET;
 pairLitr: NULL;
+ident: IDENT;
