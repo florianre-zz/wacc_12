@@ -40,4 +40,7 @@ public class ArrayType extends Type {
     return dimensionality;
   }
 
+  public Type getBase() {
+    return base;
+  }
 }

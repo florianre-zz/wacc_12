@@ -6,7 +6,8 @@ public enum Types {
   BOOL_T("bool"),
   CHAR_T("char"),
   STRING_T("string"),
-  PAIR_T("pair");
+  PAIR_T("pair"),
+  NULL("null");
 
   private final String name;
 

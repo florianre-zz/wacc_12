@@ -391,9 +391,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       return firstType;
     }
 
-    // TODO: create null Array...
-
-    return null;
+    return new ArrayType(new Type(Types.NULL));
   }
 
   /**
@@ -509,7 +507,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    */
   @Override
 	public Type visitArrayElem(@NotNull WACCParser.ArrayElemContext ctx) {
-    // TODO: implement this method
     for (WACCParser.ExprContext expr : ctx.expr()) {
       Type index = visitExpr(expr);
       if (!Type.isInt(index)) {
@@ -517,10 +514,25 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       }
     }
 
-    // lookup varName, get dimensionality
-    // check that brackets <= dimensionality
+    Type type = getVariableType(ctx.varName.getText());
 
-    // call array type lookup function
+    if (type instanceof ArrayType) {
+      ArrayType arrayType = (ArrayType) type;
+      int totalDimensionality = arrayType.getDimensionality();
+      int wantedDimensionality = ctx.OPEN_BRACKET().size();
+      if (wantedDimensionality > totalDimensionality) {
+        errorHandler.complain(new TypeError(ctx));
+      } else {
+        int returnDimensionality = totalDimensionality-wantedDimensionality;
+        if (returnDimensionality == 0) {
+          return arrayType.getBase();
+        } else {
+          return new ArrayType(arrayType.getBase(), returnDimensionality);
+        }
+      }
+    }
+
+    IncorrectType(ctx, type, "'T[]'");
 
 		return null;
 	}
