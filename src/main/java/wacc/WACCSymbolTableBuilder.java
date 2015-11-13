@@ -4,7 +4,6 @@ import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
   /***************************** Helper Method *******************************/
 
-  private void setWorkingSymTable(SymbolTable<String, Binding> workingSymTable) {
+  private void setWorkingSymTable(
+      SymbolTable<String, Binding> workingSymTable) {
     this.workingSymTable = workingSymTable;
   }
 
@@ -202,8 +202,9 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   }
 
   /**
-   * Given a symbol table for a particular scope, this returns whether that scope is a one way scope
-   * i.e. if it is a scope within an if statement or a while statement
+   * Given a symbol table for a particular scope, this returns whether
+   * that scope is a one way scope i.e. if it is a scope within an if
+   * statement or a while statement
    * One way scope names begin with the digit '1'
    * Regular scopes begin with the digit '0'
    */
@@ -283,10 +284,13 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   public Void visitInitStat(WACCParser.InitStatContext ctx) {
     String varName = ctx.ident().IDENT().getText();
     visitAssignRHS(ctx.assignRHS());
-    Binding binding = workingSymTable.put(varName, new Variable(varName, getType(ctx.type())));
+    Binding binding = workingSymTable.put(varName,
+                                          new Variable(varName,
+                                                       getType(ctx.type())));
 
     // check if exists in current scope
-    // no need to check if function since this can never ba called within the program scope or TOP
+    // no need to check if function since this can never ba called within the
+    // program scope or TOP
     if (binding != null) {
       // TODO: ERROR - variable is already declared in current scope
     } else {
@@ -310,7 +314,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * function name)
    */
   @Override
-  public Void visitIdent(@NotNull WACCParser.IdentContext ctx) {
+  public Void visitIdent(WACCParser.IdentContext ctx) {
     Binding binding = workingSymTable.lookupAll(ctx.IDENT().getText());
     if (binding == null || binding instanceof Function) {
       // TODO: ERROR - variable has not been declared
@@ -318,5 +322,15 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     return null;
   }
 
-  //TODO: write visitCallStat() - need rule and make it call visitArgList()
+  @Override
+  public Void visitCall(WACCParser.CallContext ctx) {
+    NewScope progScope = (NewScope) top.get(regularScope + "prog");
+    Binding binding = progScope.getSymbolTable().get(ctx.funcName.IDENT()
+                                                               .getText());
+    if (binding != null) {
+      // TODO: ERROR - function not defined
+    }
+    return visitArgList(ctx.argList());
+  }
+
 }

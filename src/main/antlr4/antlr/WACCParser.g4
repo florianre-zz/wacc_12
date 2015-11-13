@@ -28,8 +28,9 @@ assignRHS: expr
       | arrayLitr
       | NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS
       | pairElem
-      | CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
+      | call
       ;
+call: CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS;
 argList: expr (COMMA expr)*;
 type: nonArrayType | arrayType;
 nonArrayType: baseType | pairType;
