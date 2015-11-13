@@ -8,6 +8,10 @@ import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 import wacc.error.Error;
 
+// TODO: do we check if a function has a return function on every branch? *
+// TODO: who checks if an int assignment is too large? *
+// * (run: /src/test/test)
+
 public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
   private final SymbolTable<String, Binding> top;

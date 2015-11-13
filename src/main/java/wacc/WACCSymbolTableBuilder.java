@@ -1,5 +1,7 @@
 package wacc;
 
+// TODO: Make this class and WACCTypeChecker extend a superclass
+
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.*;
