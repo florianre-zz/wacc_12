@@ -54,7 +54,12 @@ unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (IDENT | (OPEN_PARENTHESIS expr CLOS
 binaryOper: logicalOper;
 arithmeticOper: atom ((MUL | DIV | MOD | PLUS | MINUS) atom)*;
 comparisonOper: arithmeticOper ((GT | GTE | LT | LTE | EQ | NE) arithmeticOper)?;
-logicalOper: comparisonOper ((AND | OR) comparisonOper)*;
+logicalOper: firstExpr=comparisonOper ((cs+=AND | cs+=OR) otherExprs+=comparisonOper)*
+{
+  List<Token> cs = new ArrayList<>();
+  WACCParser.ComparisonOperContext firstExpr;
+  List<WACCParser.ComparisonOperContext> otherExprs = new ArrayList();
+};
 pairElem: (FST | SND) IDENT;
 arrayElem: varName=IDENT (OPEN_BRACKET expr CLOSE_BRACKET)+;
 boolLitr: TRUE | FALSE;
