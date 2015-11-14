@@ -53,6 +53,7 @@ public class WACCCompile {
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
     SymbolTable<String, Binding> top = new SymbolTable<>();
+    // TODO: Is Integer.MAX_VALUE correct for the wacc language
     top.put("int", new Type(Types.INT_T, Integer.MIN_VALUE, Integer.MAX_VALUE));
     top.put("bool", new Type(Types.BOOL_T, 0, 1));
     top.put("char", new Type(Types.CHAR_T, 0, 255));

@@ -22,8 +22,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
   private enum ScopeTypes {
 
-    regularScope("0"),
-    oneWayScope("1");
+    REGULAR_SCOPE("0"),
+    ONE_WAY_SCOPE("1");
 
     private final String name;
 
@@ -199,7 +199,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     SymbolTable<String, Binding> symbolTable
         = new SymbolTable<>(name, workingSymTable);
     NewScope newScope = new NewScope(name + ifCount, symbolTable);
-    workingSymTable.put(oneWayScope + name + ifCount, newScope);
+    workingSymTable.put(ScopeTypes.ONE_WAY_SCOPE + name + ifCount, newScope);
     fillNewSymbolTable(statList, symbolTable);
   }
 
@@ -233,7 +233,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * Regular scopes begin with the digit '0'
    */
   private boolean isScopeOneWay(SymbolTable<String, Binding> temp) {
-    return temp.getName().startsWith(oneWayScope);
+    return temp.getName().startsWith(ScopeTypes.ONE_WAY_SCOPE.name);
   }
 
 
@@ -244,7 +244,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitProg(WACCParser.ProgContext ctx) {
-    setANewScope(ctx, regularScope + "prog");
+    setANewScope(ctx, ScopeTypes.REGULAR_SCOPE + "prog");
     return visitChildren(ctx);
   }
 
@@ -253,7 +253,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitMain(WACCParser.MainContext ctx) {
-    return setANewScope(ctx, regularScope + "main");
+    return setANewScope(ctx, ScopeTypes.REGULAR_SCOPE + "main");
   }
 
   /**
@@ -271,7 +271,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitBeginStat(WACCParser.BeginStatContext ctx) {
-    String scopeName = regularScope + "begin" + ++beginCount;
+    String scopeName = ScopeTypes.REGULAR_SCOPE + "begin" + ++beginCount;
     return setANewScope(ctx, scopeName);
   }
 
@@ -292,7 +292,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitWhileStat(WACCParser.WhileStatContext ctx) {
-    String scopeName = oneWayScope + "while" + ++whileCount;
+    String scopeName = ScopeTypes.ONE_WAY_SCOPE + "while" + ++whileCount;
     visitExpr(ctx.expr());
     return setANewScope(ctx, scopeName);
   }
@@ -351,9 +351,9 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
   @Override
   public Void visitCall(WACCParser.CallContext ctx) {
-    NewScope progScope = (NewScope) top.get(regularScope + "prog");
+    NewScope progScope = (NewScope) top.get(ScopeTypes.REGULAR_SCOPE + "prog");
     Binding binding = progScope.getSymbolTable().get(ctx.funcName.IDENT()
-                                                               .getText());
+            .getText());
     if (binding != null) {
       String errorMsg = "Function not defined";
       errorHandler.complain(new DeclarationError(ctx, errorMsg));
