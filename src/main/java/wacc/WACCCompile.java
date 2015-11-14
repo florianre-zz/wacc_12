@@ -44,11 +44,11 @@ public class WACCCompile {
     System.out.println(top);
     System.out.println(((NewScope) top.get("0main")).getSymbolTable());
 
-    WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
-    typeChecker.visit(tree);
-    System.out.println(errorHandler);
-
-    System.out.println("====");
+//    WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
+//    typeChecker.visit(tree);
+//    System.out.println(errorHandler);
+//
+//    System.out.println("====");
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
