@@ -42,7 +42,7 @@ public class WACCCompile {
 
     System.out.println("Symbol Tables: ");
     System.out.println(top);
-    System.out.println(((NewScope) top.get("prog")).getSymbolTable());
+    System.out.println(((NewScope) top.get("0main")).getSymbolTable());
 
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
