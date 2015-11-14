@@ -19,7 +19,7 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
 
   public T lookupAll(S key){
     SymbolTable<S, T> currentScope = this;
-    while (currentScope != null){
+    while (currentScope != null) {
       T value = currentScope.get(key);
       if (value != null) {
         return value;
