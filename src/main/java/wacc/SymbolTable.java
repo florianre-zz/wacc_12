@@ -49,7 +49,7 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
     while (keys.hasMoreElements()) {
       S element = keys.nextElement();
       sb.append("\t");
-      sb.append(element.toString());
+      sb.append(element);
       sb.append(": ");
       if (this.get(element) instanceof NewScope) {
         NewScope newScopeSymbolTable = (NewScope) this.get(element);
