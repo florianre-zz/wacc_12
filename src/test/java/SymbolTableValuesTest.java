@@ -48,7 +48,7 @@ public class SymbolTableValuesTest {
     buildSTVisitor.visit(tree);
 
     Dictionary<String, Binding> zeroMainTable =
-        ((NewScope) top.get("0main")).getSymbolTable();
+        ((NewScope) top.get("0prog")).getSymbolTable();
 
     return zeroMainTable;
   }

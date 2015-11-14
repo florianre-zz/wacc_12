@@ -10,16 +10,16 @@ import java.util.List;
 
 public class SymbolTable<S, T> extends Hashtable<S, T> {
 
-  private SymbolTable<S, T> enclosingST;
   private String name;
+  private SymbolTable<S, T> enclosingST;
 
   public SymbolTable() {
     this("TOP", null);
   }
 
   public SymbolTable(String name, SymbolTable<S, T> enclosingST) {
-    this.enclosingST = enclosingST;
     this.name = name;
+    this.enclosingST = enclosingST;
   }
 
   public T lookupAll(S key){
