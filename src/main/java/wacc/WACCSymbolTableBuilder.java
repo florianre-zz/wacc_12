@@ -27,7 +27,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
     private final String name;
 
-    private ScopeTypes(String name) {
+    ScopeTypes(String name) {
       this.name = name;
     }
 
@@ -70,9 +70,15 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * Once all elements are added, the working symbol table is reset to its
    * value before method call
    */
+  // elyas: it's likely to be here when we goUpWorkingSymbolTable() - not
+  // sure though. To debug i printed out the working symbol Table and when you
+  // compile, TOP becomes workingSymbolTable after it's visited the entire tree
   private Void fillNewSymbolTable(ParserRuleContext ctx,
                                   SymbolTable<String, Binding> symTab) {
+    System.out.println(workingSymTable.getName() + ' ');
     setWorkingSymTable(symTab);
+    System.out.println(workingSymTable.getName() +'\n');
+
     super.visitChildren(ctx);
     goUpWorkingSymTable();
     return null;
