@@ -14,18 +14,8 @@ public class WACCTypeCreator extends WACCParserBaseVisitor<Type> {
   }
 
   @Override
-  public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    return visitType(ctx.type());
-  }
-
-  @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
     return visitType(ctx.type());
-  }
-
-  @Override
-  public Type visitType(@NotNull WACCParser.TypeContext ctx) {
-    return visitChildren(ctx);
   }
 
   @Override
@@ -33,11 +23,6 @@ public class WACCTypeCreator extends WACCParserBaseVisitor<Type> {
     Type base = visitNonArrayType(ctx.nonArrayType());
     int dimensionality = ctx.OPEN_BRACKET().size();
     return new ArrayType(base, dimensionality);
-  }
-
-  @Override
-  public Type visitNonArrayType(@NotNull WACCParser.NonArrayTypeContext ctx) {
-    return visitChildren(ctx);
   }
 
   @Override

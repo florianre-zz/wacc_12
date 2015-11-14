@@ -42,14 +42,6 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   }
 
   /**
-   * Returns a Type object for the given context n
-   */
-  // TODO: if type doesn't exist, create it and put it in top
-  private Type getType(WACCParser.TypeContext ctx) {
-    return (Type) top.get(ctx.getText());
-  }
-
-  /**
 	 * Sets the working symbol table to the parent of the working 
    * symbol table 
    */
@@ -151,7 +143,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     for (WACCParser.ParamContext paramContext : paramContexts) {
       // Get name and type of function
       String name = paramContext.getText();
-      Type type = getType(paramContext.type());
+      Type type = typeCreator.visitParam(paramContext);
 
       /*
 	     * Create param as a variable
@@ -167,7 +159,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
       funcParams.add(param);
     }
 
-    return new Function(getType(funcContext.type()),
+    return new Function(typeCreator.visitType(funcContext.type()),
                         funcContext.funcName.getText(), funcParams,
                         newScopeSymTab);
   }
@@ -298,9 +290,9 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   public Void visitInitStat(WACCParser.InitStatContext ctx) {
     String varName = ctx.ident().IDENT().getText();
     visitAssignRHS(ctx.assignRHS());
-    Binding binding = workingSymTable.put(varName,
-                                          new Variable(varName,
-                                                       getType(ctx.type())));
+    Variable variable
+        = new Variable(varName, typeCreator.visitType(ctx.type()));
+    Binding binding = workingSymTable.put(varName, variable);
 
     // check if exists in current scope
     // no need to check if function since this can never ba called within the
