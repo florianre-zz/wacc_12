@@ -19,16 +19,18 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   private static final String regularScope = "0";
   private static final String oneWayScope  = "1";
 
-  private ErrorHandler errorHandler;
 
   private SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymTable;
+  private WACCTypeCreator typeCreator;
+  private ErrorHandler errorHandler;
   private int ifCount, whileCount, beginCount;
 
   public WACCSymbolTableBuilder(SymbolTable<String, Binding> top,
                                 ErrorHandler errorHandler) {
-    this.errorHandler = errorHandler;
     this.top = this.workingSymTable = top;
+    this.errorHandler = errorHandler;
+    this.typeCreator = new WACCTypeCreator();
     ifCount = whileCount = beginCount = 0;
   }
 
@@ -44,7 +46,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   // TODO: if type doesn't exist, create it and put it in top
   private Type getType(WACCParser.TypeContext ctx) {
-    return (Type) top.lookupAll(ctx.getText());
+    return (Type) top.get(ctx.getText());
   }
 
   /**
