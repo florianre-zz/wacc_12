@@ -49,10 +49,12 @@ public class WACCCompile {
 //    System.out.println(errorHandler);
 //
 //    System.out.println("====");
+
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
     SymbolTable<String, Binding> top = new SymbolTable<>();
+    // TODO: Is Integer.MAX_VALUE correct for the wacc language
     top.put(Types.INT_T.toString(), new Type(Types.INT_T, Integer.MIN_VALUE, Integer
         .MAX_VALUE));
     top.put(Types.BOOL_T.toString(), new Type(Types.BOOL_T, 0, 1));
