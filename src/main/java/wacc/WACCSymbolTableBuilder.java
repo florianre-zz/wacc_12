@@ -195,10 +195,11 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   private void setIfBranchScope(String name,
                                 WACCParser.StatListContext statList) {
+    name = ScopeTypes.ONE_WAY_SCOPE + name + ifCount;
     SymbolTable<String, Binding> symbolTable
         = new SymbolTable<>(name, workingSymTable);
-    NewScope newScope = new NewScope(name + ifCount, symbolTable);
-    workingSymTable.put(ScopeTypes.ONE_WAY_SCOPE + name + ifCount, newScope);
+    NewScope newScope = new NewScope(name, symbolTable);
+    workingSymTable.put(name, newScope);
     fillNewSymbolTable(statList, symbolTable);
   }
 
