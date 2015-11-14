@@ -1,7 +1,5 @@
 package bindings;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 public class Variable extends Binding {
 
   private Type type;
@@ -13,5 +11,10 @@ public class Variable extends Binding {
 
   public Type getType() {
     return type;
+  }
+
+  @Override
+  public String toString() {
+    return type.toString();
   }
 }
