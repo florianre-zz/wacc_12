@@ -22,4 +22,10 @@ public class Function extends NewScope {
   public List<Variable> getParams() {
     return params;
   }
+
+  @Override
+  public String toString() {
+
+    return "" + type;
+  }
 }
