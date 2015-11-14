@@ -14,16 +14,29 @@ import java.util.List;
 
 public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
-  // TODO: This is horrible... perhaps enum or completely rethink
-  // Get it working first though
-  private static final String regularScope = "0";
-  private static final String oneWayScope  = "1";
-
   private ErrorHandler errorHandler;
 
   private SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymTable;
   private int ifCount, whileCount, beginCount;
+
+  private enum ScopeTypes {
+
+    regularScope("0"),
+    oneWayScope("1");
+
+    private final String name;
+
+    private ScopeTypes(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+
+  }
 
   public WACCSymbolTableBuilder(SymbolTable<String, Binding> top,
                                 ErrorHandler errorHandler) {
@@ -48,8 +61,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   }
 
   /**
-	 * Sets the working symbol table to the parent of the working 
-   * symbol table 
+	 * Sets the working symbol table to the parent of the working
+   * symbol table
    */
   private void goUpWorkingSymTable() {
     SymbolTable<String, Binding> enclosingST = workingSymTable.getEnclosingST();
@@ -61,8 +74,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   /**
    * Given a context which requires a new scope, its symbol table is filled
    * with all relevant elements of its children
-   * Once all elements are added, the working symbol table is reset to its 
-   * value before method call 
+   * Once all elements are added, the working symbol table is reset to its
+   * value before method call
    */
   private Void fillNewSymbolTable(ParserRuleContext ctx,
                                   SymbolTable<String, Binding> symTab) {
@@ -119,7 +132,6 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     List<? extends WACCParser.FuncContext> progFuncContexts = ctx.func();
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
       /*
-	     * TODO: Working symbol table will be TOP at this point
        * Allow mutual recursion but does not allow overloading
        */
       Binding dummy = new Binding("dummy");
