@@ -19,6 +19,24 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   private Function currentFunction;
   private final ErrorHandler errorHandler;
 
+  private enum ScopeTypes {
+
+    REGULAR_SCOPE("0"),
+    ONE_WAY_SCOPE("1");
+
+    private final String name;
+
+    ScopeTypes(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+
+  }
+
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          ErrorHandler errorHandler) {
     this.top = this.workingSymbTable = top;
@@ -50,8 +68,8 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     );
   }
 
-  private void changeWorkingSymbolTableTo(ParserRuleContext ctx) {
-    NewScope b = (NewScope) workingSymbTable.lookupAll(ctx.getText());
+  private void changeWorkingSymbolTableTo(String scopeName) {
+    NewScope b = (NewScope) workingSymbTable.lookupAll(scopeName);
     if (b != null) {
       workingSymbTable = (SymbolTable<String, Binding>) b.getSymbolTable();
     }
@@ -65,12 +83,27 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * visit children, to type check children */
   @Override
   public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
-    changeWorkingSymbolTableTo(ctx);
+    String scopeName = ScopeTypes.REGULAR_SCOPE + "prog";
+    changeWorkingSymbolTableTo(scopeName);
     visitChildren(ctx);
+    workingSymbTable = workingSymbTable.getEnclosingST();
     return null;
   }
 
   //  Functions
+
+  /**
+   * main: statList;
+   * change scope to 0main
+   * type check children */
+  @Override
+  public Type visitMain(@NotNull WACCParser.MainContext ctx) {
+    String scopeName = ScopeTypes.REGULAR_SCOPE + "main";
+    changeWorkingSymbolTableTo(scopeName);
+    Type type = visitStatList(ctx.statList());
+    workingSymbTable = workingSymbTable.getEnclosingST();
+    return type;
+  }
 
   /**
   * func: type funcName ( (paramList)? ) IS body END;
@@ -85,7 +118,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     String funcName = ctx.funcName.getText();
     currentFunction = (Function) workingSymbTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
-    changeWorkingSymbolTableTo(ctx);
+    changeWorkingSymbolTableTo(ctx.funcName.getText());
 
     if (expectedReturnType == null) {
       TypeError error = new TypeError(ctx);
@@ -121,20 +154,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       errorHandler.complain(error);
     }
 
-    return type;
-  }
-
-  /**
-  * main: statList;
-  * change scope to 0main
-  * type check children */
-  @Override
-  public Type visitMain(@NotNull WACCParser.MainContext ctx) {
-    NewScope newScope = (NewScope) workingSymbTable.lookupAll("0main");
-    workingSymbTable
-        = (SymbolTable<String, Binding>) newScope.getSymbolTable();
-    Type type = visitStatList(ctx.statList());
-    workingSymbTable = workingSymbTable.getEnclosingST();
     return type;
   }
 
