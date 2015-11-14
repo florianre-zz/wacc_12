@@ -30,7 +30,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
                                 ErrorHandler errorHandler) {
     this.top = this.workingSymTable = top;
     this.errorHandler = errorHandler;
-    this.typeCreator = new WACCTypeCreator();
+    this.typeCreator = new WACCTypeCreator(top);
     ifCount = whileCount = beginCount = 0;
   }
 
