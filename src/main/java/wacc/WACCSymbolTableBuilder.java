@@ -72,14 +72,9 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   private Void fillNewSymbolTable(ParserRuleContext ctx,
                                   SymbolTable<String, Binding> symTab) {
-    // System.out.println(workingSymTable.getName());
     setWorkingSymTable(symTab);
-    // System.out.println(workingSymTable.getName() +'\n');
-
     super.visitChildren(ctx);
-    // System.out.println("go up to");
     goUpWorkingSymTable();
-    // System.out.println(workingSymTable.getName() + '\n');
     return null;
   }
 
@@ -159,7 +154,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     List<Variable> funcParams = new ArrayList<>();
     for (WACCParser.ParamContext paramContext : paramContexts) {
       // Get name and type of function
-      String name = paramContext.getText();
+      String name = paramContext.name.getText();
       Type type = typeCreator.visitParam(paramContext);
 
       /*
