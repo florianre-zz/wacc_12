@@ -359,6 +359,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    * type check each argument
    * return the functions return type
    */
+  // TODO: make new rule - update function names
   @Override
   public Type visitFunctionCall(@NotNull WACCParser.FunctionCallContext ctx) {
     // TODO: set scope
