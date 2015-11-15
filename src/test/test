@@ -3,7 +3,9 @@ require 'find'
 require 'shellwords'
 
 @errFile = "errors.log"
+@STFile = "validSymbolTables.log"
 open(@errFile, 'w') { |f| f.print "" }
+open(@STFile, 'w')  { |f| f.print "" }
 
 def runTests(testPath, isValid)
   testFiles = []
@@ -29,6 +31,28 @@ def runTests(testPath, isValid)
   puts "\n"
 end
 
+def runCompile(testPath)
+  testFiles = []
+  Find.find(testPath) do |path|
+    testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+  end
+  numTests = testFiles.length
+  i = 1
+  testFiles.each do |test|
+    print "Running Test: #{i}/#{numTests}\r"
+    testRun = `./compile #{test[/src.*/]} 2>tmp`
+    tmp = File.open("tmp", "r")
+    output = "Running Test: #{File.basename test} \n"
+    output += "Output: \n\t#{testRun} \n"
+    output += "Error(s): \n\t#{tmp.read}\n"
+    output += "Finished Test."
+    open(@STFile, 'a') { |f| f.puts output}
+    `rm tmp`
+    i += 1
+  end
+  puts "\n\n"
+end
+
 testFolder = "#{Dir.pwd}/src/test/resources/examples/"
 testFiles = []
 Find.find(testFolder) do |path|
@@ -37,7 +61,11 @@ end
 puts "Starting Valid tests..."
 open(@errFile, 'a') { |f| f.puts "Running Valid Tests:\n" }
 runTests(testFolder+"valid", true)
+puts "Finished Valid tests."
 puts "Starting Invalid tests..."
 open(@errFile, 'a') { |f| f.puts "Running Invalid Tests:\n" }
 runTests(testFolder+"invalid/syntaxErr", false)
-puts "Finished tests..."
+puts "Finished Invalid tests."
+puts "Starting compile tests..."
+runCompile(testFolder+"valid")
+puts "Finished compile tests."
