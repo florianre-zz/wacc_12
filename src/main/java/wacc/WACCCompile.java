@@ -44,7 +44,7 @@ public class WACCCompile {
 
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
-    System.out.println(errorHandler);
+    System.err.println(errorHandler);
 
     System.out.println("====");
 
