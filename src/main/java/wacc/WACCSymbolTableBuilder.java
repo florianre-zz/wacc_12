@@ -20,14 +20,13 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   private ErrorHandler errorHandler;
   private int ifCount, whileCount, beginCount;
 
-  private enum ScopeTypes {
+  private enum ScopeType {
 
-    REGULAR_SCOPE("0"),
-    ONE_WAY_SCOPE("1");
+    REGULAR_SCOPE("0"), ONE_WAY_SCOPE("1");
 
     private final String name;
 
-    ScopeTypes(String name) {
+    ScopeType(String name) {
       this.name = name;
     }
 
@@ -35,7 +34,27 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     public String toString() {
       return name;
     }
+  }
 
+  private enum Scope {
+
+    MAIN(ScopeType.REGULAR_SCOPE + "main"),
+    PROG(ScopeType.REGULAR_SCOPE + "prog"),
+    BEGIN(ScopeType.REGULAR_SCOPE + "begin"),
+    WHILE(ScopeType.ONE_WAY_SCOPE + "while"),
+    THEN(ScopeType.ONE_WAY_SCOPE + "then"),
+    ELSE(ScopeType.ONE_WAY_SCOPE + "else");
+
+    private final String name;
+
+    Scope(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
   }
 
   public WACCSymbolTableBuilder(SymbolTable<String, Binding> top,
@@ -180,17 +199,17 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * Deal with special case of if statement where 2 scopes are required
    */
   private Void setIfStatScope(WACCParser.IfStatContext ctx) {
-    setIfBranchScope("then", ctx.thenStat);
-    setIfBranchScope("else", ctx.elseStat);
+    setIfBranchScope(Scope.THEN, ctx.thenStat);
+    setIfBranchScope(Scope.ELSE, ctx.elseStat);
     return null;
   }
 
   /**
    * Create a newScope for if branches
    */
-  private void setIfBranchScope(String name,
+  private void setIfBranchScope(Scope scope,
                                 WACCParser.StatListContext statList) {
-    name = ScopeTypes.ONE_WAY_SCOPE + name + ifCount;
+    String name = ScopeType.ONE_WAY_SCOPE + scope.name + ifCount;
     SymbolTable<String, Binding> symbolTable
         = new SymbolTable<>(name, workingSymTable);
     NewScope newScope = new NewScope(name, symbolTable);
@@ -228,7 +247,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * Regular scopes begin with the digit '0'
    */
   private boolean isScopeOneWay(SymbolTable<String, Binding> temp) {
-    return temp.getName().startsWith(ScopeTypes.ONE_WAY_SCOPE.name);
+    return temp.getName().startsWith(ScopeType.ONE_WAY_SCOPE.name);
   }
 
 
@@ -239,7 +258,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitProg(WACCParser.ProgContext ctx) {
-    setANewScope(ctx, ScopeTypes.REGULAR_SCOPE + "prog");
+    setANewScope(ctx, Scope.PROG.name);
     return null;
   }
 
@@ -248,7 +267,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitMain(WACCParser.MainContext ctx) {
-    return setANewScope(ctx, ScopeTypes.REGULAR_SCOPE + "main");
+    return setANewScope(ctx, Scope.MAIN.name);
   }
 
   /**
@@ -266,7 +285,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitBeginStat(WACCParser.BeginStatContext ctx) {
-    String scopeName = ScopeTypes.REGULAR_SCOPE + "begin" + ++beginCount;
+    String scopeName = Scope.BEGIN.name + ++beginCount;
     return setANewScope(ctx, scopeName);
   }
 
@@ -287,7 +306,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitWhileStat(WACCParser.WhileStatContext ctx) {
-    String scopeName = ScopeTypes.ONE_WAY_SCOPE + "while" + ++whileCount;
+    String scopeName = Scope.WHILE.name + ++whileCount;
     visitExpr(ctx.expr());
     return setANewScope(ctx, scopeName);
   }
@@ -347,7 +366,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
   @Override
   public Void visitCall(WACCParser.CallContext ctx) {
-    NewScope progScope = (NewScope) top.get(ScopeTypes.REGULAR_SCOPE + "prog");
+    NewScope progScope = (NewScope) top.get(Scope.PROG.name);
     String funcName = ctx.funcName.IDENT().getText();
     Binding binding = progScope.getSymbolTable().get(funcName);
     if (binding != null) {

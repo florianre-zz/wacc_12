@@ -19,14 +19,13 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   private Function currentFunction;
   private final ErrorHandler errorHandler;
 
-  private enum ScopeTypes {
+  private enum ScopeType {
 
-    REGULAR_SCOPE("0"),
-    ONE_WAY_SCOPE("1");
+    REGULAR_SCOPE("0"), ONE_WAY_SCOPE("1");
 
     private final String name;
 
-    ScopeTypes(String name) {
+    ScopeType(String name) {
       this.name = name;
     }
 
@@ -34,7 +33,27 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     public String toString() {
       return name;
     }
+  }
 
+  private enum Scope {
+
+    MAIN(ScopeType.REGULAR_SCOPE + "main"),
+    PROG(ScopeType.REGULAR_SCOPE + "prog"),
+    BEGIN(ScopeType.REGULAR_SCOPE + "begin"),
+    WHILE(ScopeType.ONE_WAY_SCOPE + "while"),
+    THEN(ScopeType.ONE_WAY_SCOPE + "then"),
+    ELSE(ScopeType.ONE_WAY_SCOPE + "else");
+
+    private final String name;
+
+    Scope(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
   }
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
@@ -83,7 +102,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * visit children, to type check children */
   @Override
   public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
-    String scopeName = ScopeTypes.REGULAR_SCOPE + "prog";
+    String scopeName = ScopeType.REGULAR_SCOPE + "prog";
     changeWorkingSymbolTableTo(scopeName);
     visitChildren(ctx);
     workingSymbTable = workingSymbTable.getEnclosingST();
@@ -98,7 +117,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    * type check children */
   @Override
   public Type visitMain(@NotNull WACCParser.MainContext ctx) {
-    String scopeName = ScopeTypes.REGULAR_SCOPE + "main";
+    String scopeName = ScopeType.REGULAR_SCOPE + "main";
     changeWorkingSymbolTableTo(scopeName);
     Type type = visitStatList(ctx.statList());
     workingSymbTable = workingSymbTable.getEnclosingST();
