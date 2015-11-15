@@ -4,7 +4,7 @@ import antlr.WACCParserBaseVisitor;
 import bindings.Binding;
 import wacc.error.ErrorHandler;
 
-public class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
+public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
 
   protected enum ScopeType {
 
