@@ -30,4 +30,17 @@ public class WACCSymbolTableBuilderTest {
 //
 //    buildSTVisitor.visitProg(ctx);
 //  }
+
+
+  //TODO: Top SymbolTable contains prog
+
+  //TODO: Top SymbolTable doesn't contain any functions
+
+  //TODO: Variables declared in the body of the program stored in main
+
+  //TODO: Allow functions of names which may be the same as newScope names (without the prefix integer)
+
+  //TODO: Allow mutual recursion
+
+  //TODO:
 }
