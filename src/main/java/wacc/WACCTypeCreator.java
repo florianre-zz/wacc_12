@@ -5,6 +5,8 @@ import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
+// TODO: Document functions
+
 public class WACCTypeCreator extends WACCParserBaseVisitor<Type> {
 
   private SymbolTable<String, Binding> top;
@@ -13,11 +15,18 @@ public class WACCTypeCreator extends WACCParserBaseVisitor<Type> {
     this.top = top;
   }
 
+  /**
+   * Get type of parameter by visiting its type context
+   */
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
     return visitType(ctx.type());
   }
 
+  /**
+   * Get base type and dimensionality of an ArrayTypeContext using an
+   * arrayType
+   */
   @Override
   public Type visitArrayType(@NotNull WACCParser.ArrayTypeContext ctx) {
     Type base = visitNonArrayType(ctx.nonArrayType());
@@ -25,6 +34,10 @@ public class WACCTypeCreator extends WACCParserBaseVisitor<Type> {
     return new ArrayType(base, dimensionality);
   }
 
+  /**
+   * Get first element type and second element type of an PairTypeContext using
+   * a pairType
+   */
   @Override
   public Type visitPairType(@NotNull WACCParser.PairTypeContext ctx) {
     Type fstType = visitPairElemType(ctx.firstType);
@@ -32,6 +45,9 @@ public class WACCTypeCreator extends WACCParserBaseVisitor<Type> {
     return new PairType(fstType, sndType);
   }
 
+  /**
+   * Get type of an element of a pair
+   */
   @Override
   public Type visitPairElemType(@NotNull WACCParser.PairElemTypeContext ctx) {
     if (ctx.baseType() != null) {
@@ -43,6 +59,9 @@ public class WACCTypeCreator extends WACCParserBaseVisitor<Type> {
     }
   }
 
+  /**
+   * Get the type of the BaseTypeContext
+   */
   @Override
   public Type visitBaseType(@NotNull WACCParser.BaseTypeContext ctx) {
     if (ctx.INT_T() != null) {

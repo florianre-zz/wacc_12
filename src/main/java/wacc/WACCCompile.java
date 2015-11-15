@@ -42,11 +42,11 @@ public class WACCCompile {
     System.out.println("Symbol Tables: ");
     System.out.println(top);
 
-//    WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
-//    typeChecker.visit(tree);
-//    System.out.println(errorHandler);
-//
-//    System.out.println("====");
+    WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
+    typeChecker.visit(tree);
+    System.err.println(errorHandler);
+
+    System.out.println("====");
 
   }
 
