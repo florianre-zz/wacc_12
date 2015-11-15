@@ -10,7 +10,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.Test;
 import wacc.SymbolTable;
 import wacc.WACCSymbolTableBuilder;
-import wacc.error.ErrorHandler;
+import wacc.error.WACCErrorHandler;
 
 import java.util.Dictionary;
 public class SymbolTableValuesTest {
@@ -42,7 +42,7 @@ public class SymbolTableValuesTest {
     ParseTree tree = parser.prog(); // begin parsing at prog rule
 
     SymbolTable<String, Binding> top = createTopSymbolTable();
-    ErrorHandler errorHandler = new ErrorHandler(parser.getInputStream());
+    WACCErrorHandler errorHandler = new WACCErrorHandler(parser.getInputStream());
     WACCSymbolTableBuilder buildSTVisitor
         = new WACCSymbolTableBuilder(top, errorHandler);
     buildSTVisitor.visit(tree);

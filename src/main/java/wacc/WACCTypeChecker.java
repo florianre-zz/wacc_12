@@ -6,7 +6,6 @@ import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
-import wacc.error.Error;
 
 // TODO: do we check if a function has a return function on every branch? *
 // TODO: who checks if an int assignment is too large? *
@@ -353,7 +352,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       }
 
       errorHandler.complain(
-          new Error(ctx)
+          new TypeError(ctx)
       );
 
       return null;
@@ -389,7 +388,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitFunctionCall(@NotNull WACCParser.FunctionCallContext ctx) {
     // TODO: set scope - function call
-    String scopeName = ctx.;
+    String scopeName = ctx.call().funcName.IDENT().getText();
     changeWorkingSymbolTableTo(scopeName);
     visitArgList(ctx.call().argList());
     return visitIdent(ctx.call().ident());
