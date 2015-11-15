@@ -120,6 +120,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     Type expectedReturnType = currentFunction.getType();
     changeWorkingSymbolTableTo(ctx.funcName.getText());
 
+    // TODO: check if this is needed
     if (expectedReturnType == null) {
       TypeError error = new TypeError(ctx);
       errorHandler.complain(error);
@@ -149,6 +150,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
     Type type = visitIdent(ctx.ident());
+    // TODO: check if this is needed
     if (type == null) {
       TypeError error = new TypeError(ctx);
       errorHandler.complain(error);
@@ -258,6 +260,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     Type expectedReturnType = currentFunction.getType();
 
+    // TODO: this should call incorrectType()
     if (actualReturnType != expectedReturnType) {
       TypeAssignmentError error
           = new TypeAssignmentError(ctx,
@@ -528,6 +531,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     Type type = visitIdent(ctx.ident());
 
+    // TODO: clean up
     if (type instanceof ArrayType) {
       ArrayType arrayType = (ArrayType) type;
       int totalDimensionality = arrayType.getDimensionality();
@@ -699,6 +703,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       Type sndType = visitArithmeticOper(ctx.second);
 
       if (!fstType.equals(sndType)) {
+        // TODO: Florian, these are the errors in test 1
         errorHandler.complain(new TypeError(ctx.first));
         errorHandler.complain(new TypeError(ctx.second));
       }

@@ -5,6 +5,8 @@ import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
+// TODO: Document functions
+
 public class WACCTypeCreator extends WACCParserBaseVisitor<Type> {
 
   private SymbolTable<String, Binding> top;
