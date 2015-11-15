@@ -57,4 +57,8 @@ public class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     this.beginCount = this.whileCount = this.ifCount = 0;
   }
 
+  public WACCVisitor(SymbolTable<String, Binding> top) {
+    this(top,null);
+  }
+
 }

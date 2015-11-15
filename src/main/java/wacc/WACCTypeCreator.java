@@ -1,16 +1,15 @@
 package wacc;
 
 import antlr.WACCParser;
-import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
-public class WACCTypeCreator extends WACCParserBaseVisitor<Type> {
+public class WACCTypeCreator extends WACCVisitor<Type> {
 
-  private SymbolTable<String, Binding> top;
+  //private SymbolTable<String, Binding> top;
 
   public WACCTypeCreator(SymbolTable<String, Binding> top) {
-    this.top = top;
+    super(top);
   }
 
   /**
