@@ -20,43 +20,6 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   private ErrorHandler errorHandler;
   private int ifCount, whileCount, beginCount;
 
-  private enum ScopeType {
-
-    REGULAR_SCOPE("0"), ONE_WAY_SCOPE("1");
-
-    private final String name;
-
-    ScopeType(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
-
-  private enum Scope {
-
-    MAIN(ScopeType.REGULAR_SCOPE + "main"),
-    PROG(ScopeType.REGULAR_SCOPE + "prog"),
-    BEGIN(ScopeType.REGULAR_SCOPE + "begin"),
-    WHILE(ScopeType.ONE_WAY_SCOPE + "while"),
-    THEN(ScopeType.ONE_WAY_SCOPE + "then"),
-    ELSE(ScopeType.ONE_WAY_SCOPE + "else");
-
-    private final String name;
-
-    Scope(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
-
   public WACCSymbolTableBuilder(SymbolTable<String, Binding> top,
                                 ErrorHandler errorHandler) {
     this.top = this.workingSymTable = top;
@@ -151,7 +114,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
       funcName = progFuncContext.funcName.getText();
       Binding checker = workingSymTable.put(funcName, dummy);
       if (checker != null){
-        String errorMsg = "Function name " + funcName + " has been used already";
+        String errorMsg
+            = "Function name " + funcName + " has been used already";
         errorHandler.complain(new DeclarationError(ctx, errorMsg));
       }
     }
@@ -209,7 +173,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   private void setIfBranchScope(Scope scope,
                                 WACCParser.StatListContext statList) {
-    String name = ScopeType.ONE_WAY_SCOPE + scope.name + ifCount;
+    String name = scope.toString() + ifCount;
     SymbolTable<String, Binding> symbolTable
         = new SymbolTable<>(name, workingSymTable);
     NewScope newScope = new NewScope(name, symbolTable);
@@ -247,7 +211,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * Regular scopes begin with the digit '0'
    */
   private boolean isScopeOneWay(SymbolTable<String, Binding> temp) {
-    return temp.getName().startsWith(ScopeType.ONE_WAY_SCOPE.name);
+    return temp.getName().startsWith(ScopeType.ONE_WAY_SCOPE.toString());
   }
 
 
@@ -258,7 +222,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitProg(WACCParser.ProgContext ctx) {
-    setANewScope(ctx, Scope.PROG.name);
+    setANewScope(ctx, Scope.PROG.toString());
     return null;
   }
 
@@ -267,7 +231,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitMain(WACCParser.MainContext ctx) {
-    return setANewScope(ctx, Scope.MAIN.name);
+    return setANewScope(ctx, Scope.MAIN.toString());
   }
 
   /**
@@ -285,7 +249,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitBeginStat(WACCParser.BeginStatContext ctx) {
-    String scopeName = Scope.BEGIN.name + ++beginCount;
+    String scopeName = Scope.BEGIN.toString() + ++beginCount;
     return setANewScope(ctx, scopeName);
   }
 
@@ -306,7 +270,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    */
   @Override
   public Void visitWhileStat(WACCParser.WhileStatContext ctx) {
-    String scopeName = Scope.WHILE.name + ++whileCount;
+    String scopeName = Scope.WHILE.toString() + ++whileCount;
     visitExpr(ctx.expr());
     return setANewScope(ctx, scopeName);
   }
@@ -338,7 +302,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
         temp = temp.getEnclosingST();
         binding = temp.get(varName);
         if (binding != null) {
-          String errorMsg = "Cannot redefine variable " + varName + " in this scope";
+          String errorMsg
+              = "Cannot redefine variable " + varName + " in this scope";
           errorHandler.complain(new DeclarationError(ctx, errorMsg));
           break;
         }
@@ -366,7 +331,7 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
 
   @Override
   public Void visitCall(WACCParser.CallContext ctx) {
-    NewScope progScope = (NewScope) top.get(Scope.PROG.name);
+    NewScope progScope = (NewScope) top.get(Scope.PROG.toString());
     String funcName = ctx.funcName.IDENT().getText();
     Binding binding = progScope.getSymbolTable().get(funcName);
     if (binding != null) {

@@ -19,42 +19,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   private Function currentFunction;
   private final ErrorHandler errorHandler;
 
-  private enum ScopeType {
-
-    REGULAR_SCOPE("0"), ONE_WAY_SCOPE("1");
-
-    private final String name;
-
-    ScopeType(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
-
-  private enum Scope {
-
-    MAIN(ScopeType.REGULAR_SCOPE + "main"),
-    PROG(ScopeType.REGULAR_SCOPE + "prog"),
-    BEGIN(ScopeType.REGULAR_SCOPE + "begin"),
-    WHILE(ScopeType.ONE_WAY_SCOPE + "while"),
-    THEN(ScopeType.ONE_WAY_SCOPE + "then"),
-    ELSE(ScopeType.ONE_WAY_SCOPE + "else");
-
-    private final String name;
-
-    Scope(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          ErrorHandler errorHandler) {
@@ -102,7 +66,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * visit children, to type check children */
   @Override
   public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
-    String scopeName = ScopeType.REGULAR_SCOPE + "prog";
+    String scopeName =Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
     visitChildren(ctx);
     workingSymbTable = workingSymbTable.getEnclosingST();
@@ -117,7 +81,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    * type check children */
   @Override
   public Type visitMain(@NotNull WACCParser.MainContext ctx) {
-    String scopeName = ScopeType.REGULAR_SCOPE + "main";
+    String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
     Type type = visitStatList(ctx.statList());
     workingSymbTable = workingSymbTable.getEnclosingST();
