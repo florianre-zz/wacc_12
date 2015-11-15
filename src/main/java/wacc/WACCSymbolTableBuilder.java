@@ -7,7 +7,7 @@ import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import wacc.error.DeclarationError;
-import wacc.error.WaccErrorHandler;
+import wacc.error.ErrorHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,11 +17,11 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
   private SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymTable;
   private WACCTypeCreator typeCreator;
-  private WaccErrorHandler errorHandler;
+  private ErrorHandler errorHandler;
   private int ifCount, whileCount, beginCount;
 
   public WACCSymbolTableBuilder(SymbolTable<String, Binding> top,
-                                WaccErrorHandler errorHandler) {
+                                ErrorHandler errorHandler) {
     this.top = this.workingSymTable = top;
     this.errorHandler = errorHandler;
     this.typeCreator = new WACCTypeCreator(top);

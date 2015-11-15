@@ -6,7 +6,6 @@ import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
-import wacc.error.Error;
 
 // TODO: do we check if a function has a return function on every branch? *
 // TODO: who checks if an int assignment is too large? *
@@ -17,11 +16,11 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   private final SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymbTable;
   private Function currentFunction;
-  private final WaccErrorHandler errorHandler;
+  private final ErrorHandler errorHandler;
 
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
-                         WaccErrorHandler errorHandler) {
+                         ErrorHandler errorHandler) {
     this.top = this.workingSymbTable = top;
     this.errorHandler = errorHandler;
   }
@@ -334,7 +333,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
       }
 
       errorHandler.complain(
-          new Error(ctx)
+          new TypeError(ctx)
       );
 
       return null;
