@@ -1,7 +1,6 @@
 package wacc;
 
 import antlr.WACCParser;
-import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -11,20 +10,13 @@ import wacc.error.*;
 // TODO: who checks if an int assignment is too large? *
 // * (run: /src/test/test)
 
-public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
-
-  private final SymbolTable<String, Binding> top;
-  private SymbolTable<String, Binding> workingSymbTable;
+public class WACCTypeChecker extends WACCVisitor<Type> {
+  
   private Function currentFunction;
-  private final ErrorHandler errorHandler;
-  private int ifCount, whileCount, beginCount;
-
-
+  
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          ErrorHandler errorHandler) {
-    this.top = this.workingSymbTable = top;
-    this.errorHandler = errorHandler;
-    ifCount = whileCount = beginCount = 0;
+    super(top,errorHandler);
   }
 
   // Helper Methods
@@ -53,9 +45,9 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   }
 
   private void changeWorkingSymbolTableTo(String scopeName) {
-    NewScope b = (NewScope) workingSymbTable.lookupAll(scopeName);
+    NewScope b = (NewScope) workingSymTable.lookupAll(scopeName);
     if (b != null) {
-      workingSymbTable = (SymbolTable<String, Binding>) b.getSymbolTable();
+      workingSymTable = (SymbolTable<String, Binding>) b.getSymbolTable();
     }
   }
 
@@ -70,7 +62,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     String scopeName =Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
     visitChildren(ctx);
-    workingSymbTable = workingSymbTable.getEnclosingST();
+    workingSymTable = workingSymTable.getEnclosingST();
     return null;
   }
 
@@ -85,7 +77,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
     Type type = visitStatList(ctx.statList());
-    workingSymbTable = workingSymbTable.getEnclosingST();
+    workingSymTable = workingSymTable.getEnclosingST();
     return type;
   }
 
@@ -100,7 +92,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
 
     String funcName = ctx.funcName.getText();
-    currentFunction = (Function) workingSymbTable.lookupAll(funcName);
+    currentFunction = (Function) workingSymTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
     changeWorkingSymbolTableTo(ctx.funcName.getText());
 
@@ -277,12 +269,12 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     String scopeName = Scope.THEN.toString() + ++ifCount;
     changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.thenStat);
-    workingSymbTable = workingSymbTable.getEnclosingST();
+    workingSymTable = workingSymTable.getEnclosingST();
 
     scopeName = Scope.THEN.toString() + ifCount;
     changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.elseStat);
-    workingSymbTable = workingSymbTable.getEnclosingST();
+    workingSymTable = workingSymTable.getEnclosingST();
 
     return null;
   }
@@ -306,7 +298,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     String scopeName = Scope.WHILE.toString() + ++whileCount;
     changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.statList());
-    workingSymbTable = workingSymbTable.getEnclosingST();
+    workingSymTable = workingSymTable.getEnclosingST();
 
     return null;
   }
@@ -324,7 +316,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
     String scopeName = Scope.BEGIN.toString() + ++beginCount;
     changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.statList());
-    workingSymbTable = workingSymbTable.getEnclosingST();
+    workingSymTable = workingSymTable.getEnclosingST();
 //    return visitStatList(ctx.statList());
     return null;
   }
@@ -346,7 +338,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
 
     if (ctx.ident().IDENT() != null) {
 
-      Binding b = workingSymbTable.lookupAll(ctx.getText());
+      Binding b = workingSymTable.lookupAll(ctx.getText());
       if (b instanceof Variable) {
         return ((Variable) b).getType();
       }
@@ -749,7 +741,7 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    */
   @Override
   public Type visitIdent(WACCParser.IdentContext ctx) {
-    Binding b = workingSymbTable.lookupAll(ctx.getText());
+    Binding b = workingSymTable.lookupAll(ctx.getText());
     if (b instanceof Variable) {
       return ((Variable) b).getType();
     }
