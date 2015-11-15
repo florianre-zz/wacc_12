@@ -8,7 +8,7 @@ import bindings.Types;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
-import wacc.error.ErrorHandler;
+import wacc.error.WaccErrorHandler;
 
 // TODO: Tidy up this main()
 
@@ -34,7 +34,7 @@ public class WACCCompile {
     System.out.println("====");
     System.out.println("Visiting...");
     SymbolTable<String, Binding> top = createTopSymbolTable();
-    ErrorHandler errorHandler = new ErrorHandler(parser.getInputStream());
+    WaccErrorHandler errorHandler = new WaccErrorHandler(parser.getInputStream());
     WACCSymbolTableBuilder buildSTVisitor
         = new WACCSymbolTableBuilder(top, errorHandler);
     buildSTVisitor.visit(tree);

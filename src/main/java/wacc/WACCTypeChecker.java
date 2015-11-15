@@ -17,10 +17,10 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   private final SymbolTable<String, Binding> top;
   private SymbolTable<String, Binding> workingSymbTable;
   private Function currentFunction;
-  private final ErrorHandler errorHandler;
+  private final WaccErrorHandler errorHandler;
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
-                         ErrorHandler errorHandler) {
+                         WaccErrorHandler errorHandler) {
     this.top = this.workingSymbTable = top;
     this.errorHandler = errorHandler;
   }
