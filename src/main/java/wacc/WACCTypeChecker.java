@@ -369,27 +369,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * type check each argument
    * return the functions return type
    */
-  // TODO: make new rule - update function names
-  // TODO: Elliot - we gave you a rule called call i.e. change this to
-  // visitCall
-
-//  @Override
-//  public Type visitCall(@NotNull WACCParser.CallContext ctx) {
-//    String scopeName = ctx.funcName.IDENT().getText();
-//    SymbolTable<String, Binding> temp = workingSymbolTable;
-//    changeWorkingSymbolTableTo(scopeName);
-//    visitArgList(ctx.argList());
-//    return ;
-//  }
-
   @Override
-  public Type visitFunctionCall(@NotNull WACCParser.FunctionCallContext ctx) {
-    // TODO: set scope - function call
-    String scopeName = ctx.call().funcName.IDENT().getText();
+  public Type visitCall(@NotNull WACCParser.CallContext ctx) {
+    SymbolTable<String, Binding> temp = workingSymbolTable;
 
+    String scopeName = ctx.funcName.IDENT().getText();
     changeWorkingSymbolTableTo(scopeName);
-    visitArgList(ctx.call().argList());
-    return visitIdent(ctx.call().ident());
+
+    visitArgList(ctx.argList());
+    Type identType = visitIdent(ctx.ident());
+
+    workingSymbolTable = temp;
+    return identType;
   }
 
   /**
