@@ -284,8 +284,8 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     Binding binding = workingSymbolTable.put(varName, variable);
 
     // check if exists in current scope
-    // no need to check if function since this can never ba called within the
-    // program scope or TOP
+    // no need to check if function since this can never be called within the
+    // program scope
     if (binding != null) {
       String errorMsg = varName + " is already declared in current scope";
       errorHandler.complain(new DeclarationError(ctx, errorMsg));
