@@ -2,9 +2,7 @@ package wacc.error;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 
-/**
- * Created by elliotgreenwood on 11.10.15.
- */
+
 public class TypeError extends Error {
 
   public TypeError(ParserRuleContext ctx) {
