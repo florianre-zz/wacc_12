@@ -42,12 +42,12 @@ public class WACCCompile {
     System.out.println("Symbol Tables: ");
     System.out.println(top);
 
+    //TODO: Null pointer
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
     System.err.println(errorHandler);
 
     System.out.println("====");
-
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {

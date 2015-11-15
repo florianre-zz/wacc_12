@@ -18,12 +18,14 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   private SymbolTable<String, Binding> workingSymbTable;
   private Function currentFunction;
   private final ErrorHandler errorHandler;
+  private int ifCount, whileCount, beginCount;
 
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          ErrorHandler errorHandler) {
     this.top = this.workingSymbTable = top;
     this.errorHandler = errorHandler;
+    ifCount = whileCount = beginCount = 0;
   }
 
   // Helper Methods
@@ -265,7 +267,6 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * reset scope to enclosing table */
   @Override
   public Type visitIfStat(@NotNull WACCParser.IfStatContext ctx) {
-
     Type predicateType = visitExpr(ctx.expr());
 
     if (!Type.isBool(predicateType)) {
@@ -273,9 +274,16 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
           new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
     }
 
-    //TODO: changes scopes
+    //TODO: changes scopes - if
+    String scopeName = Scope.THEN.toString() + ++ifCount;
+    changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.thenStat);
+    workingSymbTable = workingSymbTable.getEnclosingST();
+
+    scopeName = Scope.THEN.toString() + ifCount;
+    changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.elseStat);
+    workingSymbTable = workingSymbTable.getEnclosingST();
 
     return null;
   }
@@ -287,14 +295,19 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
   * reset scope to enclosing table */
   @Override
   public Type visitWhileStat(@NotNull WACCParser.WhileStatContext ctx) {
+
     Type predicateType = visitExpr(ctx.expr());
 
+    // TODO: are you sure that you don't want a not in front of the if condition
     if (Type.isBool(predicateType)) {
       IncorrectType(ctx, predicateType, "'bool'");
     }
 
-    //TODO: changes scopes
+    //TODO: changes scopes - while
+    String scopeName = Scope.WHILE.toString() + ++whileCount;
+    changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.statList());
+    workingSymbTable = workingSymbTable.getEnclosingST();
 
     return null;
   }
@@ -307,8 +320,14 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    */
   @Override
   public Type visitBeginStat(@NotNull WACCParser.BeginStatContext ctx) {
-    //TODO: changes scopes
-    return visitStatList(ctx.statList());
+
+    //TODO: changes scopes - begin
+    String scopeName = Scope.BEGIN.toString() + ++beginCount;
+    changeWorkingSymbolTableTo(scopeName);
+    visitStatList(ctx.statList());
+    workingSymbTable = workingSymbTable.getEnclosingST();
+//    return visitStatList(ctx.statList());
+    return null;
   }
 
   // Statement Helpers
@@ -365,9 +384,13 @@ public class WACCTypeChecker extends WACCParserBaseVisitor<Type> {
    * return the functions return type
    */
   // TODO: make new rule - update function names
+  // TODO: Elliot - we gave you a rule called call i.e. change this to
+  // visitCall
   @Override
   public Type visitFunctionCall(@NotNull WACCParser.FunctionCallContext ctx) {
-    // TODO: set scope
+    // TODO: set scope - function call
+    String scopeName = ctx.;
+    changeWorkingSymbolTableTo(scopeName);
     visitArgList(ctx.call().argList());
     return visitIdent(ctx.call().ident());
   }
