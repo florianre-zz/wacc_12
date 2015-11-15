@@ -21,19 +21,20 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
 
   /***************************** Helper Method *******************************/
 
-  private void setWorkingSymTable(
-      SymbolTable<String, Binding> workingSymTable) {
-    this.workingSymTable = workingSymTable;
+  private void setWorkingSymbolTable(
+      SymbolTable<String, Binding> workingSymbolTable) {
+    this.workingSymbolTable = workingSymbolTable;
   }
 
   /**
    * Sets the working symbol table to the parent of the working
    * symbol table
    */
-  private void goUpWorkingSymTable() {
-    SymbolTable<String, Binding> enclosingST = workingSymTable.getEnclosingST();
+  private void goUpWorkingSymbolTable() {
+    SymbolTable<String, Binding> enclosingST
+        = workingSymbolTable.getEnclosingST();
     if (enclosingST != null) {
-      setWorkingSymTable(enclosingST);
+      setWorkingSymbolTable(enclosingST);
     }
   }
 
@@ -44,10 +45,10 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
    * value before method call
    */
   private Void fillNewSymbolTable(ParserRuleContext ctx,
-                                  SymbolTable<String, Binding> symTab) {
-    setWorkingSymTable(symTab);
+                                  SymbolTable<String, Binding> symbolTab) {
+    setWorkingSymbolTable(symbolTab);
     super.visitChildren(ctx);
-    goUpWorkingSymTable();
+    goUpWorkingSymbolTable();
     return null;
   }
 
@@ -61,8 +62,8 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
       return setIfStatScope((WACCParser.IfStatContext) ctx);
     }
 
-    SymbolTable<String, Binding> newScopeSymTable
-        = new SymbolTable<>(scopeName, workingSymTable);
+    SymbolTable<String, Binding> newScopeSymbolTable
+        = new SymbolTable<>(scopeName, workingSymbolTable);
     NewScope newScope;
     ParserRuleContext contextToVisit;
 
@@ -70,23 +71,24 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     if (ctx instanceof WACCParser.ProgContext) {
       newScope = setProgScope((WACCParser.ProgContext) ctx,
                               scopeName,
-                              newScopeSymTable);
+                              newScopeSymbolTable);
       contextToVisit = ctx;
 
     // Deal with function
     } else if (ctx instanceof WACCParser.FuncContext) {
-      newScope = getFuncScope((WACCParser.FuncContext) ctx, newScopeSymTable);
+      newScope
+          = getFuncScope((WACCParser.FuncContext) ctx, newScopeSymbolTable);
       contextToVisit = getStatListContext(ctx);
 
     // Deal with other scopes
     } else {
-      newScope = new NewScope(scopeName, newScopeSymTable);
+      newScope = new NewScope(scopeName, newScopeSymbolTable);
       contextToVisit = getStatListContext(ctx);
     }
 
-    workingSymTable.put(scopeName, newScope);
+    workingSymbolTable.put(scopeName, newScope);
 
-    return fillNewSymbolTable(contextToVisit, newScopeSymTable);
+    return fillNewSymbolTable(contextToVisit, newScopeSymbolTable);
   }
 
   /**
@@ -94,7 +96,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
    */
   private NewScope setProgScope(WACCParser.ProgContext ctx,
                                 String scopeName,
-                                SymbolTable<String, Binding> progSymTable) {
+                                SymbolTable<String, Binding> progSymbolTable) {
     List<? extends WACCParser.FuncContext> progFuncContexts = ctx.func();
     String funcName;
       /*
@@ -103,14 +105,14 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     Binding dummy = new Binding("dummy");
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
       funcName = progFuncContext.funcName.getText();
-      Binding checker = progSymTable.put(funcName, dummy);
+      Binding checker = progSymbolTable.put(funcName, dummy);
       if (checker != null){
         String errorMsg
             = "Function name " + funcName + " has been used already";
         errorHandler.complain(new DeclarationError(ctx, errorMsg));
       }
     }
-    return new NewScope(scopeName, progSymTable);
+    return new NewScope(scopeName, progSymbolTable);
   }
 
   /**
@@ -119,7 +121,8 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
    * List in the Function that is returned
    */
   private NewScope getFuncScope(WACCParser.FuncContext funcContext,
-                                SymbolTable<String, Binding> newScopeSymTab) {
+                                SymbolTable<String, Binding>
+                                    newScopeSymbolTable) {
     // Get list of ParamContexts from FuncContext
     List<? extends WACCParser.ParamContext> paramContexts =
         funcContext.paramList().param();
@@ -137,7 +140,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
        * list of params of the function (used to create the scope)
        */
       Variable param = new Variable(name, type);
-      Binding binding = newScopeSymTab.put(name, param);
+      Binding binding = newScopeSymbolTable.put(name, param);
       if (binding != null) {
         String errorMsg = "parameter name " + name + " already exists";
         errorHandler.complain(new DeclarationError(funcContext, errorMsg));
@@ -147,7 +150,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
 
     return new Function(typeCreator.visitType(funcContext.type()),
                         funcContext.funcName.getText(), funcParams,
-                        newScopeSymTab);
+                        newScopeSymbolTable);
   }
 
   /**
@@ -166,9 +169,9 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
                                 WACCParser.StatListContext statList) {
     String name = scope.toString() + ifCount;
     SymbolTable<String, Binding> symbolTable
-        = new SymbolTable<>(name, workingSymTable);
+        = new SymbolTable<>(name, workingSymbolTable);
     NewScope newScope = new NewScope(name, symbolTable);
-    workingSymTable.put(name, newScope);
+    workingSymbolTable.put(name, newScope);
     fillNewSymbolTable(statList, symbolTable);
   }
 
@@ -204,7 +207,6 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
   private boolean isScopeOneWay(SymbolTable<String, Binding> temp) {
     return temp.getName().startsWith(ScopeType.ONE_WAY_SCOPE.toString());
   }
-
 
   /************************** Visit Functions ****************************/
 
@@ -279,7 +281,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     visitAssignRHS(ctx.assignRHS());
     Variable variable
         = new Variable(varName, typeCreator.visitType(ctx.type()));
-    Binding binding = workingSymTable.put(varName, variable);
+    Binding binding = workingSymbolTable.put(varName, variable);
 
     // check if exists in current scope
     // no need to check if function since this can never ba called within the
@@ -288,7 +290,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
       String errorMsg = varName + " is already declared in current scope";
       errorHandler.complain(new DeclarationError(ctx, errorMsg));
     } else {
-      SymbolTable<String, Binding> temp = workingSymTable;
+      SymbolTable<String, Binding> temp = workingSymbolTable;
       while (isScopeOneWay(temp)) {
         temp = temp.getEnclosingST();
         binding = temp.get(varName);
@@ -312,7 +314,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
   @Override
   public Void visitIdent(WACCParser.IdentContext ctx) {
     String varName = ctx.IDENT().getText();
-    Binding binding = workingSymTable.lookupAll(varName);
+    Binding binding = workingSymbolTable.lookupAll(varName);
     if (binding == null || binding instanceof Function) {
       String errorMsg = "Variable " + varName + " has not been declared";
       errorHandler.complain(new DeclarationError(ctx, errorMsg));

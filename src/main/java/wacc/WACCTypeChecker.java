@@ -45,9 +45,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   private void changeWorkingSymbolTableTo(String scopeName) {
-    NewScope b = (NewScope) workingSymTable.lookupAll(scopeName);
+    NewScope b = (NewScope) workingSymbolTable.lookupAll(scopeName);
     if (b != null) {
-      workingSymTable = (SymbolTable<String, Binding>) b.getSymbolTable();
+      workingSymbolTable = (SymbolTable<String, Binding>) b.getSymbolTable();
     }
   }
 
@@ -62,7 +62,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     String scopeName =Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
     visitChildren(ctx);
-    workingSymTable = workingSymTable.getEnclosingST();
+    workingSymbolTable = workingSymbolTable.getEnclosingST();
     return null;
   }
 
@@ -77,7 +77,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
     Type type = visitStatList(ctx.statList());
-    workingSymTable = workingSymTable.getEnclosingST();
+    workingSymbolTable = workingSymbolTable.getEnclosingST();
     return type;
   }
 
@@ -92,7 +92,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
 
     String funcName = ctx.funcName.getText();
-    currentFunction = (Function) workingSymTable.lookupAll(funcName);
+    currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
     changeWorkingSymbolTableTo(ctx.funcName.getText());
 
@@ -265,16 +265,15 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
           new TypeAssignmentError(ctx, "'bool'", predicateType.getName()));
     }
 
-    //TODO: changes scopes - if
     String scopeName = Scope.THEN.toString() + ++ifCount;
     changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.thenStat);
-    workingSymTable = workingSymTable.getEnclosingST();
+    workingSymbolTable = workingSymbolTable.getEnclosingST();
 
     scopeName = Scope.THEN.toString() + ifCount;
     changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.elseStat);
-    workingSymTable = workingSymTable.getEnclosingST();
+    workingSymbolTable = workingSymbolTable.getEnclosingST();
 
     return null;
   }
@@ -289,16 +288,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     Type predicateType = visitExpr(ctx.expr());
 
-    // TODO: are you sure that you don't want a not in front of the if condition
-    if (Type.isBool(predicateType)) {
+    if (!Type.isBool(predicateType)) {
       IncorrectType(ctx, predicateType, "'bool'");
     }
 
-    //TODO: changes scopes - while
     String scopeName = Scope.WHILE.toString() + ++whileCount;
     changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.statList());
-    workingSymTable = workingSymTable.getEnclosingST();
+    workingSymbolTable = workingSymbolTable.getEnclosingST();
 
     return null;
   }
@@ -312,13 +309,11 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitBeginStat(@NotNull WACCParser.BeginStatContext ctx) {
 
-    //TODO: changes scopes - begin
     String scopeName = Scope.BEGIN.toString() + ++beginCount;
     changeWorkingSymbolTableTo(scopeName);
-    visitStatList(ctx.statList());
-    workingSymTable = workingSymTable.getEnclosingST();
-//    return visitStatList(ctx.statList());
-    return null;
+    Type statListType = visitStatList(ctx.statList());
+    workingSymbolTable = workingSymbolTable.getEnclosingST();
+    return statListType;
   }
 
   // Statement Helpers
@@ -338,7 +333,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     if (ctx.ident().IDENT() != null) {
 
-      Binding b = workingSymTable.lookupAll(ctx.getText());
+      Binding b = workingSymbolTable.lookupAll(ctx.getText());
       if (b instanceof Variable) {
         return ((Variable) b).getType();
       }
@@ -377,10 +372,21 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   // TODO: make new rule - update function names
   // TODO: Elliot - we gave you a rule called call i.e. change this to
   // visitCall
+
+//  @Override
+//  public Type visitCall(@NotNull WACCParser.CallContext ctx) {
+//    String scopeName = ctx.funcName.IDENT().getText();
+//    SymbolTable<String, Binding> temp = workingSymbolTable;
+//    changeWorkingSymbolTableTo(scopeName);
+//    visitArgList(ctx.argList());
+//    return ;
+//  }
+
   @Override
   public Type visitFunctionCall(@NotNull WACCParser.FunctionCallContext ctx) {
     // TODO: set scope - function call
     String scopeName = ctx.call().funcName.IDENT().getText();
+
     changeWorkingSymbolTableTo(scopeName);
     visitArgList(ctx.call().argList());
     return visitIdent(ctx.call().ident());
@@ -741,7 +747,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitIdent(WACCParser.IdentContext ctx) {
-    Binding b = workingSymTable.lookupAll(ctx.getText());
+    Binding b = workingSymbolTable.lookupAll(ctx.getText());
     if (b instanceof Variable) {
       return ((Variable) b).getType();
     }

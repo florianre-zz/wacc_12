@@ -46,13 +46,13 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
   }
 
   protected final SymbolTable<String, Binding> top;
-  protected SymbolTable<String, Binding> workingSymTable;
+  protected SymbolTable<String, Binding> workingSymbolTable;
   protected final ErrorHandler errorHandler;
   protected int ifCount, whileCount, beginCount;
 
   public WACCVisitor(SymbolTable<String, Binding> top,
                      ErrorHandler errorHandler) {
-    this.top = this.workingSymTable = top;
+    this.top = this.workingSymbolTable = top;
     this.errorHandler = errorHandler;
     this.beginCount = this.whileCount = this.ifCount = 0;
   }
