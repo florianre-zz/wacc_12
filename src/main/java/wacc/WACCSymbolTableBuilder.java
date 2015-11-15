@@ -1,7 +1,5 @@
 package wacc;
 
-// TODO: Make this class and WACCTypeChecker extend a superclass
-
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.*;
@@ -102,8 +100,8 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
    * Store names of functions in prog (if any) in thw working symbol table
    */
   private NewScope setProgScope(WACCParser.ProgContext ctx,
-                                      String scopeName,
-                                      SymbolTable<String, Binding> symTable) {
+                                String scopeName,
+                                SymbolTable<String, Binding> progSymTable) {
     List<? extends WACCParser.FuncContext> progFuncContexts = ctx.func();
     String funcName;
       /*
@@ -112,14 +110,14 @@ public class WACCSymbolTableBuilder extends WACCParserBaseVisitor<Void> {
     Binding dummy = new Binding("dummy");
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
       funcName = progFuncContext.funcName.getText();
-      Binding checker = workingSymTable.put(funcName, dummy);
+      Binding checker = progSymTable.put(funcName, dummy);
       if (checker != null){
         String errorMsg
             = "Function name " + funcName + " has been used already";
         errorHandler.complain(new DeclarationError(ctx, errorMsg));
       }
     }
-    return new NewScope(scopeName, symTable);
+    return new NewScope(scopeName, progSymTable);
   }
 
   /**
