@@ -4,8 +4,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 
 public abstract class Error implements IError<ParserRuleContext> {
 
-  // TODO: maybe extend this class where necessary, messages perhaps
-
   private final ParserRuleContext ctx;
   protected String message;
 
