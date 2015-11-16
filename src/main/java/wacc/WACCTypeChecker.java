@@ -15,8 +15,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   private Function currentFunction;
   
   public WACCTypeChecker(SymbolTable<String, Binding> top,
-                         ErrorHandler errorHandler) {
-    super(top,errorHandler);
+                         WACCErrorHandler errorHandler) {
+    super(top, errorHandler);
   }
 
   // Helper Methods
@@ -331,24 +331,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitAssignLHS(@NotNull WACCParser.AssignLHSContext ctx) {
 
-    if (ctx.ident().IDENT() != null) {
-
-      Binding b = workingSymbolTable.lookupAll(ctx.getText());
-      if (b instanceof Variable) {
-        return ((Variable) b).getType();
-      }
-
-      errorHandler.complain(
-          new TypeError(ctx)
-      );
-
-      return null;
+    if (ctx.ident() != null) {
+      return visitIdent(ctx.ident());
     } else if (ctx.arrayElem() != null) {
       return visitArrayElem(ctx.arrayElem());
-    } else {
+    } else if (ctx.pairElem() != null) {
       return visitPairElem(ctx.pairElem());
     }
-
+    return null;
   }
 
   /**
@@ -452,11 +442,10 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * otherwise it should be a char
    */
   @Override
-  public Type visitCharExpr(@NotNull WACCParser.CharExprContext ctx) {
+  public Type visitCharacter(WACCParser.CharacterContext ctx) {
     if (ctx.ORD() != null) {
       return (Type) top.lookupAll(Types.INT_T.toString());
     }
-
     return (Type) top.lookupAll(Types.CHAR_T.toString());
   }
 
@@ -518,7 +507,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 	public Type visitArrayElem(@NotNull WACCParser.ArrayElemContext ctx) {
     for (WACCParser.ExprContext expr : ctx.expr()) {
       Type index = visitExpr(expr);
-      if (!Type.isInt(index)) {
+      if (index != null && !Type.isInt(index)) {
         errorHandler.complain(new TypeError(ctx));
       }
     }
@@ -595,7 +584,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
     Type exprType = null;
 
-    if (ctx.ident().IDENT() != null) {
+    if (ctx.ident() != null) {
       exprType = visitIdent(ctx.ident());
     } else if (ctx.expr() != null) {
       exprType = visitExpr(ctx.expr());
@@ -697,9 +686,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       Type sndType = visitArithmeticOper(ctx.second);
 
       if (!fstType.equals(sndType)) {
-        // TODO: Florian, these are the errors in test 1
-        errorHandler.complain(new TypeError(ctx.first));
-        errorHandler.complain(new TypeError(ctx.second));
+        StringBuilder stringBuilder = new StringBuilder();
+        stringBuilder.append("Type of ");
+        stringBuilder.append(ctx.first.getText());
+        stringBuilder.append("(").append(fstType).append(")");
+        stringBuilder.append(" and ");
+        stringBuilder.append(ctx.second.getText());
+        stringBuilder.append("(").append(sndType).append(")");
+        stringBuilder.append(" do not match");
+        String errorMsg = stringBuilder.toString();
+        errorHandler.complain(new TypeError(ctx.first, errorMsg));
       }
 
       return (Type) top.lookupAll(Types.BOOL_T.toString());
@@ -731,7 +727,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   //Other
-
   /**
    * IDENT
    * lookup and return the type
