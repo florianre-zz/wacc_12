@@ -43,7 +43,6 @@ public class WACCCompile {
     System.out.println("Symbol Tables: ");
     System.out.println(top);
 
-    //TODO: Null pointer
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
     System.err.println(errorHandler);
@@ -53,9 +52,11 @@ public class WACCCompile {
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
     SymbolTable<String, Binding> top = new SymbolTable<>();
-    // TODO: Is Integer.MAX_VALUE correct for the wacc language
-    top.put(Types.INT_T.toString(), new Type(Types.INT_T, Integer.MIN_VALUE, Integer
-        .MAX_VALUE));
+    // TODO: move somewhere more appropriate
+    int min = (int) -Math.pow(2, 31);
+    int max = (int) (Math.pow(2, 31) - 1);
+    top.put(Types.INT_T.toString(), new Type(Types.INT_T, min,
+        max));
     top.put(Types.BOOL_T.toString(), new Type(Types.BOOL_T, 0, 1));
     top.put(Types.CHAR_T.toString(), new Type(Types.CHAR_T, 0, 255));
     top.put(Types.STRING_T.toString(), new Type(Types.STRING_T));
