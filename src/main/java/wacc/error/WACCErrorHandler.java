@@ -39,7 +39,8 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
         int charNumber = firstToken.getCharPositionInLine() + 1;
 
         sb.append("  at ");
-        sb.append(lineNumber).append(":").append(charNumber);
+
+        sb.append(lineNumber).append(":").append(String.format("%02d", charNumber));
         sb.append(" -- ").append(e).append("\n");
       }
     }
