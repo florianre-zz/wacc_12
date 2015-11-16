@@ -65,15 +65,12 @@ arithmeticOper: first=atom ((MUL | DIV | MOD | PLUS | MINUS) otherExprs+=atom)*
   WACCParser.AtomContext first;
   List<WACCParser.AtomContext> otherExprs = new ArrayList();
 };
-atom: (CHR)? (sign)? INTEGER                                  #IntExpr
-      | (NOT)? boolLitr                                       #BoolExpr
-      | character                                             #CharExpr
-      | STRING                                                #StringExpr
-      | pairLitr                                              #PairExpr
-      | unaryOper                                             #UnaryExpr
-      | (LEN)? arrayElem                                      #ArrayExpr
-      ;
+atom: integer | bool | character | string | pairLitr | unaryOper | array;
+integer: (CHR)? (sign)? INTEGER;
+bool: (NOT)? boolLitr;
 character: (ORD)? CHARACTER;
+array: (LEN)? arrayElem;
+string: STRING;
 unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
 pairElem: (FST | SND) ident;
 arrayElem: varName=ident (OPEN_BRACKET expr CLOSE_BRACKET)+;
