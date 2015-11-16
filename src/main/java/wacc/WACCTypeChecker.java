@@ -355,7 +355,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
           return null;
         }
       }
-      return firstType;
+      return new ArrayType(firstType);
     }
 
     return new ArrayType();
