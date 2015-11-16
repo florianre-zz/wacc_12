@@ -395,6 +395,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       return (Type) top.lookupAll(Types.CHAR_T.toString());
     }
 
+    // TODO: Refactor into function
     return (Type) top.lookupAll(Types.INT_T.toString());
   }
 
@@ -404,7 +405,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitBool(@NotNull WACCParser.BoolContext ctx) {
-    return visitBoolLitr(ctx.boolLitr());
+    return (Type) top.lookupAll(Types.BOOL_T.toString());
   }
 
   /**
@@ -443,15 +444,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       return (Type) top.lookupAll(Types.INT_T.toString());
     }
     return visitArrayElem(ctx.arrayElem());
-  }
-
-  /**
-   * boolLitr: TRUE | FALSE;
-   * return bool type
-   */
-  @Override
-  public Type visitBoolLitr(@NotNull WACCParser.BoolLitrContext ctx) {
-    return (Type) top.lookupAll(Types.BOOL_T.toString());
   }
 
   /**
@@ -622,6 +614,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
   }
 
+  @Override
+  public Type visitComparisonOper(@NotNull WACCParser.ComparisonOperContext ctx) {
+    if (ctx.orderingOper() != null) {
+      return visitOrderingOper(ctx.orderingOper());
+    } else if (ctx.equalityOper() != null) {
+      return visitEqualityOper(ctx.equalityOper());
+    }
+    return null;
+  }
+
   /**
    * orderingOper: first ((GT | GTE | LT | LTE) second)?
    * if there is no second
@@ -658,6 +660,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitEqualityOper(@NotNull WACCParser.EqualityOperContext ctx) {
     if (ctx.second != null) {
+      System.err.println("EQ");
       Type fstType = visitArithmeticOper(ctx.first);
       Type sndType = visitArithmeticOper(ctx.second);
 
@@ -688,10 +691,11 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *  - check all exprs are int(s)
    */
   @Override
-  public Type visitArithmeticOper(@NotNull WACCParser.ArithmeticOperContext ctx) {
+  public Type visitArithmeticOper(
+      @NotNull WACCParser.ArithmeticOperContext ctx) {
     if (ctx.otherExprs.size() > 0) {
       for (WACCParser.AtomContext atomCtx : ctx.atom()) {
-        Type type = visitChildren(ctx);
+        Type type = visitAtom(atomCtx);
         if (!Type.isInt(type)) {
           IncorrectType(atomCtx, type, "'int'");
         }
@@ -700,6 +704,26 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     } else {
       return visitChildren(ctx);
     }
+  }
+
+  @Override
+  public Type visitAtom(@NotNull WACCParser.AtomContext ctx) {
+    if (ctx.integer() != null) {
+      return visitInteger(ctx.integer());
+    } else if (ctx.bool() != null) {
+      return visitBool(ctx.bool());
+    } else if (ctx.character() != null) {
+      return visitCharacter(ctx.character());
+    } else if (ctx.string() != null) {
+      return visitString(ctx.string());
+    } else if (ctx.array() != null) {
+      return visitArray(ctx.array());
+    } else if (ctx.pairLitr() != null) {
+      return visitPairLitr(ctx.pairLitr());
+    } else if (ctx.unaryOper() != null) {
+      return visitUnaryOper(ctx.unaryOper());
+    }
+    return null;
   }
 
   //Other
