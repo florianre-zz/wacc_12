@@ -19,6 +19,23 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     return null;
   }
 
+  protected void setWorkingSymbolTable(
+      SymbolTable<String, Binding> workingSymbolTable) {
+    this.workingSymbolTable = workingSymbolTable;
+  }
+
+  /**
+   * Sets the working symbol table to the parent of the working
+   * symbol table
+   */
+  protected void goUpWorkingSymbolTable() {
+    SymbolTable<String, Binding> enclosingST
+        = workingSymbolTable.getEnclosingST();
+    if (enclosingST != null) {
+      setWorkingSymbolTable(enclosingST);
+    }
+  }
+
   protected enum ScopeType {
 
     REGULAR_SCOPE("0"),
