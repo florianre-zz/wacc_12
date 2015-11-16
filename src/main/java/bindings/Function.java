@@ -26,6 +26,6 @@ public class Function extends NewScope {
   @Override
   public String toString() {
 
-    return "" + type;
+    return type + " " + super.toString() + "(...)";
   }
 }

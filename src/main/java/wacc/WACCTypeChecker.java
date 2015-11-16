@@ -111,6 +111,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     visitParamList(ctx.paramList());
     visitStatList(ctx.statList());
 
+    //TODO: there is a function to do this
+    workingSymbolTable = workingSymbolTable.getEnclosingST();
+
     return expectedReturnType;
   }
 
@@ -316,15 +319,15 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitCall(@NotNull WACCParser.CallContext ctx) {
-    SymbolTable<String, Binding> temp = workingSymbolTable;
+//    SymbolTable<String, Binding> temp = workingSymbolTable;
 
-    String scopeName = ctx.funcName.IDENT().getText();
-    changeWorkingSymbolTableTo(scopeName);
+//    String scopeName = ctx.funcName.IDENT().getText();
+//    changeWorkingSymbolTableTo(scopeName);
 
     visitArgList(ctx.argList());
     Type identType = visitIdent(ctx.ident());
 
-    workingSymbolTable = temp;
+//    workingSymbolTable = temp;
     return identType;
   }
 
@@ -481,7 +484,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
 
     Type type = visitIdent(ctx.ident());
-    System.err.println("(Null) Type: " + type);
     // TODO: clean up
     if (ArrayType.isArray(type)) {
       int wantedDimensionality = ctx.OPEN_BRACKET().size();
