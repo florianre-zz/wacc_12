@@ -1,7 +1,28 @@
+import antlr.WACCLexer;
+import antlr.WACCParser;
+import bindings.Binding;
+import bindings.Function;
+import bindings.NewScope;
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Before;
 import org.junit.Rule;
+import org.junit.Test;
+import wacc.SymbolTable;
+import wacc.WACCSymbolTableBuilder;
+import wacc.error.WACCErrorHandler;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Scanner;
+
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertNotNull;
 public class WACCSymbolTableBuilderTest {
 
   @Rule
@@ -9,30 +30,84 @@ public class WACCSymbolTableBuilderTest {
     setImposteriser(ClassImposteriser.INSTANCE);
   }};
 
-//  @SuppressWarnings("unchecked")
-//  SymbolTable<String, Binding> top = context.mock(SymbolTable.class);
-//  WACCSymbolTableBuilder buildSTVisitor = new WACCSymbolTableBuilder(top);
+  @SuppressWarnings("unchecked")
+  private String filePath;
+  String program;
+  private SymbolTable<String, Binding> top;
+  WACCErrorHandler errorHandler = context.mock(WACCErrorHandler.class);
+  WACCSymbolTableBuilder symbolTableBuilder;
 
-//  @Test
-//  public void visitProgAddsNewProgramSymbolTableToTop()
-//      throws NoSuchFieldException, IllegalAccessException {
-//    final WACCParser.ProgContext ctx
-//        = context.mock(WACCParser.ProgContext.class);
-//
-//    context.checking(new Expectations() {{
-//      oneOf(top)
-//          .put(with(aNonNull(String.class)), with(aNonNull(NewScope.class)));
-//      ignoring(ctx).getChildCount();
-//    }});
-//
-//    buildSTVisitor.visitProg(ctx);
-//  }
+  @Before
+  public void setUpWACCSymbolTableBuilder() {
+    top = new SymbolTable<>();
+    symbolTableBuilder = new WACCSymbolTableBuilder(top, errorHandler);
+  }
 
-  //TODO: Top SymbolTable contains prog
+  private ParseTree parseProgram() throws IOException {
+    String content = new Scanner(new File(filePath)).useDelimiter("\\Z").next();
+    ANTLRInputStream input = new ANTLRInputStream(content);
 
-  //TODO: Top SymbolTable doesn't contain any functions
+    // create a lexer that feeds off of input CharStream
+    WACCLexer lexer = new WACCLexer(input);
 
-  //TODO: Variables declared in the body of the program stored in main
+    // create a buffer of tokens pulled from the lexer
+    CommonTokenStream tokens = new CommonTokenStream(lexer);
+
+    // create a parser that feeds off the tokens buffer
+    WACCParser parser = new WACCParser(tokens);
+
+    return parser.prog(); // begin parsing at prog rule
+  }
+
+  @Test
+  public void topSymbolTableContainsProg()
+      throws NoSuchFieldException, IllegalAccessException {
+    final WACCParser.ProgContext ctx
+        = context.mock(WACCParser.ProgContext.class);
+
+    context.checking(new Expectations() {{
+      ignoring(ctx).func();
+      ignoring(ctx).getChildCount();
+    }});
+    symbolTableBuilder.visitProg(ctx);
+    assertTrue(top.containsKey("0prog"));
+  }
+
+  @Test
+  public void topSymbolTableDoesNotConatainFunctionScopes() {
+    filePath = "src/test/resources/examples/valid/function/nested_functions" +
+               "/mutualRecursion.wacc";
+    try {
+      ParseTree prog = parseProgram();
+      symbolTableBuilder.visit(prog);
+      assertFalse(top.containsKey("r1"));
+      assertFalse(top.containsKey("r2"));
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+  }
+
+  @Test
+  public void listOfParamsInFunctionScopeMatchFormals() {
+    filePath = "src/test/resources/examples/valid/function/simple_functions/" +
+               "functionManyArguments.wacc";
+
+    try {
+      ParseTree prog = parseProgram();
+      symbolTableBuilder.visit(prog);
+      Function function = null;
+          = (Function) ((NewScope) top.get("0prog")).getSymbolTable()
+                                                  .get("doSomething");
+      int paramSize = function.getParams().size();
+      assertTrue(paramSize == 6);
+      assertNotNull(function);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+  }
+
+  //TODO: Variables declared in the body of the filePath stored in main
 
   //TODO: Allow functions of names which may be the same as newScope names (without the prefix integer)
 
