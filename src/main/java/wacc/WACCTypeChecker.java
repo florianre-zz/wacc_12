@@ -375,9 +375,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         checkTypes(ctx, actualType, expectedType);
       }
     } else {
-      String errorMsg = "The number of arguments doesn't " +
-          "match function declaration";
-      errorHandler.complain(new DeclarationError(ctx, errorMsg));
+      StringBuilder sb = new StringBuilder();
+      sb.append("The number of arguments doesn't match function declaration: ");
+
+      sb.append(ctx.getText()).append("\n");
+      sb.append("There are currently ").append(ctx.expr().size());
+      sb.append(" params, there should be ");
+      sb.append(currentFunction.getParams().size());
+
+      String errorMsg = sb.toString();
+          errorHandler.complain(new DeclarationError(ctx, errorMsg));
     }
 
     return null;
