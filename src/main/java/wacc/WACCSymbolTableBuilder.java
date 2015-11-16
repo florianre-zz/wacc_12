@@ -326,9 +326,9 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
   @Override
   public Void visitCall(WACCParser.CallContext ctx) {
     NewScope progScope = (NewScope) top.get(Scope.PROG.toString());
-    String funcName = ctx.funcName.IDENT().getText();
+    String funcName = ctx.funcName.getText();
     Binding binding = progScope.getSymbolTable().get(funcName);
-    if (binding != null) {
+    if (binding == null) {
       String errorMsg = "Function " + funcName + " not defined";
       errorHandler.complain(new DeclarationError(ctx, errorMsg));
     }
