@@ -65,10 +65,17 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   private void pushEmptyVariableSymbolTable() {
     SymbolTable<String, Type> scope = new SymbolTable<>();
     variableSymbolTableStack.push(scope);
+    System.out.println("Entering new scope");
+  }
+
+  private void popCurrentScopeVariableSymbolTable() {
+    System.out.println("Exiting scope");
+    variableSymbolTableStack.pop();
   }
 
   private void addVariableToCurrentScope(String name, Type type) {
     SymbolTable<String, Type> current = variableSymbolTableStack.peek();
+    System.out.println(name + ' ' + type);
     current.put(name, type);
   }
 
@@ -92,13 +99,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
-    pushEmptyVariableSymbolTable();
-
     visitChildren(ctx);
-
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-    variableSymbolTableStack.pop();
-
     return null;
   }
 
@@ -112,12 +114,17 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitMain(@NotNull WACCParser.MainContext ctx) {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
+
+    System.out.println("main");
     pushEmptyVariableSymbolTable();
 
     Type type = visitStatList(ctx.statList());
 
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-    variableSymbolTableStack.pop();
+
+    popCurrentScopeVariableSymbolTable();
+    System.out.println("exit main");
+
     return type;
   }
 
@@ -134,6 +141,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
     changeWorkingSymbolTableTo(ctx.funcName.getText());
+
+    System.out.println("visit func");
     pushEmptyVariableSymbolTable();
 
     // TODO: check if this is needed
@@ -149,7 +158,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     //TODO: there is a function to do this
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-    variableSymbolTableStack.pop();
+
+    popCurrentScopeVariableSymbolTable();
+    System.out.println("exit func");
 
     return expectedReturnType;
   }
@@ -163,6 +174,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Type type = visitIdent(ctx.ident());
 
     // Add the param to the current variable scope symbol table
+    if (type == null) System.out.println("null type");
     addVariableToCurrentScope(ctx.ident().getText(), type);
 
     // TODO: check if this is needed
@@ -187,6 +199,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       Type rhsType = visitAssignRHS(ctx.assignRHS());
 
       // Add the variable to the current variable scope symbol table
+      if (lhsType == null) System.out.println("null type");
       addVariableToCurrentScope(ctx.ident().getText(), lhsType);
 
       checkTypes(ctx, lhsType, rhsType);
@@ -292,21 +305,29 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     String scopeName = Scope.THEN.toString() + ++ifCount;
     changeWorkingSymbolTableTo(scopeName);
+
+    System.out.println("enter if then");
     pushEmptyVariableSymbolTable();
 
     visitStatList(ctx.thenStat);
 
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-    variableSymbolTableStack.pop();
+
+    popCurrentScopeVariableSymbolTable();
+    System.out.println("exit if then");
 
     scopeName = Scope.ELSE.toString() + ifCount;
     changeWorkingSymbolTableTo(scopeName);
+
+    System.out.println("enter if else");
     pushEmptyVariableSymbolTable();
 
     visitStatList(ctx.elseStat);
 
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-    variableSymbolTableStack.pop();
+
+    popCurrentScopeVariableSymbolTable();
+    System.out.println("exit if else");
 
     return null;
   }
@@ -332,7 +353,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     visitStatList(ctx.statList());
 
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-    variableSymbolTableStack.pop();
+    popCurrentScopeVariableSymbolTable();
 
     return null;
   }
@@ -789,7 +810,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitIdent(WACCParser.IdentContext ctx) {
     Binding b = workingSymbolTable.lookupAll(ctx.getText());
     if (b instanceof Variable) {
-      return getMostRecentBindingForVariable(ctx.getText());
+      return ((Variable) b).getType();
+//      return getMostRecentBindingForVariable(ctx.getText());
     }
     if (b instanceof Function) {
       return ((Function) b).getType();
