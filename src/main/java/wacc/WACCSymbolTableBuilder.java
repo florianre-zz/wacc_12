@@ -103,7 +103,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
       /*
        * Allows mutual recursion but does not allow overloading
        */
-    Binding dummy = new Binding("dummy");
+    Function dummy = new Function();
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
       funcName = progFuncContext.funcName.getText();
       Binding checker = progSymbolTable.put(funcName, dummy);
@@ -330,11 +330,8 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
 
   @Override
   public Void visitCall(WACCParser.CallContext ctx) {
-    NewScope progScope = (NewScope) top.get(Scope.PROG.toString());
-    String funcName = ctx.funcName.getText();
-    Binding binding = progScope.getSymbolTable().get(funcName);
-    if (binding == null) {
-      String errorMsg = "Function " + funcName + " not defined";
+    if (getCalledFunction(ctx) == null) {
+      String errorMsg = "Function " + ctx.funcName.getText() + " not defined";
       errorHandler.complain(new DeclarationError(ctx, errorMsg));
     }
     if (ctx.argList() == null) {

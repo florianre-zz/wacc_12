@@ -108,8 +108,13 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       errorHandler.complain(error);
     }
 
-    visitParamList(ctx.paramList());
+    if (ctx.paramList() != null) {
+      visitParamList(ctx.paramList());
+    }
     visitStatList(ctx.statList());
+
+    //TODO: there is a function to do this
+    workingSymbolTable = workingSymbolTable.getEnclosingST();
 
     return expectedReturnType;
   }
@@ -316,16 +321,43 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitCall(@NotNull WACCParser.CallContext ctx) {
-    SymbolTable<String, Binding> temp = workingSymbolTable;
+    Function calledFunction = getCalledFunction(ctx);
+    WACCParser.ArgListContext argListContext = ctx.argList();
+    if (argListContext != null) {
+      if (argListContext.expr().size() == calledFunction.getParams().size()) {
+        for (int i = 0; i < argListContext.expr().size(); i++) {
+          WACCParser.ExprContext exprCtx = argListContext.expr(i);
+          Type actualType = visitExpr(exprCtx);
+          Type expectedType = calledFunction.getParams().get(i).getType();
+          checkTypes(ctx, actualType, expectedType);
+        }
+      } else {
+        StringBuilder sb = new StringBuilder();
+        sb.append("The number of arguments doesn't match function declaration: ");
 
-    String scopeName = ctx.funcName.IDENT().getText();
-    changeWorkingSymbolTableTo(scopeName);
+        sb.append(ctx.getText()).append("\n");
+        sb.append("There are currently ").append(argListContext.expr().size());
+        sb.append(" params, there should be ");
+        sb.append(calledFunction.getParams().size());
 
-    visitArgList(ctx.argList());
-    Type identType = visitIdent(ctx.ident());
+        String errorMsg = sb.toString();
+        errorHandler.complain(new DeclarationError(ctx, errorMsg));
+      }
 
-    workingSymbolTable = temp;
-    return identType;
+    } else if (calledFunction.getParams().size() > 0) {
+      StringBuilder sb = new StringBuilder();
+      sb.append("The number of arguments doesn't match function declaration: ");
+
+      sb.append(ctx.getText()).append("\n");
+      sb.append("There are currently no");
+      sb.append(" params, there should be ");
+      sb.append(calledFunction.getParams().size());
+
+      String errorMsg = sb.toString();
+      errorHandler.complain(new DeclarationError(ctx, errorMsg));
+    }
+
+    return visitIdent(ctx.ident());
   }
 
   /**
@@ -354,30 +386,30 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * argList: expr (COMMA expr)*;
    * check each expr(s) type with the corresponding type
    */
-  @Override
-	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
-    if (ctx.expr().size() == currentFunction.getParams().size()) {
-      for (int i = 0; i < ctx.expr().size(); i++) {
-        WACCParser.ExprContext exprCtx = ctx.expr(i);
-        Type actualType = visitExpr(exprCtx);
-        Type expectedType = currentFunction.getParams().get(i).getType();
-        checkTypes(ctx, actualType, expectedType);
-      }
-    } else {
-      StringBuilder sb = new StringBuilder();
-      sb.append("The number of arguments doesn't match function declaration: ");
-
-      sb.append(ctx.getText()).append("\n");
-      sb.append("There are currently ").append(ctx.expr().size());
-      sb.append(" params, there should be ");
-      sb.append(currentFunction.getParams().size());
-
-      String errorMsg = sb.toString();
-          errorHandler.complain(new DeclarationError(ctx, errorMsg));
-    }
-
-    return null;
-	}
+//  @Override
+//	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
+//    if (ctx.expr().size() == currentFunction.getParams().size()) {
+//      for (int i = 0; i < ctx.expr().size(); i++) {
+//        WACCParser.ExprContext exprCtx = ctx.expr(i);
+//        Type actualType = visitExpr(exprCtx);
+//        Type expectedType = currentFunction.getParams().get(i).getType();
+//        checkTypes(ctx, actualType, expectedType);
+//      }
+//    } else {
+//      StringBuilder sb = new StringBuilder();
+//      sb.append("The number of arguments doesn't match function declaration: ");
+//
+//      sb.append(ctx.getText()).append("\n");
+//      sb.append("There are currently ").append(ctx.expr().size());
+//      sb.append(" params, there should be ");
+//      sb.append(currentFunction.getParams().size());
+//
+//      String errorMsg = sb.toString();
+//          errorHandler.complain(new DeclarationError(ctx, errorMsg));
+//    }
+//
+//    return null;
+//	}
 
   // Expressions
 
@@ -481,7 +513,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
 
     Type type = visitIdent(ctx.ident());
-    System.err.println("(Null) Type: " + type);
     // TODO: clean up
     if (ArrayType.isArray(type)) {
       int wantedDimensionality = ctx.OPEN_BRACKET().size();
