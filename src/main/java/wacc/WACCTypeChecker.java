@@ -380,7 +380,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       return firstType;
     }
 
-    return new ArrayType(new Type(Types.NULL));
+    //TODO: Add unparameterized array type
+    //return new ArrayType(new Type(Types.NULL));
+    return null;
   }
 
   /**
@@ -483,7 +485,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitPairLitr(@NotNull WACCParser.PairLitrContext ctx) {
-    return new Type(Types.NULL);
+    return new PairType();
   }
 
   // Expression Helpers

@@ -43,11 +43,7 @@ public class Type extends Binding {
   }
 
   public static boolean isPair(Type type) {
-    return Types.PAIR_T.isEqualTo(type.getName()) || Type.isNull(type);
-  }
-
-  private static boolean isNull(Type type) {
-    return Types.NULL.isEqualTo(type.getName());
+    return Types.PAIR_T.isEqualTo(type.getName());
   }
 
   @Override
