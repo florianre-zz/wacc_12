@@ -42,11 +42,14 @@ def runCompile(testPath)
     print "Running Test: #{i}/#{numTests}\r"
     testRun = `./compile #{test[/src.*/]} 2>tmp`
     tmp = File.open("tmp", "r")
-    output = "Running Test: #{File.basename test} \n"
-    output += "Output: \n\t#{testRun} \n"
-    output += "Error(s): \n\t#{tmp.read}\n"
-    output += "Finished Test."
-    open(@STFile, 'a') { |f| f.puts output}
+    tmpContents = tmp.read
+    if !(File.zero?("tmp") || tmpContents.strip.empty?)
+      output = "Running Test: #{File.basename test} \n"
+      output += "Output: \n\t#{testRun} \n"
+      output += "Error(s): \n\t#{tmpContents}\n"
+      output += "Finished Test."
+      open(@STFile, 'a') { |f| f.puts output}
+    end
     `rm tmp`
     i += 1
   end
@@ -58,14 +61,14 @@ testFiles = []
 Find.find(testFolder) do |path|
   testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
 end
-puts "Starting Valid tests..."
-open(@errFile, 'a') { |f| f.puts "Running Valid Tests:\n" }
-runTests(testFolder+"valid", true)
-puts "Finished Valid tests."
-puts "Starting Invalid tests..."
-open(@errFile, 'a') { |f| f.puts "Running Invalid Tests:\n" }
-runTests(testFolder+"invalid/syntaxErr", false)
-puts "Finished Invalid tests."
+# puts "Starting Valid tests..."
+# open(@errFile, 'a') { |f| f.puts "Running Valid Tests:\n" }
+# runTests(testFolder+"valid", true)
+# puts "Finished Valid tests."
+# puts "Starting Invalid tests..."
+# open(@errFile, 'a') { |f| f.puts "Running Invalid Tests:\n" }
+# runTests(testFolder+"invalid/syntaxErr", false)
+# puts "Finished Invalid tests."
 puts "Starting compile tests..."
 runCompile(testFolder+"valid")
 puts "Finished compile tests."
