@@ -382,35 +382,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return new ArrayType();
   }
 
-  /**
-   * argList: expr (COMMA expr)*;
-   * check each expr(s) type with the corresponding type
-   */
-//  @Override
-//	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
-//    if (ctx.expr().size() == currentFunction.getParams().size()) {
-//      for (int i = 0; i < ctx.expr().size(); i++) {
-//        WACCParser.ExprContext exprCtx = ctx.expr(i);
-//        Type actualType = visitExpr(exprCtx);
-//        Type expectedType = currentFunction.getParams().get(i).getType();
-//        checkTypes(ctx, actualType, expectedType);
-//      }
-//    } else {
-//      StringBuilder sb = new StringBuilder();
-//      sb.append("The number of arguments doesn't match function declaration: ");
-//
-//      sb.append(ctx.getText()).append("\n");
-//      sb.append("There are currently ").append(ctx.expr().size());
-//      sb.append(" params, there should be ");
-//      sb.append(currentFunction.getParams().size());
-//
-//      String errorMsg = sb.toString();
-//          errorHandler.complain(new DeclarationError(ctx, errorMsg));
-//    }
-//
-//    return null;
-//	}
-
   // Expressions
 
   /**
