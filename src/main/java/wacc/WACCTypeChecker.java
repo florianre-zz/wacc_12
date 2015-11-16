@@ -336,7 +336,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitArrayLitr(@NotNull WACCParser.ArrayLitrContext ctx) {
 
-    if (ctx.expr().size() != 0) {
+    if (ctx.expr() != null && ctx.expr().size() != 0) {
       Type firstType = visitExpr(ctx.expr(0));
       for (WACCParser.ExprContext exprCtx : ctx.expr()) {
         Type currentType = visitExpr(exprCtx);
@@ -481,7 +481,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
 
     Type type = visitIdent(ctx.ident());
-
+    System.err.println("(Null) Type: " + type);
     // TODO: clean up
     if (ArrayType.isArray(type)) {
       int wantedDimensionality = ctx.OPEN_BRACKET().size();
