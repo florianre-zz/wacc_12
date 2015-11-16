@@ -3,6 +3,7 @@ package wacc;
 import antlr.WACCLexer;
 import antlr.WACCParser;
 import bindings.Binding;
+import bindings.PairType;
 import bindings.Type;
 import bindings.Types;
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -58,7 +59,7 @@ public class WACCCompile {
     top.put(Types.BOOL_T.toString(), new Type(Types.BOOL_T, 0, 1));
     top.put(Types.CHAR_T.toString(), new Type(Types.CHAR_T, 0, 255));
     top.put(Types.STRING_T.toString(), new Type(Types.STRING_T));
-    top.put(Types.PAIR_T.toString(), new Type(Types.PAIR_T));
+    top.put(Types.PAIR_T.toString(), new PairType());
     return top;
   }
 

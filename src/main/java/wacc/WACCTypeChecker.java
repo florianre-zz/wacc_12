@@ -29,14 +29,17 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return ArrayType.isArray(exprType) || PairType.isPair(exprType);
   }
 
-  private void checkTypes(ParserRuleContext ctx, Type lhsType, Type rhsType) {
+  private boolean checkTypes(ParserRuleContext ctx, Type lhsType, Type rhsType) {
     if (lhsType != null) {
       if (!lhsType.equals(rhsType)) {
         IncorrectType(ctx, rhsType, lhsType.toString());
+        return false;
       }
+      return true;
     } else {
       errorHandler.complain(new TypeError(ctx, "Null Type"));
     }
+    return false;
   }
 
   private void IncorrectType(ParserRuleContext ctx,
@@ -527,7 +530,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     Type returnType = null;
 
-    if (PairType.isPair(varType)) {
+    if (checkTypes(ctx, new PairType(), varType)) {
       PairType pairType = (PairType) varType;
 
       if (ctx.FST() != null) {
@@ -535,8 +538,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       } else if (ctx.SND() != null) {
         returnType = pairType.getSnd();
       }
-    } else {
-      IncorrectType(ctx, new Type(Types.PAIR_T), varType.toString());
     }
 
     return returnType;
