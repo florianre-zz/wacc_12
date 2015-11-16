@@ -30,8 +30,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   private void checkTypes(ParserRuleContext ctx, Type lhsType, Type rhsType) {
-    if (!lhsType.equals(rhsType)) {
-      IncorrectType(ctx, rhsType, lhsType.toString());
+    if (lhsType != null) {
+      if (!lhsType.equals(rhsType)) {
+        IncorrectType(ctx, rhsType, lhsType.toString());
+      }
+    } else {
+      errorHandler.complain(new TypeError(ctx, "Null Type"));
     }
   }
 
@@ -90,7 +94,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * return type check is deferred */
   @Override
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
-
     String funcName = ctx.funcName.getText();
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
@@ -138,13 +141,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   // Statements
 
   /**
-  * statList: stat (SEMICOLON stat)*;
-  * visit each stat in the list */
+   * TODO: delete later
+   * statList: stat (SEMICOLON stat)*;
+   * visit each stat in the list */
   @Override
   public Type visitStatList(@NotNull WACCParser.StatListContext ctx) {
-    for (WACCParser.StatContext stat : ctx.stat()) {
-      visitStat(stat);
-    }
+    visitChildren(ctx);
     return null;
   }
 
@@ -170,7 +172,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
      *  - if it is a pair, check the inner types
      */
     @Override
-    public Type visitAssignStat(@NotNull WACCParser.AssignStatContext ctx) {
+    public Type visitAssignStat(WACCParser.AssignStatContext ctx) {
       Type lhsType = visitAssignLHS(ctx.assignLHS());
       Type rhsType = visitAssignRHS(ctx.assignRHS());
 
@@ -270,7 +272,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     visitStatList(ctx.thenStat);
     workingSymbolTable = workingSymbolTable.getEnclosingST();
 
-    scopeName = Scope.THEN.toString() + ifCount;
+    scopeName = Scope.ELSE.toString() + ifCount;
     changeWorkingSymbolTableTo(scopeName);
     visitStatList(ctx.elseStat);
     workingSymbolTable = workingSymbolTable.getEnclosingST();
@@ -327,17 +329,11 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *  - visit arrayElem to get Type
    * if pairElem
    *  - visit pairElem
+   *  TODO: delete later
    */
   @Override
   public Type visitAssignLHS(@NotNull WACCParser.AssignLHSContext ctx) {
-
-    if (ctx.ident() != null) {
-      return visitIdent(ctx.ident());
-    } else if (ctx.arrayElem() != null) {
-      return visitArrayElem(ctx.arrayElem());
-    } else if (ctx.pairElem() != null) {
-      return visitPairElem(ctx.pairElem());
-    }
+    visitChildren(ctx);
     return null;
   }
 
@@ -401,11 +397,17 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
 	public Type visitArgList(@NotNull WACCParser.ArgListContext ctx) {
-    for (int i = 0; i < ctx.expr().size(); i++) {
-      WACCParser.ExprContext exprCtx = ctx.expr(i);
-      Type actualType = visitExpr(exprCtx);
-      Type expectedType = currentFunction.getParams().get(i).getType();
-      checkTypes(ctx, actualType, expectedType);
+    if (ctx.expr().size() == currentFunction.getParams().size()) {
+      for (int i = 0; i < ctx.expr().size(); i++) {
+        WACCParser.ExprContext exprCtx = ctx.expr(i);
+        Type actualType = visitExpr(exprCtx);
+        Type expectedType = currentFunction.getParams().get(i).getType();
+        checkTypes(ctx, actualType, expectedType);
+      }
+    } else {
+      String errorMsg = "The number of arguments doesn't " +
+          "match function declaration";
+      errorHandler.complain(new DeclarationError(ctx, errorMsg));
     }
 
     return null;
@@ -419,7 +421,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * otherwise it should be an int
    */
   @Override
-  public Type visitIntExpr(@NotNull WACCParser.IntExprContext ctx) {
+  public Type visitInteger(@NotNull WACCParser.IntegerContext ctx) {
     if (ctx.CHR() != null) {
       return (Type) top.lookupAll(Types.CHAR_T.toString());
     }
@@ -432,7 +434,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * check if literal is bool
    */
   @Override
-  public Type visitBoolExpr(@NotNull WACCParser.BoolExprContext ctx) {
+  public Type visitBool(@NotNull WACCParser.BoolContext ctx) {
     return visitBoolLitr(ctx.boolLitr());
   }
 
@@ -454,7 +456,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * it is of type string (parser asserts this)
    */
   @Override
-  public Type visitStringExpr(@NotNull WACCParser.StringExprContext ctx) {
+  public Type visitString(@NotNull WACCParser.StringContext ctx) {
     return (Type) top.lookupAll(Types.STRING_T.toString());
   }
 
@@ -467,7 +469,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *  - return the inner type
    */
   @Override
-  public Type visitArrayExpr(@NotNull WACCParser.ArrayExprContext ctx) {
+  public Type visitArray(@NotNull WACCParser.ArrayContext ctx) {
     if (ctx.LEN() != null) {
       return (Type) top.lookupAll(Types.INT_T.toString());
     }
@@ -489,7 +491,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitPairLitr(@NotNull WACCParser.PairLitrContext ctx) {
-    return null;
+    return new Type(Types.NULL);
   }
 
   // Expression Helpers
@@ -515,18 +517,26 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Type type = visitIdent(ctx.ident());
 
     // TODO: clean up
-    if (type instanceof ArrayType) {
-      ArrayType arrayType = (ArrayType) type;
-      int totalDimensionality = arrayType.getDimensionality();
+    if (ArrayType.isArray(type)) {
       int wantedDimensionality = ctx.OPEN_BRACKET().size();
-      if (wantedDimensionality > totalDimensionality) {
-        errorHandler.complain(new TypeError(ctx));
-      } else {
-        int returnDimensionality = totalDimensionality-wantedDimensionality;
-        if (returnDimensionality == 0) {
-          return arrayType.getBase();
+      if (Type.isString(type)) {
+        if (wantedDimensionality != 1) {
+          errorHandler.complain(new TypeError(ctx, "String is 1D"));
         } else {
-          return new ArrayType(arrayType.getBase(), returnDimensionality);
+          return new Type(Types.CHAR_T);
+        }
+      } else {
+        ArrayType arrayType = (ArrayType) type;
+        int totalDimensionality = arrayType.getDimensionality();
+        if (wantedDimensionality > totalDimensionality) {
+          errorHandler.complain(new TypeError(ctx));
+        } else {
+          int returnDimensionality = totalDimensionality-wantedDimensionality;
+          if (returnDimensionality == 0) {
+            return arrayType.getBase();
+          } else {
+            return new ArrayType(arrayType.getBase(), returnDimensionality);
+          }
         }
       }
     }
@@ -715,14 +725,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitArithmeticOper(@NotNull WACCParser.ArithmeticOperContext ctx) {
     if (ctx.otherExprs.size() > 0) {
       for (WACCParser.AtomContext atomCtx : ctx.atom()) {
-        Type type = visitAtom(atomCtx);
+        Type type = visitChildren(ctx);
         if (!Type.isBool(type)) {
           IncorrectType(atomCtx, type, "'bool'");
         }
       }
       return (Type) top.lookupAll(Types.INT_T.toString());
     } else {
-      return visitAtom(ctx.first);
+      return visitChildren(ctx);
     }
   }
 
@@ -737,8 +747,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     if (b instanceof Variable) {
       return ((Variable) b).getType();
     }
-    // TODO: what about functions?
-
+    if (b instanceof Function) {
+      return ((Function) b).getType();
+    }
     return null;
   }
 
