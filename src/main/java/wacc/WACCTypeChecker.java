@@ -146,8 +146,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * visit each stat in the list */
   @Override
   public Type visitStatList(@NotNull WACCParser.StatListContext ctx) {
-    visitChildren(ctx);
-    return null;
+    return visitChildren(ctx);
   }
 
   /**
@@ -333,8 +332,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitAssignLHS(@NotNull WACCParser.AssignLHSContext ctx) {
-    visitChildren(ctx);
-    return null;
+    return visitChildren(ctx);
   }
 
   /**
