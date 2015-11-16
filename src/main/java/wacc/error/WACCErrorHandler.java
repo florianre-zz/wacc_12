@@ -36,7 +36,7 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
         Interval sourceInterval = ctx.getSourceInterval();
         Token firstToken = tokenStream.get(sourceInterval.a);
         int lineNumber = firstToken.getLine();
-        int charNumber = firstToken.getCharPositionInLine();
+        int charNumber = firstToken.getCharPositionInLine() + 1;
 
         sb.append("  at ");
         sb.append(lineNumber).append(":").append(charNumber);
