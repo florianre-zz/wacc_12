@@ -1,8 +1,6 @@
 package wacc.error;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.Interval;
 
 import java.util.ArrayList;
@@ -41,6 +39,11 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
     return sb.toString();
   }
 
+  @Override
+  public int getErrorCount() {
+    return errors.size();
+  }
+
   private String getErrorString(IError<ParserRuleContext> e) {
     ParserRuleContext ctx = e.getCtx();
     Interval sourceInterval = ctx.getSourceInterval();
@@ -59,4 +62,5 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
       sb.append(spaces).append(lines[i]).append("\n");
     }
   }
+
 }

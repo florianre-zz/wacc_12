@@ -6,8 +6,7 @@ import bindings.Binding;
 import bindings.PairType;
 import bindings.Type;
 import bindings.Types;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import wacc.error.WACCErrorHandler;
 
@@ -29,20 +28,35 @@ public class WACCCompile {
 
     ParseTree tree = parser.prog(); // begin parsing at prog rule
 
+    int numberOfSyntaxErrors = parser.getNumberOfSyntaxErrors();
+    if (numberOfSyntaxErrors > 0) {
+      System.err.println(numberOfSyntaxErrors + " Syntax Errors");
+      System.exit(100);
+    }
+
     SymbolTable<String, Binding> top = createTopSymbolTable();
-    WACCErrorHandler errorHandler = new WACCErrorHandler(parser.getInputStream());
+    TokenStream inputStream = parser.getInputStream();
+    WACCErrorHandler errorHandler = new WACCErrorHandler(inputStream);
 
     checkSemantics(tree, top, errorHandler);
+
+    System.exit(0);
   }
 
-  private static void checkSemantics(ParseTree tree, SymbolTable<String, Binding> top, WACCErrorHandler errorHandler) {
+  private static void checkSemantics(ParseTree tree,
+                                     SymbolTable<String, Binding> top,
+                                     WACCErrorHandler errorHandler) {
     WACCSymbolTableBuilder buildSTVisitor
         = new WACCSymbolTableBuilder(top, errorHandler);
     buildSTVisitor.visit(tree);
 
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
-    System.err.println(errorHandler);
+
+    if (errorHandler.getErrorCount() > 0) {
+      System.err.println(errorHandler);
+      System.exit(200);
+    }
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
