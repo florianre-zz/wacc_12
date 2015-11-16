@@ -2,7 +2,7 @@ package wacc;
 
 import antlr.WACCParserBaseVisitor;
 import bindings.Binding;
-import wacc.error.ErrorHandler;
+import wacc.error.*;
 
 public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
 
@@ -47,11 +47,11 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
 
   protected final SymbolTable<String, Binding> top;
   protected SymbolTable<String, Binding> workingSymbolTable;
-  protected final ErrorHandler errorHandler;
+  protected final WACCErrorHandler errorHandler;
   protected int ifCount, whileCount, beginCount;
 
   public WACCVisitor(SymbolTable<String, Binding> top,
-                     ErrorHandler errorHandler) {
+                     WACCErrorHandler errorHandler) {
     this.top = this.workingSymbolTable = top;
     this.errorHandler = errorHandler;
     this.beginCount = this.whileCount = this.ifCount = 0;

@@ -8,7 +8,7 @@ import org.antlr.v4.runtime.misc.Interval;
 import java.util.ArrayList;
 
 public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
-  ArrayList<Error<ParserRuleContext>> abstractErrors;
+  ArrayList<IError<ParserRuleContext>> abstractErrors;
   TokenStream tokenStream;
 
   public WACCErrorHandler(TokenStream tokenStream) {
@@ -17,7 +17,7 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
   }
 
   @Override
-  public void complain(Error<ParserRuleContext> e) {
+  public void complain(IError<ParserRuleContext> e) {
     abstractErrors.add(e);
   }
 
@@ -31,7 +31,7 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
       sb.append(size).append(" Error");
       sb.append(size == 1 ? "" : "s").append(":\n");
 
-      for (Error<ParserRuleContext> e : abstractErrors) {
+      for (IError<ParserRuleContext> e : abstractErrors) {
         ParserRuleContext ctx = e.getCtx();
         Interval sourceInterval = ctx.getSourceInterval();
         Token firstToken = tokenStream.get(sourceInterval.a);

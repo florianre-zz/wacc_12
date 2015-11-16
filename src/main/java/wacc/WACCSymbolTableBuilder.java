@@ -5,6 +5,7 @@ import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import wacc.error.DeclarationError;
 import wacc.error.ErrorHandler;
+import wacc.error.WACCErrorHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +15,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
   private WACCTypeCreator typeCreator;
 
   public WACCSymbolTableBuilder(SymbolTable<String, Binding> top,
-                                ErrorHandler errorHandler) {
+                                WACCErrorHandler errorHandler) {
     super(top, errorHandler);
     this.typeCreator = new WACCTypeCreator(top);
   }
