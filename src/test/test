@@ -7,31 +7,7 @@ require 'shellwords'
 open(@errFile, 'w') { |f| f.print "" }
 open(@STFile, 'w')  { |f| f.print "" }
 
-def runTests(testPath, isValid)
-  testFiles = []
-  Find.find(testPath) do |path|
-    testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
-  end
-  numTests = testFiles.length
-  i = 1
-  testFiles.each do |test|
-    print "Running Test: #{i}/#{numTests}\r"
-    testRun = `./grun -tree #{test[/src.*/]} 2>tmp`
-    tmp = File.open("tmp", "r")
-    if isValid && !File.zero?("tmp")
-      error = "Running Test: #{File.basename test} \n Error(s): \n #{tmp.read}"
-      open(@errFile, 'a') { |f| f.puts error}
-    elsif !isValid && File.zero?("tmp")
-      error = "Running Test: #{File.basename test} \n No Errors!"
-      open(@errFile, 'a') { |f| f.puts error}
-    end
-    `rm tmp`
-    i += 1
-  end
-  puts "\n"
-end
-
-def runCompile(testPath)
+def runCompile(testPath, isValid)
   testFiles = []
   Find.find(testPath) do |path|
     testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
@@ -44,17 +20,22 @@ def runCompile(testPath)
     testRun = `./compile #{test[/src.*/]} 2>tmp`
     tmp = File.open("tmp", "r")
     tmpContents = tmp.read
-    if !(File.zero?("tmp") || tmpContents.strip.empty?)
+    output = "Running Test: #{File.basename test} \n"
+    output += "Output: \n\t#{testRun} \n"
+    if isValid && !(File.zero?("tmp") || tmpContents.strip.empty?)
       hasErrored += 1
-      output = "Running Test: #{File.basename test} \n"
-      output += "Output: \n\t#{testRun} \n"
       output += "Error(s): \n\t#{tmpContents}\n"
+      output += "Finished Test."
+      open(@STFile, 'a') { |f| f.puts output}
+    elsif !isValid && (File.zero?("tmp") || tmpContents.strip.empty?)
+      hasErrored += 1
+      output += "Error(s): \n\t No Errors!\n"
       output += "Finished Test."
       open(@STFile, 'a') { |f| f.puts output}
     end
     `rm tmp`
     i += 1
-    break if hasErrored > 3
+    break if hasErrored > 100
   end
   puts "\n\n"
 end
@@ -64,14 +45,11 @@ testFiles = []
 Find.find(testFolder) do |path|
   testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
 end
-# puts "Starting Valid tests..."
-# open(@errFile, 'a') { |f| f.puts "Running Valid Tests:\n" }
-# runTests(testFolder+"valid", true)
-# puts "Finished Valid tests."
-# puts "Starting Invalid tests..."
-# open(@errFile, 'a') { |f| f.puts "Running Invalid Tests:\n" }
-# runTests(testFolder+"invalid/syntaxErr", false)
-# puts "Finished Invalid tests."
-puts "Starting compile tests..."
-runCompile(testFolder+"valid")
-puts "Finished compile tests."
+
+puts "Starting Valid Compile tests..."
+runCompile(testFolder+"valid", true)
+puts "Finished tests."
+
+puts "Starting Invalid Compile tests..."
+runCompile(testFolder+"invalid", false)
+puts "Finished tests."
