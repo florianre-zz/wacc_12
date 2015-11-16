@@ -37,6 +37,10 @@ public class ArrayType extends Type {
     return (type instanceof ArrayType) || Type.isString(type);
   }
 
+  public static boolean isCharArray(Type type) {
+    return (type instanceof ArrayType) && Type.isChar(((ArrayType) type).base);
+  }
+
   @Override
   public String toString() {
 
@@ -59,7 +63,10 @@ public class ArrayType extends Type {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (o == null || getClass() != o.getClass()) {
+      //Check if current array is a char array && object is a string - in which case return true
+      return isCharArray(this) && o instanceof Type && Type.isString((Type) o);
+    }
 
     ArrayType arrayType = (ArrayType) o;
 
