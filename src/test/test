@@ -38,14 +38,14 @@ def runCompile(testPath)
   end
   numTests = testFiles.length
   i = 1
-  hasErrored = false
+  hasErrored = 0
   testFiles.each do |test|
     print "Running Test: #{i}/#{numTests}\r"
     testRun = `./compile #{test[/src.*/]} 2>tmp`
     tmp = File.open("tmp", "r")
     tmpContents = tmp.read
     if !(File.zero?("tmp") || tmpContents.strip.empty?)
-      hasErrored = true
+      hasErrored += 1
       output = "Running Test: #{File.basename test} \n"
       output += "Output: \n\t#{testRun} \n"
       output += "Error(s): \n\t#{tmpContents}\n"
@@ -54,7 +54,7 @@ def runCompile(testPath)
     end
     `rm tmp`
     i += 1
-    break if hasErrored
+    break if hasErrored > 3
   end
   puts "\n\n"
 end
