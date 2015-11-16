@@ -40,6 +40,10 @@ public class PairType extends Type {
     return snd;
   }
 
+  public static boolean isPair(Type type) {
+    return type.equals(new PairType());
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
