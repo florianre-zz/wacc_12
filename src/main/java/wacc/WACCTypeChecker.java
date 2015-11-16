@@ -6,6 +6,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
+import java.util.Stack;
+
 // TODO: do we check if a function has a return function on every branch? *
 // TODO: who checks if an int assignment is too large? *
 // * (run: /src/test/test)
@@ -13,10 +15,12 @@ import wacc.error.*;
 public class WACCTypeChecker extends WACCVisitor<Type> {
   
   private Function currentFunction;
+  private Stack<SymbolTable<String, Binding>> variableSymbolTableStack;
   
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          WACCErrorHandler errorHandler) {
     super(top, errorHandler);
+    variableSymbolTableStack = new Stack<>();
   }
 
   // Helper Methods
@@ -58,6 +62,26 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
   }
 
+  private void pushEmptyVariableSymbolTable() {
+    SymbolTable<String, Binding> scope = new SymbolTable<>();
+    variableSymbolTableStack.push(scope);
+  }
+
+  private void addVariableToCurrentScope(String name, Binding type) {
+    SymbolTable<String, Binding> current = variableSymbolTableStack.peek();
+    current.put(name, type);
+  }
+
+  private Binding mostRecentBindingForVariable(String varname) {
+    // keep looking up the variable down the stack, then return null if not found
+    for (SymbolTable<String, Binding> symbolTable : variableSymbolTableStack) {
+      if (symbolTable.containsKey(varname)) {
+        return symbolTable.get(varname);
+      }
+    }
+    return null;
+  }
+
   // Visit Methods
 
   /**
@@ -68,8 +92,13 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
     String scopeName =Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
+    pushEmptyVariableSymbolTable();
+
     visitChildren(ctx);
+
     workingSymbolTable = workingSymbolTable.getEnclosingST();
+    variableSymbolTableStack.pop();
+
     return null;
   }
 
@@ -83,8 +112,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitMain(@NotNull WACCParser.MainContext ctx) {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
+    pushEmptyVariableSymbolTable();
+
     Type type = visitStatList(ctx.statList());
+
     workingSymbolTable = workingSymbolTable.getEnclosingST();
+    variableSymbolTableStack.pop();
     return type;
   }
 
@@ -101,6 +134,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
     changeWorkingSymbolTableTo(ctx.funcName.getText());
+    pushEmptyVariableSymbolTable();
 
     // TODO: check if this is needed
     if (expectedReturnType == null) {
@@ -115,6 +149,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     //TODO: there is a function to do this
     workingSymbolTable = workingSymbolTable.getEnclosingST();
+    variableSymbolTableStack.pop();
 
     return expectedReturnType;
   }
