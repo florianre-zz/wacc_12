@@ -380,9 +380,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       return firstType;
     }
 
-    //TODO: Add unparameterized array type
-    //return new ArrayType(new Type(Types.NULL));
-    return null;
+    return new ArrayType();
   }
 
   /**
