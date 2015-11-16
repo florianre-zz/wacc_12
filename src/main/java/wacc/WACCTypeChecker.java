@@ -701,8 +701,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     if (ctx.otherExprs.size() > 0) {
       for (WACCParser.AtomContext atomCtx : ctx.atom()) {
         Type type = visitChildren(ctx);
-        if (!Type.isBool(type)) {
-          IncorrectType(atomCtx, type, "'bool'");
+        if (!Type.isInt(type)) {
+          IncorrectType(atomCtx, type, "'int'");
         }
       }
       return (Type) top.lookupAll(Types.INT_T.toString());
