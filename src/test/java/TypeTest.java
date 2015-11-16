@@ -2,6 +2,7 @@ import bindings.*;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
 public class TypeTest {
@@ -71,7 +72,7 @@ public class TypeTest {
 
   @Test
   public void testPairLitrPairType() {
-    Type pairLitr = new Type(Types.PAIR_T.toString());
+    Type pairLitr = new PairType();
     Type baseType = new Type(Types.INT_T.toString());
     PairType pairType = new PairType(baseType, pairLitr);
     assertThat(pairType.toString(), is("pair(int, pair)"));
@@ -113,6 +114,24 @@ public class TypeTest {
     ArrayType arrayType = new ArrayType(pairType);
     String type = "pair(int, char)[]";
     assertThat(arrayType.toString(), is(type));
+  }
+
+  @Test
+  public void testGenericPairsAreEqual() {
+    assertEquals(new PairType(), new PairType());
+  }
+
+  @Test
+  public void testGenericPairsAreEqualToAnyPair() {
+    Type baseType = new Type(Types.INT_T);
+    assertEquals(new PairType(), new PairType(baseType, baseType));
+  }
+
+  @Test
+  public void testGenericPairsAreEqualToAnyPairWithGenericSubtypes() {
+    PairType pairType = new PairType();
+    assertEquals(new PairType(), new PairType(pairType, pairType));
+    assertEquals(new PairType(pairType, pairType), new PairType());
   }
 
 }
