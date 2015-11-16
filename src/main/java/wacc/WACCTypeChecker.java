@@ -355,7 +355,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
           return null;
         }
       }
-      return firstType;
+      return new ArrayType(firstType);
     }
 
     return new ArrayType();
@@ -375,9 +375,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         checkTypes(ctx, actualType, expectedType);
       }
     } else {
-      String errorMsg = "The number of arguments doesn't " +
-          "match function declaration";
-      errorHandler.complain(new DeclarationError(ctx, errorMsg));
+      StringBuilder sb = new StringBuilder();
+      sb.append("The number of arguments doesn't match function declaration: ");
+
+      sb.append(ctx.getText()).append("\n");
+      sb.append("There are currently ").append(ctx.expr().size());
+      sb.append(" params, there should be ");
+      sb.append(currentFunction.getParams().size());
+
+      String errorMsg = sb.toString();
+          errorHandler.complain(new DeclarationError(ctx, errorMsg));
     }
 
     return null;
@@ -694,8 +701,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     if (ctx.otherExprs.size() > 0) {
       for (WACCParser.AtomContext atomCtx : ctx.atom()) {
         Type type = visitChildren(ctx);
-        if (!Type.isBool(type)) {
-          IncorrectType(atomCtx, type, "'bool'");
+        if (!Type.isInt(type)) {
+          IncorrectType(atomCtx, type, "'int'");
         }
       }
       return (Type) top.lookupAll(Types.INT_T.toString());

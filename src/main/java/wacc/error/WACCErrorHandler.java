@@ -24,6 +24,8 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
   @Override
   public String toString() {
 
+    // TODO: clean up ths method
+
     final StringBuilder sb = new StringBuilder();
     int size = abstractErrors.size();
     if (size > 0) {
@@ -38,10 +40,19 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
         int lineNumber = firstToken.getLine();
         int charNumber = firstToken.getCharPositionInLine() + 1;
 
-        sb.append("  at ");
+        String preamble = "  at " + String.format("%4d", lineNumber) + ":"
+            + String.format("%02d", charNumber) + " -- ";
 
-        sb.append(lineNumber).append(":").append(String.format("%02d", charNumber));
-        sb.append(" -- ").append(e).append("\n");
+        sb.append(preamble);
+
+        String lines[] = e.toString().split("\\r?\\n");
+
+        sb.append(lines[0]).append("\n");
+        for (int i = 1; i < lines.length; i++) {
+          String spaces = new String(new char[preamble.length() + 2]);
+          spaces = spaces.replace('\0', ' ');
+          sb.append(spaces).append(lines[i]).append("\n");
+        }
       }
     }
     return sb.toString();
