@@ -67,6 +67,10 @@ public class ArrayType extends Type {
       return true;
     }
 
+    if (arrayType.base.equals(this.base)) {
+      return true;
+    }
+
     return super.equals(o);
   }
 
