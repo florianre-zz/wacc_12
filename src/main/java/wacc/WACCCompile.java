@@ -15,7 +15,6 @@ import wacc.error.WACCErrorHandler;
 
 public class WACCCompile {
   public static void main(String[] args) throws Exception {
-    System.out.println("Welcome to WACC Compile...");
     // create a CharStream that reads from standard input
     ANTLRInputStream input = new ANTLRInputStream(System.in);
 
@@ -30,25 +29,16 @@ public class WACCCompile {
 
     ParseTree tree = parser.prog(); // begin parsing at prog rule
 
-    //System.out.println(tree.toStringTree(parser)); // print LISP-style tree
-
-    System.out.println("====");
     SymbolTable<String, Binding> top = createTopSymbolTable();
     WACCErrorHandler errorHandler = new WACCErrorHandler(parser.getInputStream());
 
     checkSemantics(tree, top, errorHandler);
-
-    System.out.println("====");
   }
 
   private static void checkSemantics(ParseTree tree, SymbolTable<String, Binding> top, WACCErrorHandler errorHandler) {
     WACCSymbolTableBuilder buildSTVisitor
         = new WACCSymbolTableBuilder(top, errorHandler);
-    System.out.println("Visiting...");
     buildSTVisitor.visit(tree);
-
-    System.out.println("Symbol Tables: ");
-    System.out.println(top);
 
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
