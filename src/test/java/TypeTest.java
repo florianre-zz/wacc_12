@@ -2,6 +2,7 @@ import bindings.*;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
 
@@ -132,6 +133,22 @@ public class TypeTest {
     PairType pairType = new PairType();
     assertEquals(new PairType(), new PairType(pairType, pairType));
     assertEquals(new PairType(pairType, pairType), new PairType());
+  }
+
+  @Test
+  public void testStringIsCharArray() {
+    Type charArray = new ArrayType(new Type(Types.CHAR_T));
+    Type string = new Type(Types.STRING_T);
+
+    assert string.equals(charArray);
+  }
+
+  @Test
+  public void testCharArrayIsString() {
+    Type charArray = new ArrayType(new Type(Types.CHAR_T));
+    Type string = new Type(Types.STRING_T);
+
+    assert charArray.equals(string);
   }
 
 }
