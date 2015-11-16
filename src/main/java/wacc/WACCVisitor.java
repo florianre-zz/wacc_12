@@ -1,10 +1,23 @@
 package wacc;
 
+import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import bindings.Binding;
+import bindings.Function;
+import bindings.NewScope;
 import wacc.error.*;
 
 public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
+
+  protected Function getCalledFunction(WACCParser.CallContext ctx) {
+    NewScope progScope = (NewScope) top.get(Scope.PROG.toString());
+    String funcName = ctx.funcName.getText();
+    Binding function = progScope.getSymbolTable().get(funcName);
+    if (function instanceof Function) {
+      return (Function) function;
+    }
+    return null;
+  }
 
   protected enum ScopeType {
 
