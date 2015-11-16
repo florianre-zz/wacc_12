@@ -33,11 +33,18 @@ public class WACCCompile {
     //System.out.println(tree.toStringTree(parser)); // print LISP-style tree
 
     System.out.println("====");
-    System.out.println("Visiting...");
     SymbolTable<String, Binding> top = createTopSymbolTable();
     WACCErrorHandler errorHandler = new WACCErrorHandler(parser.getInputStream());
+
+    checkSemantics(tree, top, errorHandler);
+
+    System.out.println("====");
+  }
+
+  private static void checkSemantics(ParseTree tree, SymbolTable<String, Binding> top, WACCErrorHandler errorHandler) {
     WACCSymbolTableBuilder buildSTVisitor
         = new WACCSymbolTableBuilder(top, errorHandler);
+    System.out.println("Visiting...");
     buildSTVisitor.visit(tree);
 
     System.out.println("Symbol Tables: ");
@@ -46,8 +53,6 @@ public class WACCCompile {
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
     System.err.println(errorHandler);
-
-    System.out.println("====");
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
