@@ -396,7 +396,19 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
 
     // TODO: Refactor into function
-    return (Type) top.lookupAll(Types.INT_T.toString());
+    Type type = (Type) top.lookupAll(Types.INT_T.toString());
+
+    long intValue = Long.valueOf(ctx.INTEGER().getText());
+    if (ctx.sign() != null) {
+      intValue *= -1;
+    }
+
+    if (!(type.getMin() <= intValue && intValue <= type.getMax())) {
+      String errorMsg = "Integer Overflow";
+      errorHandler.complain(new SyntaxError(ctx, errorMsg));
+    }
+
+    return type;
   }
 
   /**
