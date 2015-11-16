@@ -237,13 +237,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     Type expectedReturnType = currentFunction.getType();
 
-    // TODO: this should call incorrectType()
-    if (actualReturnType != expectedReturnType) {
-      TypeAssignmentError error
-          = new TypeAssignmentError(ctx,
-          actualReturnType.getName(), expectedReturnType.getName());
-      errorHandler.complain(error);
-    }
+    checkTypes(ctx, expectedReturnType, actualReturnType);
 
     return expectedReturnType;
   }
