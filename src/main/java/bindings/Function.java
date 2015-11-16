@@ -1,5 +1,7 @@
 package bindings;
 
+import wacc.SymbolTable;
+
 import java.util.Dictionary;
 import java.util.List;
 
@@ -13,6 +15,10 @@ public class Function extends NewScope {
     super(name, symbolTable);
     this.params = params;
     this.type = type;
+  }
+
+  public Function() {
+    super("dummy", new SymbolTable<String, Binding>());
   }
 
   public Type getType() {
