@@ -115,17 +115,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   /**
-  * paramList: param (COMMA param)*;
-  * type check each param in the list */
-  @Override
-  public Type visitParamList(@NotNull WACCParser.ParamListContext ctx) {
-    for (WACCParser.ParamContext param : ctx.param()) {
-      visitParam(param);
-    }
-    return null;
-  }
-
-  /**
   * param: type name;
   * check type is a valid Type
   * returns null if not valid */

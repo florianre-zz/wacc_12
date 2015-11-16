@@ -124,34 +124,39 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
   private NewScope getFuncScope(WACCParser.FuncContext funcContext,
                                 SymbolTable<String, Binding>
                                     newScopeSymbolTable) {
-    // Get list of ParamContexts from FuncContext
-    List<? extends WACCParser.ParamContext> paramContexts =
-        funcContext.paramList().param();
-
     // Get list of function parameters that will be stored as Variables
     List<Variable> funcParams = new ArrayList<>();
-    for (WACCParser.ParamContext paramContext : paramContexts) {
-      // Get name and type of function
-      String name = paramContext.name.getText();
-      Type type = typeCreator.visitParam(paramContext);
+
+    if (funcContext.paramList() != null) {
+
+      // Get list of ParamContexts from FuncContext
+      List<? extends WACCParser.ParamContext> paramContexts =
+          funcContext.paramList().param();
+
+      for (WACCParser.ParamContext paramContext : paramContexts) {
+        // Get name and type of function
+        String name = paramContext.name.getText();
+        Type type = typeCreator.visitParam(paramContext);
 
       /*
-	     * Create param as a variable
+       * Create param as a variable
        * Store it in the function's symbolTable and add the param to the
        * list of params of the function (used to create the scope)
        */
-      Variable param = new Variable(name, type);
-      Binding binding = newScopeSymbolTable.put(name, param);
-      if (binding != null) {
-        String errorMsg = "parameter name " + name + " already exists";
-        errorHandler.complain(new DeclarationError(funcContext, errorMsg));
+        Variable param = new Variable(name, type);
+        Binding binding = newScopeSymbolTable.put(name, param);
+        if (binding != null) {
+          String errorMsg = "parameter name " + name + " already exists";
+          errorHandler.complain(new DeclarationError(funcContext, errorMsg));
+        }
+        funcParams.add(param);
       }
-      funcParams.add(param);
+
     }
 
     return new Function(typeCreator.visitType(funcContext.type()),
-                        funcContext.funcName.getText(), funcParams,
-                        newScopeSymbolTable);
+        funcContext.funcName.getText(), funcParams,
+        newScopeSymbolTable);
   }
 
   /**
@@ -331,6 +336,9 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     if (binding == null) {
       String errorMsg = "Function " + funcName + " not defined";
       errorHandler.complain(new DeclarationError(ctx, errorMsg));
+    }
+    if (ctx.argList() == null) {
+      return null;
     }
     return visitArgList(ctx.argList());
   }
