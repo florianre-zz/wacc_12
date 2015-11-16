@@ -39,11 +39,32 @@ public class Type extends Binding {
   }
 
   public static boolean isString(Type type) {
-    return type.equals(new Type(Types.STRING_T));
+    return ArrayType.isCharArray(type)
+        || Types.STRING_T.isEqualTo(type.toString());
   }
 
   @Override
   public String toString() {
     return getName();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+
+    if (o instanceof  Type) {
+      Type type = (Type) o;
+
+      if (isString(this) && isString(type)) {
+        return true;
+      }
+    }
+
+    return super.equals(o);
+
+  }
+
+  @Override
+  public int hashCode() {
+    return super.hashCode();
   }
 }
