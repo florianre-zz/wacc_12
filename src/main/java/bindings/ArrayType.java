@@ -27,7 +27,7 @@ public class ArrayType extends Type {
   }
 
   public static boolean isArray(Type type) {
-    return type instanceof ArrayType;
+    return (type instanceof ArrayType) || Type.isString(type);
   }
 
   @Override
