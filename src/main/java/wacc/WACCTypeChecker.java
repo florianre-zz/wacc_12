@@ -348,12 +348,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     String scopeName = Scope.WHILE.toString() + ++whileCount;
     changeWorkingSymbolTableTo(scopeName);
+
+    System.out.println("enter while");
     pushEmptyVariableSymbolTable();
 
     visitStatList(ctx.statList());
 
     workingSymbolTable = workingSymbolTable.getEnclosingST();
+
     popCurrentScopeVariableSymbolTable();
+    System.out.println("exit while");
 
     return null;
   }
@@ -369,9 +373,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     String scopeName = Scope.BEGIN.toString() + ++beginCount;
     changeWorkingSymbolTableTo(scopeName);
+
+    System.out.println("begin");
+    pushEmptyVariableSymbolTable();
+
     Type statListType = visitStatList(ctx.statList());
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-    pushEmptyVariableSymbolTable();
+
+    popCurrentScopeVariableSymbolTable();
+    System.out.println("exit");
+
     return statListType;
   }
 
