@@ -660,7 +660,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitEqualityOper(@NotNull WACCParser.EqualityOperContext ctx) {
     if (ctx.second != null) {
-      System.err.println("EQ");
       Type fstType = visitArithmeticOper(ctx.first);
       Type sndType = visitArithmeticOper(ctx.second);
 
