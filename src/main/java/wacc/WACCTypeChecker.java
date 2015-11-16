@@ -141,15 +141,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   // Statements
 
   /**
-   * TODO: delete later
-   * statList: stat (SEMICOLON stat)*;
-   * visit each stat in the list */
-  @Override
-  public Type visitStatList(@NotNull WACCParser.StatListContext ctx) {
-    return visitChildren(ctx);
-  }
-
-  /**
   * type varName EQUALS assignRHS
   * get lhs & rhs types
   * check that they are equal
@@ -312,22 +303,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   // Statement Helpers
-
-  /**
-   * assignLHS: IDENT | arrayElem | pairElem;
-   * if IDENT
-   *  - lookup binding, check is Variable
-   *  - return type
-   * if arrayElem
-   *  - visit arrayElem to get Type
-   * if pairElem
-   *  - visit pairElem
-   *  TODO: delete later
-   */
-  @Override
-  public Type visitAssignLHS(@NotNull WACCParser.AssignLHSContext ctx) {
-    return visitChildren(ctx);
-  }
 
   /**
    * NEW_PAIR (first , second)
