@@ -151,4 +151,15 @@ public class TypeTest {
     assert charArray.equals(string);
   }
 
+  @Test
+  public void testArrayOfGenericPairsEqualToArrayOfNonGenericPairs() {
+    PairType genericPair = new PairType();
+    Type intType = new Type(Types.INT_T);
+    ArrayType genericPairArrayType = new ArrayType(genericPair);
+    PairType intPair = new PairType(intType, intType);
+    ArrayType pairIntArrayType = new ArrayType(intPair);
+    assertEquals(pairIntArrayType, genericPairArrayType);
+    assertEquals(genericPairArrayType, pairIntArrayType);
+  }
+
 }
