@@ -1,7 +1,5 @@
 package bindings;
 
-import org.antlr.v4.runtime.ParserRuleContext;
-
 import java.util.Dictionary;
 
 public class NewScope extends Binding {
