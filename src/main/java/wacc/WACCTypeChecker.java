@@ -169,18 +169,10 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * returns null if not valid */
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
-    Type type = visitIdent(ctx.ident());
+    Type type = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
 
     // Add the param to the current variable scope symbol table
-    if (type == null) {
-      addVariableToCurrentScope(ctx.ident().getText(), null);
-    }
-
-    // TODO: check if this is needed
-    if (type == null) {
-      TypeError error = new TypeError(ctx);
-      errorHandler.complain(error);
-    }
+    addVariableToCurrentScope(ctx.ident().getText(), type);
 
     return type;
   }
@@ -194,7 +186,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   *  - if it is a pair, check the inner types */
   @Override
   public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    Type lhsType = visitIdent(ctx.ident());
+    Type lhsType = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
     Type rhsType = visitAssignRHS(ctx.assignRHS());
 
     addVariableToCurrentScope(ctx.ident().getText(), lhsType);
@@ -211,17 +203,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitAssignStat(WACCParser.AssignStatContext ctx) {
-    Type lhsType = null;
+    Type lhsType = visitAssignLHS(ctx.assignLHS());
     Type rhsType = visitAssignRHS(ctx.assignRHS());
-
-    try {
-      String varname = ctx.assignLHS().ident().getText();
-      lhsType = getMostRecentBindingForVariable(varname);
-    } catch (Exception ignored) {}
-
-    if (lhsType == null) {
-      lhsType = visitAssignLHS(ctx.assignLHS());
-    }
 
     checkTypes(ctx, lhsType, rhsType);
 
