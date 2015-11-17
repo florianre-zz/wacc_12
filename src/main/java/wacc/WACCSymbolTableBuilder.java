@@ -8,7 +8,6 @@ import wacc.error.DeclarationError;
 import wacc.error.SemanticError;
 import wacc.error.SyntaxError;
 import wacc.error.WACCErrorHandler;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,39 +42,34 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
 	 * Creates a new symbol table and binding for a context which requires a
    * new scope
    */
-  private Void setANewScope(ParserRuleContext ctx, String scopeName) {
-    // Deal with if scope
+  private Void setANewScope(ParserRuleContext ctx, String name) {
     if (ctx instanceof WACCParser.IfStatContext) {
       return setIfStatScope((WACCParser.IfStatContext) ctx);
     }
 
-    SymbolTable<String, Binding> newScopeSymbolTable
-        = new SymbolTable<>(scopeName, workingSymbolTable);
+    SymbolTable<String, Binding> newSymbolTable
+        = new SymbolTable<>(name, workingSymbolTable);
     NewScope newScope;
     ParserRuleContext contextToVisit;
 
-    // Dealing with prog
     if (ctx instanceof WACCParser.ProgContext) {
-      newScope = setProgScope((WACCParser.ProgContext) ctx,
-                              scopeName,
-                              newScopeSymbolTable);
+      newScope
+          = setProgScope((WACCParser.ProgContext) ctx, name, newSymbolTable);
       contextToVisit = ctx;
 
-    // Deal with function
     } else if (ctx instanceof WACCParser.FuncContext) {
       newScope
-          = getFuncScope((WACCParser.FuncContext) ctx, newScopeSymbolTable);
+          = getFuncScope((WACCParser.FuncContext) ctx, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
 
-    // Deal with other scopes
     } else {
-      newScope = new NewScope(scopeName, newScopeSymbolTable);
+      newScope = new NewScope(name, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
     }
 
-    workingSymbolTable.put(scopeName, newScope);
+    workingSymbolTable.put(name, newScope);
 
-    return fillNewSymbolTable(contextToVisit, newScopeSymbolTable);
+    return fillNewSymbolTable(contextToVisit, newSymbolTable);
   }
 
   /**
@@ -86,19 +80,19 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
                                 SymbolTable<String, Binding> progSymbolTable) {
     List<? extends WACCParser.FuncContext> progFuncContexts = ctx.func();
     String funcName;
-      /*
-       * Allows mutual recursion but does not allow overloading
-       */
+
+    // Allows mutual recursion but does not allow overloading
     Function dummy = new Function();
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
       funcName = progFuncContext.funcName.getText();
       Binding checker = progSymbolTable.put(funcName, dummy);
+
       if (checker != null){
-        String errorMsg
-            = "Function name " + funcName + " has been used already";
+        String errorMsg = "Function name " + funcName + " is already used";
         errorHandler.complain(new DeclarationError(ctx, errorMsg));
       }
     }
+
     return new NewScope(scopeName, progSymbolTable);
   }
 
@@ -110,17 +104,14 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
   private NewScope getFuncScope(WACCParser.FuncContext funcContext,
                                 SymbolTable<String, Binding>
                                     newScopeSymbolTable) {
-    // Get list of function parameters that will be stored as Variables
     List<Variable> funcParams = new ArrayList<>();
 
     if (funcContext.paramList() != null) {
 
-      // Get list of ParamContexts from FuncContext
       List<? extends WACCParser.ParamContext> paramContexts =
           funcContext.paramList().param();
 
       for (WACCParser.ParamContext paramContext : paramContexts) {
-        // Get name and type of function
         String name = paramContext.name.getText();
         Type type = typeCreator.visitParam(paramContext);
 
