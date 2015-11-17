@@ -31,36 +31,34 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
   @Override
   public String toString() {
 
-    final StringBuilder sb = new StringBuilder();
-    int size = semanticErrors.size();
+    StringBuilder sb = new StringBuilder();
 
     if (syntacticErrors.size() > 0) {
-      sb.append(size).append(" Error");
-      sb.append(size == 1 ? "" : "s").append(":\n");
-
-      for (IError<ParserRuleContext> e : syntacticErrors) {
-        String preamble = getErrorString(e);
-        sb.append(preamble);
-        String lines[] = e.toString().split("\\r?\\n");
-        sb.append(lines[0]).append("\n");
-        concatWithNewLines(sb, preamble, lines);
-      }
+      sb = printErrors(syntacticErrors);
     } else {
       if (semanticErrors.size() > 0) {
-        sb.append(size).append(" Error");
-        sb.append(size == 1 ? "" : "s").append(":\n");
-
-        for (IError<ParserRuleContext> e : semanticErrors) {
-          String preamble = getErrorString(e);
-          sb.append(preamble);
-          String lines[] = e.toString().split("\\r?\\n");
-          sb.append(lines[0]).append("\n");
-          concatWithNewLines(sb, preamble, lines);
-        }
+        sb = printErrors(semanticErrors);
       }
     }
-
     return sb.toString();
+  }
+
+  private StringBuilder printErrors(ArrayList<IError<ParserRuleContext>>
+                                        errors) {
+    final StringBuilder sb = new StringBuilder();
+    int size = errors.size();
+    sb.append(size).append(" Error");
+    sb.append(size == 1 ? "" : "s").append(":\n");
+
+    for (IError<ParserRuleContext> e : errors) {
+      String preamble = getErrorString(e);
+      sb.append(preamble);
+      String lines[] = e.toString().split("\\r?\\n");
+      sb.append(lines[0]).append("\n");
+      concatWithNewLines(sb, preamble, lines);
+    }
+
+    return sb;
   }
 
   @Override
