@@ -25,7 +25,7 @@ public class WACCExamplesTest {
             BufferedReader bre = new BufferedReader
                     (new InputStreamReader(p.getErrorStream()));
             while ((line = bri.readLine()) != null) {
-                System.out.println(line);
+                System.out.print("\r" + line);
             }
             bri.close();
             while ((line = bre.readLine()) != null) {
