@@ -13,14 +13,17 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
   protected int ifCount, whileCount, beginCount;
 
   public WACCVisitor(SymbolTable<String, Binding> top) {
-    this(top,null);
+    this(top, null);
   }
 
   public WACCVisitor(SymbolTable<String, Binding> top,
                      WACCErrorHandler errorHandler) {
-    this.top = this.workingSymbolTable = top;
+    this.top = top;
+    this.workingSymbolTable = top;
     this.errorHandler = errorHandler;
-    this.beginCount = this.whileCount = this.ifCount = 0;
+    this.beginCount = 0;
+    this.whileCount = 0;
+    this.ifCount = 0;
   }
 
   protected Function getCalledFunction(WACCParser.CallContext ctx) {
