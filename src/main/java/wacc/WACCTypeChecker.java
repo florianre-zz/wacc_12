@@ -172,8 +172,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Type type = visitIdent(ctx.ident());
 
     // Add the param to the current variable scope symbol table
-    if (type == null)
-    addVariableToCurrentScope(ctx.ident().getText(), type);
+    if (type == null) {
+      addVariableToCurrentScope(ctx.ident().getText(), null);
+    }
 
     // TODO: check if this is needed
     if (type == null) {
@@ -307,24 +308,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     String scopeName = Scope.THEN.toString() + ++ifCount;
     changeWorkingSymbolTableTo(scopeName);
-
     pushEmptyVariableSymbolTable();
-
     visitStatList(ctx.thenStat);
-
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-
     popCurrentScopeVariableSymbolTable();
 
     scopeName = Scope.ELSE.toString() + ifCount;
     changeWorkingSymbolTableTo(scopeName);
-
     pushEmptyVariableSymbolTable();
-
     visitStatList(ctx.elseStat);
-
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-
     popCurrentScopeVariableSymbolTable();
 
 
@@ -802,6 +795,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
   @Override
   public Type visitAtom(@NotNull WACCParser.AtomContext ctx) {
+
     if (ctx.integer() != null) {
       return visitInteger(ctx.integer());
     } else if (ctx.bool() != null) {
@@ -817,6 +811,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     } else if (ctx.unaryOper() != null) {
       return visitUnaryOper(ctx.unaryOper());
     }
+
     return null;
   }
 
