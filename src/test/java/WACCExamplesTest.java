@@ -37,7 +37,7 @@ public class WACCExamplesTest {
             BufferedReader br = new BufferedReader(new FileReader(ERRORS_LOG_FILE_NAME));
             // The error log has no lines - ie no errors, which means all tests have passed.
             assertNull(br.readLine());
-            assertNull(null);
+            return;
         }
         catch (Exception err) {
             err.printStackTrace();
