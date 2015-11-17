@@ -107,7 +107,6 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     List<Variable> funcParams = new ArrayList<>();
 
     if (funcContext.paramList() != null) {
-
       List<? extends WACCParser.ParamContext> paramContexts =
           funcContext.paramList().param();
 
@@ -115,8 +114,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
         String name = paramContext.name.getText();
         Type type = typeCreator.visitParam(paramContext);
 
-      /*
-       * Create param as a variable
+      /* Create param as a variable
        * Store it in the function's symbolTable and add the param to the
        * list of params of the function (used to create the scope)
        */
@@ -131,8 +129,9 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     }
 
     return new Function(typeCreator.visitType(funcContext.type()),
-        funcContext.funcName.getText(), funcParams,
-        newScopeSymbolTable);
+                        funcContext.funcName.getText(),
+                        funcParams,
+                        newScopeSymbolTable);
   }
 
   /**
