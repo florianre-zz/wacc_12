@@ -9,6 +9,22 @@ import wacc.error.*;
 
 public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
 
+  protected final SymbolTable<String, Binding> top;
+  protected SymbolTable<String, Binding> workingSymbolTable;
+  protected final WACCErrorHandler errorHandler;
+  protected int ifCount, whileCount, beginCount;
+
+  public WACCVisitor(SymbolTable<String, Binding> top) {
+    this(top,null);
+  }
+
+  public WACCVisitor(SymbolTable<String, Binding> top,
+                     WACCErrorHandler errorHandler) {
+    this.top = this.workingSymbolTable = top;
+    this.errorHandler = errorHandler;
+    this.beginCount = this.whileCount = this.ifCount = 0;
+  }
+
   protected Function getCalledFunction(WACCParser.CallContext ctx) {
     NewScope progScope = (NewScope) top.get(Scope.PROG.toString());
     String funcName = ctx.funcName.getText();
@@ -73,22 +89,6 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     public String toString() {
       return name;
     }
-  }
-
-  protected final SymbolTable<String, Binding> top;
-  protected SymbolTable<String, Binding> workingSymbolTable;
-  protected final WACCErrorHandler errorHandler;
-  protected int ifCount, whileCount, beginCount;
-
-  public WACCVisitor(SymbolTable<String, Binding> top,
-                     WACCErrorHandler errorHandler) {
-    this.top = this.workingSymbolTable = top;
-    this.errorHandler = errorHandler;
-    this.beginCount = this.whileCount = this.ifCount = 0;
-  }
-
-  public WACCVisitor(SymbolTable<String, Binding> top) {
-    this(top,null);
   }
 
 }
