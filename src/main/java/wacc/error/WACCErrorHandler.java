@@ -26,8 +26,6 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
     }
   }
 
-
-  //synthax = 0 -> semantics
   @Override
   public String toString() {
 
@@ -51,11 +49,11 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
     sb.append(size == 1 ? "" : "s").append(":\n");
 
     for (IError<ParserRuleContext> e : errors) {
-      String preamble = getErrorString(e);
-      sb.append(preamble);
+      String location = getLineAndChar(e);
+      sb.append(location);
       String lines[] = e.toString().split("\\r?\\n");
       sb.append(lines[0]).append("\n");
-      concatWithNewLines(sb, preamble, lines);
+      sb.append(concatWithNewLines(location, lines));
     }
 
     return sb;
@@ -71,7 +69,7 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
     return syntacticErrors.size();
   }
 
-  private String getErrorString(IError<ParserRuleContext> e) {
+  private String getLineAndChar(IError<ParserRuleContext> e) {
     ParserRuleContext ctx = e.getCtx();
     Interval sourceInterval = ctx.getSourceInterval();
     Token firstToken = tokenStream.get(sourceInterval.a);
@@ -82,12 +80,15 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
         + String.format("%02d", charNumber) + " -- ";
   }
 
-  private void concatWithNewLines(StringBuilder sb, String preamble, String[] lines) {
+  private String concatWithNewLines(String location, String[] lines) {
+    StringBuilder sb = new StringBuilder();
     for (int i = 1; i < lines.length; i++) {
-      String spaces = new String(new char[preamble.length() + 2]);
+      String spaces = new String(new char[location.length() + 2]);
       spaces = spaces.replace('\0', ' ');
       sb.append(spaces).append(lines[i]).append("\n");
     }
+
+    return sb.toString();
   }
 
 }

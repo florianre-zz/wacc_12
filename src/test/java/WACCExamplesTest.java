@@ -7,9 +7,6 @@ import java.io.InputStreamReader;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-/**
- * Created by jonathanking on 17/11/2015.
- */
 public class WACCExamplesTest {
 
     public static final String ERRORS_LOG_FILE_NAME = "errors.log";
