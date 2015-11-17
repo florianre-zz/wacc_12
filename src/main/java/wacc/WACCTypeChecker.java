@@ -144,7 +144,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
     visitChildren(ctx);
-    workingSymbolTable = workingSymbolTable.getEnclosingST();
+    goUpWorkingSymbolTable();
     return null;
   }
 
@@ -164,8 +164,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     currentFunction = null;
 
     Type type = visitStatList(ctx.statList());
-
-    workingSymbolTable = workingSymbolTable.getEnclosingST();
+    
+    goUpWorkingSymbolTable();
     popCurrentScopeVariableSymbolTable();
 
     return type;
@@ -343,14 +343,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     changeWorkingSymbolTableTo(scopeName);
     pushEmptyVariableSymbolTable();
     visitStatList(ctx.thenStat);
-    workingSymbolTable = workingSymbolTable.getEnclosingST();
+    goUpWorkingSymbolTable();
     popCurrentScopeVariableSymbolTable();
 
     scopeName = Scope.ELSE.toString() + ifCount;
     changeWorkingSymbolTableTo(scopeName);
     pushEmptyVariableSymbolTable();
     visitStatList(ctx.elseStat);
-    workingSymbolTable = workingSymbolTable.getEnclosingST();
+    goUpWorkingSymbolTable();
     popCurrentScopeVariableSymbolTable();
 
     return null;
@@ -377,7 +377,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     visitStatList(ctx.statList());
 
-    workingSymbolTable = workingSymbolTable.getEnclosingST();
+    goUpWorkingSymbolTable();
     popCurrentScopeVariableSymbolTable();
 
     return null;
@@ -400,7 +400,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     pushEmptyVariableSymbolTable();
 
     Type statListType = visitStatList(ctx.statList());
-    workingSymbolTable = workingSymbolTable.getEnclosingST();
+    goUpWorkingSymbolTable();
 
     popCurrentScopeVariableSymbolTable();
 
