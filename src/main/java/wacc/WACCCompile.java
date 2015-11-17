@@ -46,8 +46,8 @@ public class WACCCompile {
   private static void checkSemantics(ParseTree tree,
                                      SymbolTable<String, Binding> top,
                                      WACCErrorHandler errorHandler) {
-    WACCSymbolTableBuilder buildSTVisitor
-        = new WACCSymbolTableBuilder(top, errorHandler);
+    WACCSymbolTableFiller buildSTVisitor
+        = new WACCSymbolTableFiller(top, errorHandler);
     buildSTVisitor.visit(tree);
 
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);

@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.junit.Test;
 import wacc.SymbolTable;
-import wacc.WACCSymbolTableBuilder;
+import wacc.WACCSymbolTableFiller;
 import wacc.error.WACCErrorHandler;
 
 import java.util.Dictionary;
@@ -40,8 +40,8 @@ public class SymbolTableValuesTest {
 
     SymbolTable<String, Binding> top = createTopSymbolTable();
     WACCErrorHandler errorHandler = new WACCErrorHandler(parser.getInputStream());
-    WACCSymbolTableBuilder buildSTVisitor
-        = new WACCSymbolTableBuilder(top, errorHandler);
+    WACCSymbolTableFiller buildSTVisitor
+        = new WACCSymbolTableFiller(top, errorHandler);
     buildSTVisitor.visit(tree);
 
     Dictionary<String, Binding> zeroMainTable =

@@ -11,19 +11,19 @@ import wacc.error.WACCErrorHandler;
 import java.util.ArrayList;
 import java.util.List;
 
-public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
+public class WACCSymbolTableFiller extends WACCVisitor<Void> {
 
   private WACCTypeCreator typeCreator;
   private boolean hasReturnStat, hasExitStat;
 
-  public WACCSymbolTableBuilder(SymbolTable<String, Binding> top,
-                                WACCErrorHandler errorHandler) {
+  public WACCSymbolTableFiller(SymbolTable<String, Binding> top,
+                               WACCErrorHandler errorHandler) {
     super(top, errorHandler);
     this.typeCreator = new WACCTypeCreator(top);
   }
 
-  /***************************** Helper Method *******************************/
-  
+  /**************************** Helper Method ******************************/
+
   /**
    * Given a context which requires a new scope, its symbol table is filled
    * with all relevant elements of its children
@@ -115,8 +115,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
         Type type = typeCreator.visitParam(paramContext);
 
       /* Create param as a variable
-       * Store it in the function's symbolTable and add the param to the
-       * list of params of the function (used to create the scope)
+       * Store it in the function's list of params and in its symbolTable
        */
         Variable param = new Variable(name, type);
         Binding binding = newScopeSymbolTable.put(name, param);
@@ -136,18 +135,21 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
 
   /**
    * Deal with special case of if statement where 2 scopes are required
+   * Notify if return statement is reached in branches
    */
   private Void setIfStatScope(WACCParser.IfStatContext ctx) {
     boolean hasReturnBeforehand = hasReturnStat;
     boolean hasExitBeforehand = hasExitStat;
+
     setIfBranchScope(Scope.THEN, ctx.thenStat);
-    boolean hasReturnStatInThen = hasReturnStat;
-    boolean hasExitStatInThen = hasExitStat;
+
+    boolean thenHasReturn = hasReturnStat;
+    boolean thenHasExit = hasExitStat;
     setIfBranchScope(Scope.ELSE, ctx.elseStat);
-    hasReturnStat &= hasReturnStatInThen;
-    hasReturnStat |= hasReturnBeforehand;
-    hasExitStat &= hasExitStatInThen;
-    hasExitStat |= hasExitBeforehand;
+
+    hasReturnStat = (hasReturnStat && thenHasReturn) || hasReturnBeforehand;
+    hasExitStat = (hasExitStat && thenHasExit) || hasExitBeforehand;
+
     return null;
   }
 
@@ -159,8 +161,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     String name = scope.toString() + ifCount;
     SymbolTable<String, Binding> symbolTable
         = new SymbolTable<>(name, workingSymbolTable);
-    NewScope newScope = new NewScope(name, symbolTable);
-    workingSymbolTable.put(name, newScope);
+    workingSymbolTable.put(name, new NewScope(name, symbolTable));
     fillNewSymbolTable(statList, symbolTable);
   }
 
@@ -172,14 +173,18 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     if (ctx instanceof WACCParser.FuncContext) {
       WACCParser.FuncContext funcContext = (WACCParser.FuncContext) ctx;
       return funcContext.statList();
+
     } else if (ctx instanceof WACCParser.MainContext) {
       WACCParser.MainContext mainContext = (WACCParser.MainContext) ctx;
       return mainContext.statList();
+
     } else if (ctx instanceof WACCParser.BeginStatContext) {
       WACCParser.BeginStatContext beginContext
           = (WACCParser.BeginStatContext) ctx;
       return beginContext.statList();
-    } else { // ctx instanceof WACCParser.WhileStatContext
+
+    // ctx instanceof WACCParser.WhileStatContext
+    } else {
       WACCParser.WhileStatContext whileContext
           = (WACCParser.WhileStatContext) ctx;
       return whileContext.statList();
@@ -197,6 +202,26 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     return temp.getName().startsWith(ScopeType.ONE_WAY_SCOPE.toString());
   }
 
+  /**
+   * Go up scopes to check for redeclaration
+   * Stop search when regular scope is reached
+   */
+  private void checkOneWayScopeDeclaration(WACCParser.InitStatContext ctx,
+                                           String varName) {
+    Binding binding;
+    SymbolTable<String, Binding> temp = workingSymbolTable;
+    while (isScopeOneWay(temp)) {
+      temp = temp.getEnclosingST();
+      binding = temp.get(varName);
+      if (binding != null) {
+        String errorMsg
+            = "Cannot redefine variable " + varName + " in this scope";
+        errorHandler.complain(new DeclarationError(ctx, errorMsg));
+        break;
+      }
+    }
+  }
+
   /************************** Visit Functions ****************************/
 
   /**
@@ -209,7 +234,8 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
   }
 
   /**
-   * Creates a new scope for the body of the program
+   * Create a new scope for the body of the program
+   * Throw error if main contains a return
    */
   @Override
   public Void visitMain(WACCParser.MainContext ctx) {
@@ -225,6 +251,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
   /**
 	 * Finds the information about a function definition and calls for a new
    * scope to be created
+   * Throw error if function does not contain return or exit
    */
   @Override
   public Void visitFunc(WACCParser.FuncContext ctx) {
@@ -234,7 +261,8 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     setANewScope(ctx, funcName);
     if (!hasReturnStat && !hasExitStat) {
       String errorMsg = "Return statement required in body of " + funcName;
-      errorHandler.complain(new SyntaxError(ctx, errorMsg));    }
+      errorHandler.complain(new SyntaxError(ctx, errorMsg));
+    }
     return null;
   }
 
@@ -285,31 +313,22 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
         = new Variable(varName, typeCreator.visitType(ctx.type()));
     Binding binding = workingSymbolTable.put(varName, variable);
 
-    // check if exists in current scope
-    // no need to check if function since this can never be called within the
-    // program scope
+    /* check if declared variable exists in current scope
+     * no need to check if binding is Function since this can never be called
+     * within the program scope
+     */
     if (binding != null) {
       String errorMsg = varName + " is already declared in current scope";
       errorHandler.complain(new DeclarationError(ctx, errorMsg));
     } else {
-      SymbolTable<String, Binding> temp = workingSymbolTable;
-      while (isScopeOneWay(temp)) {
-        temp = temp.getEnclosingST();
-        binding = temp.get(varName);
-        if (binding != null) {
-          String errorMsg
-              = "Cannot redefine variable " + varName + " in this scope";
-          errorHandler.complain(new DeclarationError(ctx, errorMsg));
-          break;
-        }
-      }
+      checkOneWayScopeDeclaration(ctx, varName);
     }
     return null;
   }
 
   /**
-	 * This assumes that the current ident is not the LHS of an initStat or the
-   * name of a function in a callStat
+	 * This assumes that the current ident is not the LHS of an initStat
+   * or the name of a function in a callStat
    * Throws error for undeclared variable (includes when IDENT is only a
    * function name)
    */
@@ -324,6 +343,10 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     return null;
   }
 
+  /**
+   * Check if function exists and visits the arguments given to the function
+   * call
+   */
   @Override
   public Void visitCall(WACCParser.CallContext ctx) {
     if (getCalledFunction(ctx) == null) {
@@ -336,12 +359,18 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     return visitArgList(ctx.argList());
   }
 
+  /**
+   * Notify when ReturnStat reached
+   */
   @Override
   public Void visitReturnStat(@NotNull WACCParser.ReturnStatContext ctx) {
     hasReturnStat = true;
     return super.visitReturnStat(ctx);
   }
 
+  /**
+   * Notify when ExitStat reached
+   */
   @Override
   public Void visitExitStat(@NotNull WACCParser.ExitStatContext ctx) {
     hasExitStat = true;

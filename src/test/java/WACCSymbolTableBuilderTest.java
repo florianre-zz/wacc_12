@@ -4,7 +4,7 @@ import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
 import wacc.SymbolTable;
-import wacc.WACCSymbolTableBuilder;
+import wacc.WACCSymbolTableFiller;
 import wacc.error.WACCErrorHandler;
 public class WACCSymbolTableBuilderTest {
 
@@ -18,12 +18,12 @@ public class WACCSymbolTableBuilderTest {
   String program;
   private SymbolTable<String, Binding> top;
   WACCErrorHandler errorHandler = context.mock(WACCErrorHandler.class);
-  WACCSymbolTableBuilder symbolTableBuilder;
+  WACCSymbolTableFiller symbolTableBuilder;
 
   @Before
   public void setUpWACCSymbolTableBuilder() {
     top = new SymbolTable<>();
-    symbolTableBuilder = new WACCSymbolTableBuilder(top, errorHandler);
+    symbolTableBuilder = new WACCSymbolTableFiller(top, errorHandler);
   }
 
 //  private ParseTree parseProgram() throws IOException {
