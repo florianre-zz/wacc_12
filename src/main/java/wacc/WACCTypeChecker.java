@@ -561,8 +561,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * arrayElem: varName[expr];
    *
    *  int[][][] a;
-   *  b = a[]
-   *  :t b = int[][]
+   *  let b = a[]
+   *  b :: int[][]
    *
    * check that each expr evaluates to an int
    */
@@ -622,7 +622,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return returnType;
   }
 
-  // Operations
+  /************************** Operations ****************************/
 
   /**
    * unaryOper: (! | - | len | ord | chr)? ( IDENT | (expr) );
@@ -665,7 +665,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       }
       return getType(Types.INT_T);
     }
-		return exprType;
+    return exprType;
   }
 
   /**
@@ -803,7 +803,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return null;
   }
 
-  //Other
+  /************************** Other ****************************/
+
   /**
    * IDENT
    * lookup and return the type
