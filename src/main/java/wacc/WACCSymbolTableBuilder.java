@@ -3,8 +3,10 @@ package wacc;
 import antlr.WACCParser;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.DeclarationError;
-import wacc.error.ErrorHandler;
+import wacc.error.SemanticError;
+import wacc.error.SyntaxError;
 import wacc.error.WACCErrorHandler;
 
 import java.util.ArrayList;
@@ -13,6 +15,7 @@ import java.util.List;
 public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
 
   private WACCTypeCreator typeCreator;
+  private boolean hasReturnStat, hasExitStat;
 
   public WACCSymbolTableBuilder(SymbolTable<String, Binding> top,
                                 WACCErrorHandler errorHandler) {
@@ -134,7 +137,6 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
         }
         funcParams.add(param);
       }
-
     }
 
     return new Function(typeCreator.visitType(funcContext.type()),
@@ -146,8 +148,16 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
    * Deal with special case of if statement where 2 scopes are required
    */
   private Void setIfStatScope(WACCParser.IfStatContext ctx) {
+    boolean hasReturnBeforehand = hasReturnStat;
+    boolean hasExitBeforehand = hasExitStat;
     setIfBranchScope(Scope.THEN, ctx.thenStat);
+    boolean hasReturnStatInThen = hasReturnStat;
+    boolean hasExitStatInThen = hasExitStat;
     setIfBranchScope(Scope.ELSE, ctx.elseStat);
+    hasReturnStat &= hasReturnStatInThen;
+    hasReturnStat |= hasReturnBeforehand;
+    hasExitStat &= hasExitStatInThen;
+    hasExitStat |= hasExitBeforehand;
     return null;
   }
 
@@ -213,7 +223,13 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
    */
   @Override
   public Void visitMain(WACCParser.MainContext ctx) {
-    return setANewScope(ctx, Scope.MAIN.toString());
+    hasReturnStat = false;
+    setANewScope(ctx, Scope.MAIN.toString());
+    if (hasReturnStat) {
+      String errorMsg = "Return statement not required in body of program";
+      errorHandler.complain(new SemanticError(ctx, errorMsg));
+    }
+    return null;
   }
 
   /**
@@ -222,7 +238,14 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
    */
   @Override
   public Void visitFunc(WACCParser.FuncContext ctx) {
-    return setANewScope(ctx, ctx.funcName.getText());
+    hasReturnStat = false;
+    hasExitStat = false;
+    String funcName = ctx.funcName.getText();
+    setANewScope(ctx, funcName);
+    if (!hasReturnStat && !hasExitStat) {
+      String errorMsg = "Return statement required in body of " + funcName;
+      errorHandler.complain(new SyntaxError(ctx, errorMsg));    }
+    return null;
   }
 
   /**
@@ -323,4 +346,15 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     return visitArgList(ctx.argList());
   }
 
+  @Override
+  public Void visitReturnStat(@NotNull WACCParser.ReturnStatContext ctx) {
+    hasReturnStat = true;
+    return super.visitReturnStat(ctx);
+  }
+
+  @Override
+  public Void visitExitStat(@NotNull WACCParser.ExitStatContext ctx) {
+    hasExitStat = true;
+    return super.visitExitStat(ctx);
+  }
 }

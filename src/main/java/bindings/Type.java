@@ -27,20 +27,20 @@ public class Type extends Binding {
   }
 
   public static boolean isInt(Type type) {
-    return type.equals(new Type(Types.INT_T));
+    return type != null && type.equals(new Type(Types.INT_T));
   }
 
   public static boolean isBool(Type type) {
-    return type.equals(new Type(Types.BOOL_T));
+    return type != null && type.equals(new Type(Types.BOOL_T));
   }
 
   public static boolean isChar(Type type) {
-    return type.equals(new Type(Types.CHAR_T));
+    return type != null && type.equals(new Type(Types.CHAR_T));
   }
 
   public static boolean isString(Type type) {
-    return ArrayType.isCharArray(type)
-        || Types.STRING_T.isEqualTo(type.toString());
+    return type != null && (ArrayType.isCharArray(type)
+        || Types.STRING_T.isEqualTo(type.toString()));
   }
 
   @Override

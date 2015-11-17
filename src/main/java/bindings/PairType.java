@@ -41,7 +41,7 @@ public class PairType extends Type {
   }
 
   public static boolean isPair(Type type) {
-    return type.equals(new PairType());
+    return type != null && type.equals(new PairType());
   }
 
   @Override
