@@ -21,24 +21,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
   }
 
   /***************************** Helper Method *******************************/
-
-  private void setWorkingSymbolTable(
-      SymbolTable<String, Binding> workingSymbolTable) {
-    this.workingSymbolTable = workingSymbolTable;
-  }
-
-  /**
-   * Sets the working symbol table to the parent of the working
-   * symbol table
-   */
-  private void goUpWorkingSymbolTable() {
-    SymbolTable<String, Binding> enclosingST
-        = workingSymbolTable.getEnclosingST();
-    if (enclosingST != null) {
-      setWorkingSymbolTable(enclosingST);
-    }
-  }
-
+  
   /**
    * Given a context which requires a new scope, its symbol table is filled
    * with all relevant elements of its children

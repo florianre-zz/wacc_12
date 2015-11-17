@@ -3,37 +3,43 @@ require 'find'
 require 'shellwords'
 
 @errFile = "errors.log"
-@STFile = "validSymbolTables.log"
+@tmp = "tmp.log"
+
 open(@errFile, 'w') { |f| f.print "" }
-open(@STFile, 'w')  { |f| f.print "" }
 
 def runCompile(testPath, isValid)
-  testFiles = []
+  teerrFiles = []
   Find.find(testPath) do |path|
-    testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+    teerrFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
   end
-  numTests = testFiles.length
+  numTests = teerrFiles.length
   i = 1
   hasErrored = 0
-  testFiles.each do |test|
+  teerrFiles.each do |test|
     print "Running Test: #{i}/#{numTests}\r"
-    testRun = `./compile #{test[/src.*/]} 2>tmp`
-    tmp = File.open("tmp", "r")
+    testRun = `./compile #{test[/src.*/]} 2>#{@tmp}`
+    tmp = File.open("#{@tmp}", "r")
     tmpContents = tmp.read
     output = "Running Test: #{File.basename test} \n"
     output += "Output: \n\t#{testRun} \n"
-    if isValid && !(File.zero?("tmp") || tmpContents.strip.empty?)
+    if isValid && !(File.zero?("#{@tmp}") || tmpContents.strip.empty?)
       hasErrored += 1
       output += "Error(s): \n\t#{tmpContents}\n"
       output += "Finished Test."
-      open(@STFile, 'a') { |f| f.puts output}
+      open(@errFile, 'a') { |f| f.puts output}
     elsif !isValid && (File.zero?("tmp") || tmpContents.strip.empty?)
       hasErrored += 1
       output += "Error(s): \n\t No Errors!\n"
       output += "Finished Test."
-      open(@STFile, 'a') { |f| f.puts output}
+      open(@errFile, 'a') { |f| f.puts output}
     end
-    `rm tmp`
+
+    exit_code = $?.exitstatus
+    if (!isValid && exit_code == 0) || (isValid && (exit_code == 100 || exit_code == 200 || exit_code == 1))
+      exit_code_error = "Wrong exit code: #{exit_code}"
+      open(@errFile, 'a') { |f| f.puts exit_code_error}
+    end
+    `rm #{@tmp}`
     i += 1
     break if hasErrored > 100
   end
@@ -41,9 +47,9 @@ def runCompile(testPath, isValid)
 end
 
 testFolder = "#{Dir.pwd}/src/test/resources/examples/"
-testFiles = []
+teerrFiles = []
 Find.find(testFolder) do |path|
-  testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+  teerrFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
 end
 
 puts "Starting Valid Compile tests..."
