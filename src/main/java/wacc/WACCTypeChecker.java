@@ -805,6 +805,13 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitIdent(WACCParser.IdentContext ctx) {
+
+    // Assume ident is a variable and get its most local type
+    Type local = getMostRecentBindingForVariable(ctx.getText());
+    if (local != null) {
+      return local;
+    }
+    // Not a variable (it's a function), so look up in working symbol table
     return lookupTypeInWorkingSymbolTable(ctx.getText());
   }
 
