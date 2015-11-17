@@ -34,12 +34,17 @@ public class ArrayType extends Type {
   }
 
   public static boolean isArray(Type type) {
-    return type != null && ((type instanceof ArrayType) || Type.isString(type));
+    if (type == null) {
+      return false;
+    }
+    return ((type instanceof ArrayType) || Type.isString(type));
   }
 
   public static boolean isCharArray(Type type) {
-    return type != null && (type instanceof ArrayType)
-        && Type.isChar(((ArrayType) type).base);
+    if (type == null) {
+      return false;
+    }
+    return (type instanceof ArrayType) && Type.isChar(((ArrayType) type).base);
   }
 
   @Override
@@ -61,6 +66,14 @@ public class ArrayType extends Type {
     return base;
   }
 
+  public static Type createArray(Type base, int dimensionality) {
+    if (dimensionality == 0) {
+      return base;
+    } else {
+      return new ArrayType(base, dimensionality);
+    }
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
@@ -68,7 +81,9 @@ public class ArrayType extends Type {
     }
     if (o == null || getClass() != o.getClass()) {
       //Check if current array is a char array && object is a string
-      return isCharArray(this) && o instanceof Type && Type.isString((Type) o);
+      return isCharArray(this)
+          && o instanceof Type
+          && Type.isString((Type) o);
     }
 
     ArrayType arrayType = (ArrayType) o;

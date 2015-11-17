@@ -7,6 +7,7 @@ import wacc.error.*;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.List;
 
 public class WACCTypeChecker extends WACCVisitor<Type> {
   
@@ -92,6 +93,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       return ((Function) b).getType();
     }
     return null;
+  }
+
+  private void checkArrayElemExpressions(
+      List<? extends WACCParser.ExprContext> exprs) {
+    for (WACCParser.ExprContext expr : exprs) {
+      Type index = visitExpr(expr);
+      if (!Type.isInt(index)) {
+        errorHandler.complain(new TypeError(expr));
+      }
+    }
   }
 
   /************************** Visit Functions ****************************/
@@ -543,41 +554,29 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
 	public Type visitArrayElem(WACCParser.ArrayElemContext ctx) {
-    for (WACCParser.ExprContext expr : ctx.expr()) {
-      Type index = visitExpr(expr);
-      if (index != null && !Type.isInt(index)) {
+    checkArrayElemExpressions(ctx.expr());
+
+    Type type = visitIdent(ctx.ident());
+    int wantedDim = ctx.OPEN_BRACKET().size();
+    if (Type.isString(type)) {
+      if (wantedDim != 1) {
+        String errorMsg = "String is one dimensional";
+        errorHandler.complain(new TypeError(ctx, errorMsg));
+      } else {
+        return new Type(Types.CHAR_T);
+      }
+    } else if (ArrayType.isArray(type)) {
+      ArrayType arrayType = (ArrayType) type;
+      int totalDim = arrayType.getDimensionality();
+      if (wantedDim <= totalDim) {
+        int returnDim = totalDim - wantedDim;
+        return ArrayType.createArray(arrayType.getBase(), returnDim);
+      } else {
         errorHandler.complain(new TypeError(ctx));
       }
     }
 
-    Type type = visitIdent(ctx.ident());
-    // TODO: clean up
-    if (ArrayType.isArray(type)) {
-      int wantedDimensionality = ctx.OPEN_BRACKET().size();
-      if (Type.isString(type)) {
-        if (wantedDimensionality != 1) {
-          String errorMsg = "String is one dimensional";
-          errorHandler.complain(new TypeError(ctx, errorMsg));
-        } else {
-          return new Type(Types.CHAR_T);
-        }
-      } else {
-        ArrayType arrayType = (ArrayType) type;
-        int totalDimensionality = arrayType.getDimensionality();
-        if (wantedDimensionality > totalDimensionality) {
-          errorHandler.complain(new TypeError(ctx));
-        } else {
-          int returnDimensionality = totalDimensionality-wantedDimensionality;
-          if (returnDimensionality == 0) {
-            return arrayType.getBase();
-          } else {
-            return new ArrayType(arrayType.getBase(), returnDimensionality);
-          }
-        }
-      }
-    }
-
-    incorrectType(ctx, type, "'T[]'");
+    incorrectType(ctx, type, "'T[]' or 'string");
 
 		return null;
 	}

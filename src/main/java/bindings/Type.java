@@ -39,7 +39,10 @@ public class Type extends Binding {
   }
 
   public static boolean isString(Type type) {
-    return type != null && (ArrayType.isCharArray(type)
+    if (type == null) {
+      return false;
+    }
+    return (ArrayType.isCharArray(type)
         || Types.STRING_T.isEqualTo(type.toString()));
   }
 
@@ -67,4 +70,5 @@ public class Type extends Binding {
   public int hashCode() {
     return super.hashCode();
   }
+
 }
