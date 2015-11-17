@@ -3,7 +3,6 @@ package wacc;
 import antlr.WACCParser;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
 import java.util.ArrayDeque;
@@ -103,7 +102,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * visit children, to type check children
   */
   @Override
-  public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
+  public Type visitProg(WACCParser.ProgContext ctx) {
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
     visitChildren(ctx);
@@ -120,7 +119,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * pop variable scope
    */
   @Override
-  public Type visitMain(@NotNull WACCParser.MainContext ctx) {
+  public Type visitMain(WACCParser.MainContext ctx) {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
     pushEmptyVariableSymbolTable();
@@ -148,7 +147,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * pop variable scope
   */
   @Override
-  public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
+  public Type visitFunc(WACCParser.FuncContext ctx) {
     String funcName = ctx.funcName.getText();
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
@@ -180,7 +179,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * return the type
   */
   @Override
-  public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
+  public Type visitParam(WACCParser.ParamContext ctx) {
     Type type = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
 
     // Add the param to the current variable scope symbol table
@@ -197,7 +196,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * check that they are equal
   *  - if it is a pair, check the inner types */
   @Override
-  public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
+  public Type visitInitStat(WACCParser.InitStatContext ctx) {
     Type lhsType = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
     Type rhsType = visitAssignRHS(ctx.assignRHS());
 
@@ -227,7 +226,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * READ assignLHS
   * type check isReadable */
   @Override
-  public Type visitReadStat(@NotNull WACCParser.ReadStatContext ctx) {
+  public Type visitReadStat(WACCParser.ReadStatContext ctx) {
     Type lhsType = visitAssignLHS(ctx.assignLHS());
 
     if (!isReadable(lhsType)) {
@@ -242,7 +241,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * FREE expr
   * type check isFreeable */
   @Override
-  public Type visitFreeStat(@NotNull WACCParser.FreeStatContext ctx) {
+  public Type visitFreeStat(WACCParser.FreeStatContext ctx) {
     Type exprType = visitExpr(ctx.expr());
 
     if (!isFreeable(exprType)) {
@@ -257,7 +256,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * EXIT expr
   * type check: int */
   @Override
-  public Type visitExitStat(@NotNull WACCParser.ExitStatContext ctx) {
+  public Type visitExitStat(WACCParser.ExitStatContext ctx) {
     Type exprType = visitExpr(ctx.expr());
 
     if (!Type.isInt(exprType)) { // exit codes are Integers
@@ -274,7 +273,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * get the type of the current (function) scope
   * check both are equal */
   @Override
-  public Type visitReturnStat(@NotNull WACCParser.ReturnStatContext ctx) {
+  public Type visitReturnStat(WACCParser.ReturnStatContext ctx) {
 
     Type actualReturnType = visitExpr(ctx.expr());
     if (currentFunction != null) {
@@ -296,7 +295,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * visit elseStat
   * reset scope to enclosing table */
   @Override
-  public Type visitIfStat(@NotNull WACCParser.IfStatContext ctx) {
+  public Type visitIfStat(WACCParser.IfStatContext ctx) {
     Type predicateType = visitExpr(ctx.expr());
 
     if (!Type.isBool(predicateType)) {
@@ -328,7 +327,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * visit body
   * reset scope to enclosing table */
   @Override
-  public Type visitWhileStat(@NotNull WACCParser.WhileStatContext ctx) {
+  public Type visitWhileStat(WACCParser.WhileStatContext ctx) {
 
     Type predicateType = visitExpr(ctx.expr());
 
@@ -358,7 +357,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * reset scope to enclosing table
    */
   @Override
-  public Type visitBeginStat(@NotNull WACCParser.BeginStatContext ctx) {
+  public Type visitBeginStat(WACCParser.BeginStatContext ctx) {
 
     String scopeName = Scope.BEGIN.toString() + ++beginCount;
     changeWorkingSymbolTableTo(scopeName);
@@ -382,7 +381,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *  - snd = second.type
    */
   @Override
-  public Type visitNewPair(@NotNull WACCParser.NewPairContext ctx) {
+  public Type visitNewPair(WACCParser.NewPairContext ctx) {
     Type fstType = visitExpr(ctx.first);
     Type sndType = visitExpr(ctx.second);
     return new PairType(fstType, sndType);
@@ -394,7 +393,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * return the functions return type
    */
   @Override
-  public Type visitCall(@NotNull WACCParser.CallContext ctx) {
+  public Type visitCall(WACCParser.CallContext ctx) {
     Function calledFunction = getCalledFunction(ctx);
     WACCParser.ArgListContext argListContext = ctx.argList();
     int expectedSize = calledFunction.getParams().size();
@@ -417,7 +416,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return visitIdent(ctx.ident());
   }
 
-  private void inconsistentParamCountError(@NotNull WACCParser.CallContext ctx,
+  private void inconsistentParamCountError(WACCParser.CallContext ctx,
                                            int expectedSize, int actualSize) {
     StringBuilder sb = new StringBuilder();
     sb.append("The number of arguments doesn't match function declaration: ");
@@ -437,7 +436,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * else return null
    */
   @Override
-  public Type visitArrayLitr(@NotNull WACCParser.ArrayLitrContext ctx) {
+  public Type visitArrayLitr(WACCParser.ArrayLitrContext ctx) {
 
     if (ctx.expr() != null && ctx.expr().size() != 0) {
       Type firstType = visitExpr(ctx.expr(0));
@@ -461,7 +460,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * otherwise it should be an int
    */
   @Override
-  public Type visitInteger(@NotNull WACCParser.IntegerContext ctx) {
+  public Type visitInteger(WACCParser.IntegerContext ctx) {
     if (ctx.CHR() != null) {
       return getType(Types.CHAR_T);
     }
@@ -487,7 +486,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * check if literal is bool
    */
   @Override
-  public Type visitBool(@NotNull WACCParser.BoolContext ctx) {
+  public Type visitBool(WACCParser.BoolContext ctx) {
     return getType(Types.BOOL_T);
   }
 
@@ -509,7 +508,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * it is of type string (parser asserts this)
    */
   @Override
-  public Type visitString(@NotNull WACCParser.StringContext ctx) {
+  public Type visitString(WACCParser.StringContext ctx) {
     return getType(Types.STRING_T);
   }
 
@@ -522,7 +521,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *  - return the inner type
    */
   @Override
-  public Type visitArray(@NotNull WACCParser.ArrayContext ctx) {
+  public Type visitArray(WACCParser.ArrayContext ctx) {
     if (ctx.LEN() != null) {
       return getType(Types.INT_T);
     }
@@ -534,7 +533,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * return null
    */
   @Override
-  public Type visitPairLitr(@NotNull WACCParser.PairLitrContext ctx) {
+  public Type visitPairLitr(WACCParser.PairLitrContext ctx) {
     return new PairType();
   }
 
@@ -550,7 +549,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    * check that each expr evaluates to an int
    */
   @Override
-	public Type visitArrayElem(@NotNull WACCParser.ArrayElemContext ctx) {
+	public Type visitArrayElem(WACCParser.ArrayElemContext ctx) {
     for (WACCParser.ExprContext expr : ctx.expr()) {
       Type index = visitExpr(expr);
       if (index != null && !Type.isInt(index)) {
@@ -599,7 +598,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *   return type of the second element
    */
   @Override
-  public Type visitPairElem(@NotNull WACCParser.PairElemContext ctx) {
+  public Type visitPairElem(WACCParser.PairElemContext ctx) {
     Type varType = visitIdent(ctx.ident());
 
     Type returnType = null;
@@ -633,7 +632,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   // TODO: shorten! (with a sense of urgency) - but last!!!
-	public Type visitUnaryOper(@NotNull WACCParser.UnaryOperContext ctx) {
+	public Type visitUnaryOper(WACCParser.UnaryOperContext ctx) {
     Type exprType = null;
 
     if (ctx.ident() != null) {
@@ -647,34 +646,29 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         incorrectType(ctx, exprType, "'bool'");
       }
       return getType(Types.BOOL_T);
-    }
-    else if (ctx.MINUS() != null) {
+    } else if (ctx.MINUS() != null) {
       if (!Type.isInt(exprType)) {
         incorrectType(ctx, exprType, "'int'");
       }
       return getType(Types.INT_T);
-    }
-    else if (ctx.LEN() != null) {
+    } else if (ctx.LEN() != null) {
       if (!ArrayType.isArray(exprType)) {
         incorrectType(ctx, exprType, "'T[]'");
       }
       return getType(Types.INT_T);
-    }
-    else if (ctx.ORD() != null) {
+    } else if (ctx.ORD() != null) {
       if (!Type.isChar(exprType)) {
         incorrectType(ctx, exprType, "'char'");
       }
       return getType(Types.INT_T);
-    }
-    else if (ctx.CHR() != null) {
+    } else if (ctx.CHR() != null) {
       if (!Type.isInt(exprType)) {
         incorrectType(ctx, exprType, "'int'");
       }
       return getType(Types.CHAR_T);
     }
-
 		return exprType;
-	}
+  }
 
   /**
    * logicalOper: first ((AND | OR) otherExprs)*
@@ -684,7 +678,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *  - check all exprs are bool(s)
    */
   @Override
-  public Type visitLogicalOper(@NotNull WACCParser.LogicalOperContext ctx) {
+  public Type visitLogicalOper(WACCParser.LogicalOperContext ctx) {
     if (ctx.otherExprs.size() > 0) {
       for (WACCParser.ComparisonOperContext operCtx : ctx.comparisonOper()) {
         Type type = visitComparisonOper(operCtx);
@@ -699,7 +693,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   @Override
-  public Type visitComparisonOper(@NotNull WACCParser.ComparisonOperContext ctx) {
+  public Type visitComparisonOper(WACCParser.ComparisonOperContext ctx) {
     if (ctx.orderingOper() != null) {
       return visitOrderingOper(ctx.orderingOper());
     } else if (ctx.equalityOper() != null) {
@@ -716,7 +710,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *  - check both are int(s) or both are char(s)
    */
   @Override
-  public Type visitOrderingOper(@NotNull WACCParser.OrderingOperContext ctx) {
+  public Type visitOrderingOper(WACCParser.OrderingOperContext ctx) {
     if (ctx.second != null) {
       Type fstType = visitArithmeticOper(ctx.first);
       Type sndType = visitArithmeticOper(ctx.second);
@@ -742,7 +736,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *  - check both are the same type
    */
   @Override
-  public Type visitEqualityOper(@NotNull WACCParser.EqualityOperContext ctx) {
+  public Type visitEqualityOper(WACCParser.EqualityOperContext ctx) {
     if (ctx.second != null) {
       Type fstType = visitArithmeticOper(ctx.first);
       Type sndType = visitArithmeticOper(ctx.second);
@@ -775,7 +769,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitArithmeticOper(
-      @NotNull WACCParser.ArithmeticOperContext ctx) {
+      WACCParser.ArithmeticOperContext ctx) {
     if (ctx.otherExprs.size() > 0) {
       for (WACCParser.AtomContext atomCtx : ctx.atom()) {
         Type type = visitAtom(atomCtx);
@@ -790,7 +784,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   @Override
-  public Type visitAtom(@NotNull WACCParser.AtomContext ctx) {
+  public Type visitAtom(WACCParser.AtomContext ctx) {
 
     if (ctx.integer() != null) {
       return visitInteger(ctx.integer());
