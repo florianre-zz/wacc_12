@@ -1,25 +1,11 @@
-import antlr.WACCLexer;
-import antlr.WACCParser;
 import bindings.Binding;
-import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnitRuleMockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Rule;
-import org.junit.Test;
 import wacc.SymbolTable;
 import wacc.WACCSymbolTableBuilder;
 import wacc.error.WACCErrorHandler;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Scanner;
-
-import static junit.framework.Assert.assertFalse;
-import static junit.framework.Assert.assertTrue;
 public class WACCSymbolTableBuilderTest {
 
   @Rule
@@ -40,50 +26,50 @@ public class WACCSymbolTableBuilderTest {
     symbolTableBuilder = new WACCSymbolTableBuilder(top, errorHandler);
   }
 
-  private ParseTree parseProgram() throws IOException {
-    String content = new Scanner(new File(filePath)).useDelimiter("\\Z").next();
-    ANTLRInputStream input = new ANTLRInputStream(content);
+//  private ParseTree parseProgram() throws IOException {
+//    String content = new Scanner(new File(filePath)).useDelimiter("\\Z").next();
+//    ANTLRInputStream input = new ANTLRInputStream(content);
+//
+//    // create a lexer that feeds off of input CharStream
+//    WACCLexer lexer = new WACCLexer(input);
+//
+//    // create a buffer of tokens pulled from the lexer
+//    CommonTokenStream tokens = new CommonTokenStream(lexer);
+//
+//    // create a parser that feeds off the tokens buffer
+//    WACCParser parser = new WACCParser(tokens);
+//
+//    return parser.prog(); // begin parsing at prog rule
+//  }
 
-    // create a lexer that feeds off of input CharStream
-    WACCLexer lexer = new WACCLexer(input);
-
-    // create a buffer of tokens pulled from the lexer
-    CommonTokenStream tokens = new CommonTokenStream(lexer);
-
-    // create a parser that feeds off the tokens buffer
-    WACCParser parser = new WACCParser(tokens);
-
-    return parser.prog(); // begin parsing at prog rule
-  }
-
-  @Test
-  public void topSymbolTableContainsProg()
-      throws NoSuchFieldException, IllegalAccessException {
-    final WACCParser.ProgContext ctx
-        = context.mock(WACCParser.ProgContext.class);
-
-    context.checking(new Expectations() {{
-      ignoring(ctx).func();
-      ignoring(ctx).getChildCount();
-    }});
-    symbolTableBuilder.visitProg(ctx);
-    assertTrue(top.containsKey("0prog"));
-  }
-
-  @Test
-  public void topSymbolTableDoesNotConatainFunctionScopes() {
-    filePath = "src/test/resources/examples/valid/function/nested_functions" +
-               "/mutualRecursion.wacc";
-    try {
-      ParseTree prog = parseProgram();
-      symbolTableBuilder.visit(prog);
-      assertFalse(top.containsKey("r1"));
-      assertFalse(top.containsKey("r2"));
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-
-  }
+//  @Test
+//  public void topSymbolTableContainsProg()
+//      throws NoSuchFieldException, IllegalAccessException {
+//    final WACCParser.ProgContext ctx
+//        = context.mock(WACCParser.ProgContext.class);
+//
+//    context.checking(new Expectations() {{
+//      ignoring(ctx).func();
+//      ignoring(ctx).getChildCount();
+//    }});
+//    symbolTableBuilder.visitProg(ctx);
+//    assertTrue(top.containsKey("0prog"));
+//  }
+//
+//  @Test
+//  public void topSymbolTableDoesNotConatainFunctionScopes() {
+//    filePath = "src/test/resources/examples/valid/function/nested_functions" +
+//               "/mutualRecursion.wacc";
+//    try {
+//      ParseTree prog = parseProgram();
+//      symbolTableBuilder.visit(prog);
+//      assertFalse(top.containsKey("r1"));
+//      assertFalse(top.containsKey("r2"));
+//    } catch (IOException e) {
+//      e.printStackTrace();
+//    }
+//
+//  }
 //
 //  @Test
 //  public void listOfParamsInFunctionScopeMatchFormals() {
