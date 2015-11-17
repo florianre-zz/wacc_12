@@ -6,42 +6,71 @@ import org.antlr.v4.runtime.misc.Interval;
 import java.util.ArrayList;
 
 public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
-  ArrayList<IError<ParserRuleContext>> errors;
+  ArrayList<IError<ParserRuleContext>> semanticErrors;
+  ArrayList<IError<ParserRuleContext>> syntacticErrors;
   TokenStream tokenStream;
 
+
   public WACCErrorHandler(TokenStream tokenStream) {
-    this.errors = new ArrayList<>();
+    this.semanticErrors = new ArrayList<>();
+    this.syntacticErrors = new ArrayList<>();
     this.tokenStream = tokenStream;
   }
 
   @Override
   public void complain(IError<ParserRuleContext> e) {
-    errors.add(e);
+    if (e instanceof SyntaxError){
+      syntacticErrors.add(e);
+    } else {
+      semanticErrors.add(e);
+    }
   }
 
+
+  //synthax = 0 -> semantics
   @Override
   public String toString() {
 
     final StringBuilder sb = new StringBuilder();
-    int size = errors.size();
-    if (size > 0) {
+    int size = semanticErrors.size();
+
+    if (syntacticErrors.size() > 0) {
       sb.append(size).append(" Error");
       sb.append(size == 1 ? "" : "s").append(":\n");
 
-      for (IError<ParserRuleContext> e : errors) {
+      for (IError<ParserRuleContext> e : syntacticErrors) {
         String preamble = getErrorString(e);
         sb.append(preamble);
         String lines[] = e.toString().split("\\r?\\n");
         sb.append(lines[0]).append("\n");
         concatWithNewLines(sb, preamble, lines);
       }
+    } else {
+      if (semanticErrors.size() > 0) {
+        sb.append(size).append(" Error");
+        sb.append(size == 1 ? "" : "s").append(":\n");
+
+        for (IError<ParserRuleContext> e : semanticErrors) {
+          String preamble = getErrorString(e);
+          sb.append(preamble);
+          String lines[] = e.toString().split("\\r?\\n");
+          sb.append(lines[0]).append("\n");
+          concatWithNewLines(sb, preamble, lines);
+        }
+      }
     }
+
     return sb.toString();
   }
 
   @Override
-  public int getErrorCount() {
-    return errors.size();
+  public int getSemanticErrorCount() {
+    return semanticErrors.size();
+  }
+
+  @Override
+  public int getSyntacticErrorCount() {
+    return syntacticErrors.size();
   }
 
   private String getErrorString(IError<ParserRuleContext> e) {
