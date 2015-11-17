@@ -3,10 +3,7 @@ package wacc;
 import bindings.Binding;
 import bindings.NewScope;
 
-import java.util.Enumeration;
-import java.util.Hashtable;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class SymbolTable<S, T> extends Hashtable<S, T> {
 
@@ -40,36 +37,43 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
     return enclosingST;
   }
 
+  public String getName() {
+    return name;
+  }
+
   @Override
   public String toString() {
-
     List<SymbolTable<String, Binding>> list = new LinkedList<>();
-    final StringBuilder sb = new StringBuilder("SymbolTable {\n");
+    StringBuilder sb = new StringBuilder("SymbolTable {\n");
     Enumeration<S> keys = this.keys();
     while (keys.hasMoreElements()) {
-      S element = keys.nextElement();
-      sb.append("\t");
-      sb.append(element);
-      sb.append(": ");
-      if (this.get(element) instanceof NewScope) {
-        NewScope newScopeSymbolTable = (NewScope) this.get(element);
-        list.add(
-            (SymbolTable<String, Binding>) newScopeSymbolTable.getSymbolTable());
-        sb.append("SymbolTable \n");
-      } else {
-        sb.append(this.get(element));
-        sb.append("\n");
-      }
+
+      sb.append(getKeyElemPairString(list, keys));
     }
     sb.append("}\n");
     for (SymbolTable<String, Binding> symTable:list) {
-      sb.append("\n" + symTable.name + ": ");
+      sb.append("\n").append(symTable.name).append(": ");
       sb.append(symTable);
     }
     return sb.toString();
   }
 
-  public String getName() {
-    return name;
+  private String getKeyElemPairString(List<SymbolTable<String, Binding>> list,
+                                        Enumeration<S> keys) {
+    S element = keys.nextElement();
+    StringBuilder sb = new StringBuilder();
+    sb.append("\t");
+    sb.append(element);
+    sb.append(": ");
+    if (this.get(element) instanceof NewScope) {
+      NewScope newScope = (NewScope) this.get(element);
+      Dictionary<String, Binding> symbolTable = newScope.getSymbolTable();
+      list.add((SymbolTable<String, Binding>) symbolTable);
+      sb.append("SymbolTable");
+    } else {
+      sb.append(this.get(element));
+    }
+
+    return sb.append("\n").toString();
   }
 }
