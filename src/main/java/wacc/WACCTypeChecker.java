@@ -475,11 +475,11 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitInteger(@NotNull WACCParser.IntegerContext ctx) {
     if (ctx.CHR() != null) {
-      return (Type) top.lookupAll(Types.CHAR_T.toString());
+      return getType(Types.CHAR_T);
     }
 
     // TODO: Refactor into function
-    Type type = (Type) top.lookupAll(Types.INT_T.toString());
+    Type type = getType(Types.INT_T);
 
     long intValue = Long.valueOf(ctx.INTEGER().getText());
     if (ctx.sign() != null) {
@@ -500,7 +500,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitBool(@NotNull WACCParser.BoolContext ctx) {
-    return (Type) top.lookupAll(Types.BOOL_T.toString());
+    return getType(Types.BOOL_T);
   }
 
   /**
@@ -511,9 +511,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitCharacter(WACCParser.CharacterContext ctx) {
     if (ctx.ORD() != null) {
-      return (Type) top.lookupAll(Types.INT_T.toString());
+      return getType(Types.INT_T);
     }
-    return (Type) top.lookupAll(Types.CHAR_T.toString());
+    return getType(Types.CHAR_T);
   }
 
   /**
@@ -522,7 +522,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitString(@NotNull WACCParser.StringContext ctx) {
-    return (Type) top.lookupAll(Types.STRING_T.toString());
+    return getType(Types.STRING_T);
   }
 
   /**
@@ -536,7 +536,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitArray(@NotNull WACCParser.ArrayContext ctx) {
     if (ctx.LEN() != null) {
-      return (Type) top.lookupAll(Types.INT_T.toString());
+      return getType(Types.INT_T);
     }
     return visitArrayElem(ctx.arrayElem());
   }
@@ -657,31 +657,31 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       if (!Type.isBool(exprType)) {
         IncorrectType(ctx, exprType, "'bool'");
       }
-      return (Type) top.lookupAll(Types.BOOL_T.toString());
+      return getType(Types.BOOL_T);
     }
     else if (ctx.MINUS() != null) {
       if (!Type.isInt(exprType)) {
         IncorrectType(ctx, exprType, "'int'");
       }
-      return (Type) top.lookupAll(Types.INT_T.toString());
+      return getType(Types.INT_T);
     }
     else if (ctx.LEN() != null) {
       if (!ArrayType.isArray(exprType)) {
         IncorrectType(ctx, exprType, "'T[]'");
       }
-      return (Type) top.lookupAll(Types.INT_T.toString());
+      return getType(Types.INT_T);
     }
     else if (ctx.ORD() != null) {
       if (!Type.isChar(exprType)) {
         IncorrectType(ctx, exprType, "'char'");
       }
-      return (Type) top.lookupAll(Types.INT_T.toString());
+      return getType(Types.INT_T);
     }
     else if (ctx.CHR() != null) {
       if (!Type.isInt(exprType)) {
         IncorrectType(ctx, exprType, "'int'");
       }
-      return (Type) top.lookupAll(Types.CHAR_T.toString());
+      return getType(Types.CHAR_T);
     }
 
 		return exprType;
@@ -703,7 +703,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
           IncorrectType(operCtx, type, "'bool'");
         }
       }
-      return (Type) top.lookupAll(Types.BOOL_T.toString());
+      return getType(Types.BOOL_T);
     } else {
       return visitComparisonOper(ctx.first);
     }
@@ -739,7 +739,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         IncorrectType(ctx.first, fstType, "'int' or 'char'");
         IncorrectType(ctx.second, sndType, "'int' or 'char'");
       }
-      return (Type) top.lookupAll(Types.BOOL_T.toString());
+      return getType(Types.BOOL_T);
     } else {
       return visitArithmeticOper(ctx.first);
     }
@@ -771,7 +771,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         errorHandler.complain(new TypeError(ctx.first, errorMsg));
       }
 
-      return (Type) top.lookupAll(Types.BOOL_T.toString());
+      return getType(Types.BOOL_T);
     } else {
       return visitArithmeticOper(ctx.first);
     }
@@ -794,7 +794,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
           IncorrectType(atomCtx, type, "'int'");
         }
       }
-      return (Type) top.lookupAll(Types.INT_T.toString());
+      return getType(Types.INT_T);
     } else {
       return visitChildren(ctx);
     }

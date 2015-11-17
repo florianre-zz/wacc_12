@@ -2,9 +2,7 @@ package wacc;
 
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
-import bindings.Binding;
-import bindings.Function;
-import bindings.NewScope;
+import bindings.*;
 import wacc.error.*;
 
 public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
@@ -38,6 +36,10 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
   protected void setWorkingSymbolTable(
       SymbolTable<String, Binding> workingSymbolTable) {
     this.workingSymbolTable = workingSymbolTable;
+  }
+
+  protected Type getType(Types type) {
+    return (Type) top.get(type.toString());
   }
 
   /**

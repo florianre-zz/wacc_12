@@ -6,8 +6,6 @@ import org.antlr.v4.runtime.misc.NotNull;
 
 public class WACCTypeCreator extends WACCVisitor<Type> {
 
-  //private SymbolTable<String, Binding> top;
-
   public WACCTypeCreator(SymbolTable<String, Binding> top) {
     super(top);
   }
@@ -62,13 +60,13 @@ public class WACCTypeCreator extends WACCVisitor<Type> {
   @Override
   public Type visitBaseType(@NotNull WACCParser.BaseTypeContext ctx) {
     if (ctx.INT_T() != null) {
-      return (Type) top.get(Types.INT_T.toString());
+      return getType(Types.INT_T);
     } else if (ctx.BOOL_T() != null) {
-      return (Type) top.get(Types.BOOL_T.toString());
+      return getType(Types.BOOL_T);
     } else if(ctx.CHAR_T() != null) {
-      return (Type) top.get(Types.CHAR_T.toString());
+      return getType(Types.CHAR_T);
     } else {
-      return (Type) top.get(Types.STRING_T.toString());
+      return getType(Types.STRING_T);
     }
   }
 }
