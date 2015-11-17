@@ -155,12 +155,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     changeWorkingSymbolTableTo(ctx.funcName.getText());
     pushEmptyVariableSymbolTable();
 
-    // TODO: check if this is needed
-    if (expectedReturnType == null) {
-      TypeError error = new TypeError(ctx);
-      errorHandler.complain(error);
-    }
-
     if (ctx.paramList() != null) {
       visitParamList(ctx.paramList());
     }
@@ -465,7 +459,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       return getType(Types.CHAR_T);
     }
 
-    // TODO: Refactor into function
     Type type = getType(Types.INT_T);
 
     long intValue = Long.valueOf(ctx.INTEGER().getText());
