@@ -10,10 +10,10 @@ import java.util.Deque;
 import java.util.List;
 
 public class WACCTypeChecker extends WACCVisitor<Type> {
-  
+
   private Function currentFunction;
   private Deque<SymbolTable<String, Type>> variableSymbolTableStack;
-  
+
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          WACCErrorHandler errorHandler) {
     super(top, errorHandler);
@@ -30,8 +30,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return ArrayType.isArray(exprType) || PairType.isPair(exprType);
   }
 
-  private boolean checkTypes(ParserRuleContext ctx,
-                             Type lhsType, Type rhsType) {
+  private boolean checkTypesEqual(ParserRuleContext ctx,
+                                  Type lhsType, Type rhsType) {
     if (lhsType != null) {
       if (!lhsType.equals(rhsType)) {
         incorrectType(ctx, rhsType, lhsType.toString());
@@ -51,6 +51,33 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     errorHandler.complain(
         new TypeAssignmentError(ctx, expectedType, actual)
     );
+  }
+
+  private Type checkAllTypesEqual(List<? extends WACCParser.ExprContext> ctxs) {
+    Type firstType = visitExpr(ctxs.get(0));
+    for (WACCParser.ExprContext ctx : ctxs) {
+      Type currentType = visitExpr(ctx);
+      if (!currentType.equals(firstType)) {
+        errorHandler.complain(new TypeError(ctx, "Inconsistent array types"
+                + "of array values"));
+        return firstType;
+      }
+    }
+    return firstType;
+  }
+
+  private void inconsistentParamCountError(WACCParser.CallContext ctx,
+                                           int expectedSize, int actualSize) {
+    StringBuilder sb = new StringBuilder();
+    sb.append("The number of arguments doesn't match function declaration: ");
+
+    sb.append(ctx.getText()).append("\n");
+    sb.append("There are currently ").append(actualSize);
+    sb.append(" params, there should be ");
+    sb.append(expectedSize);
+
+    String errorMsg = sb.toString();
+    errorHandler.complain(new DeclarationError(ctx, errorMsg));
   }
 
   private void changeWorkingSymbolTableTo(String scopeName) {
@@ -206,7 +233,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Type rhsType = visitAssignRHS(ctx.assignRHS());
 
     addVariableToCurrentScope(ctx.ident().getText(), lhsType);
-    checkTypes(ctx, lhsType, rhsType);
+    checkTypesEqual(ctx, lhsType, rhsType);
 
     return lhsType;
   }
@@ -222,7 +249,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Type lhsType = visitAssignLHS(ctx.assignLHS());
     Type rhsType = visitAssignRHS(ctx.assignRHS());
 
-    checkTypes(ctx, lhsType, rhsType);
+    checkTypesEqual(ctx, lhsType, rhsType);
 
     return lhsType;
   }
@@ -264,7 +291,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitExitStat(WACCParser.ExitStatContext ctx) {
     Type exprType = visitExpr(ctx.expr());
 
-    if (!Type.isInt(exprType)) { // exit codes are Integers
+    if (!Type.isInt(exprType)) {// exit codes are Integers
       errorHandler.complain(
           new ExitTypeAssignmentError(ctx, exprType.toString()));
     }
@@ -279,11 +306,10 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * check both are equal */
   @Override
   public Type visitReturnStat(WACCParser.ReturnStatContext ctx) {
-
     Type actualReturnType = visitExpr(ctx.expr());
     if (currentFunction != null) {
       Type expectedReturnType = currentFunction.getType();
-      checkTypes(ctx, expectedReturnType, actualReturnType);
+      checkTypesEqual(ctx, expectedReturnType, actualReturnType);
       return expectedReturnType;
     }
 
@@ -294,11 +320,15 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * IF predicate THEN thenStat ELSE elseStat FI
   * type check predicate is bool
   * change scope to thenStat
+  * push new variable scope
   * visit thenStat
   * reset scope to enclosing table
+  * pop variable scope
   * change scope to elseStat
+  * push new variable scope
   * visit elseStat
-  * reset scope to enclosing table */
+  * reset scope to enclosing table
+  * pop variable scope */
   @Override
   public Type visitIfStat(WACCParser.IfStatContext ctx) {
     Type predicateType = visitExpr(ctx.expr());
@@ -322,18 +352,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     workingSymbolTable = workingSymbolTable.getEnclosingST();
     popCurrentScopeVariableSymbolTable();
 
-
     return null;
   }
 
   /** WHILE expr DO body DONE
-  * type check predicate is bool
+  * type check predicate is bool (or evaluates to it)
   * change scope to body
+  * push new variable scope
   * visit body
-  * reset scope to enclosing table */
+  * reset scope to enclosing table
+  * pop variable scope */
   @Override
   public Type visitWhileStat(WACCParser.WhileStatContext ctx) {
-
     Type predicateType = visitExpr(ctx.expr());
 
     if (!Type.isBool(predicateType)) {
@@ -342,15 +372,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     String scopeName = Scope.WHILE.toString() + ++whileCount;
     changeWorkingSymbolTableTo(scopeName);
-
     pushEmptyVariableSymbolTable();
 
     visitStatList(ctx.statList());
 
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-
     popCurrentScopeVariableSymbolTable();
-
 
     return null;
   }
@@ -358,8 +385,10 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   /**
    * BEGIN body END
    * change scope to body
+   * push new variable scope
    * visit body
    * reset scope to enclosing table
+   * pop variable scope
    */
   @Override
   public Type visitBeginStat(WACCParser.BeginStatContext ctx) {
@@ -376,8 +405,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     return statListType;
   }
-
-  // Statement Helpers
 
   /**
    * NEW_PAIR (first , second)
@@ -409,7 +436,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
           WACCParser.ExprContext exprCtx = argListContext.expr(i);
           Type actualType = visitExpr(exprCtx);
           Type expectedType = calledFunction.getParams().get(i).getType();
-          checkTypes(ctx, actualType, expectedType);
+          checkTypesEqual(ctx, actualType, expectedType);
         }
       } else {
         inconsistentParamCountError(ctx, expectedSize, actualSize);
@@ -421,39 +448,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return visitIdent(ctx.ident());
   }
 
-  private void inconsistentParamCountError(WACCParser.CallContext ctx,
-                                           int expectedSize, int actualSize) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("The number of arguments doesn't match function declaration: ");
-
-    sb.append(ctx.getText()).append("\n");
-    sb.append("There are currently ").append(actualSize);
-    sb.append(" params, there should be ");
-    sb.append(expectedSize);
-
-    String errorMsg = sb.toString();
-    errorHandler.complain(new DeclarationError(ctx, errorMsg));
-  }
-
   /**
    * arrayLitr: [(T, T, T, ...)?];
    * check all types are the same
-   * else return null
+   * return the type of the first element
    */
   @Override
   public Type visitArrayLitr(WACCParser.ArrayLitrContext ctx) {
 
     if (ctx.expr() != null && ctx.expr().size() != 0) {
-      Type firstType = visitExpr(ctx.expr(0));
-      for (WACCParser.ExprContext exprCtx : ctx.expr()) {
-        Type currentType = visitExpr(exprCtx);
-        if (!currentType.equals(firstType)) {
-          return null;
-        }
-      }
-      return new ArrayType(firstType);
+      Type type = checkAllTypesEqual(ctx.expr());
+      return new ArrayType(type);
     }
-
     return new ArrayType();
   }
 
@@ -595,7 +601,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     Type returnType = null;
 
-    if (checkTypes(ctx, new PairType(), varType)) {
+    if (checkTypesEqual(ctx, new PairType(), varType)) {
       PairType pairType = (PairType) varType;
 
       if (ctx.FST() != null) {
