@@ -3,7 +3,7 @@ package wacc.error;
 
 public interface IError<T> {
 
-    public T getCtx();
+    T getCtx();
     String toString();
 
 }

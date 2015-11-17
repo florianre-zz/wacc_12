@@ -64,17 +64,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   private void pushEmptyVariableSymbolTable() {
     SymbolTable<String, Type> scope = new SymbolTable<>();
     variableSymbolTableStack.push(scope);
-
   }
 
   private void popCurrentScopeVariableSymbolTable() {
-
     variableSymbolTableStack.pop();
   }
 
   private void addVariableToCurrentScope(String name, Type type) {
     SymbolTable<String, Type> current = variableSymbolTableStack.peek();
-
     current.put(name, type);
   }
 
@@ -88,12 +85,24 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return null;
   }
 
+  public Type lookupTypeInWorkingSymbolTable(String key) {
+    Binding b = workingSymbolTable.lookupAll(key);
+    if (b instanceof Variable) {
+      return ((Variable) b).getType();
+    }
+    if (b instanceof Function) {
+      return ((Function) b).getType();
+    }
+    return null;
+  }
+
   /************************** Visit Functions ****************************/
 
   /**
   * prog: BEGIN func* main END EOF;
-  * change Scope
-  * visit children, to type check children */
+  * change scope
+  * visit children, to type check children
+  */
   @Override
   public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
     String scopeName = Scope.PROG.toString();
@@ -103,45 +112,48 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return null;
   }
 
-  //  Functions
-
   /**
    * main: statList;
    * change scope to 0main
-   * type check children */
+   * push new variable scope
+   * type check children
+   * revert to enclosing scope
+   * pop variable scope
+   */
   @Override
   public Type visitMain(@NotNull WACCParser.MainContext ctx) {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
-
-
     pushEmptyVariableSymbolTable();
 
     Type type = visitStatList(ctx.statList());
 
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-
     popCurrentScopeVariableSymbolTable();
-
 
     return type;
   }
+
+  /************************** Functions ****************************/
 
   /**
   * func: type funcName ( (paramList)? ) IS body END;
   * get return type of function
   * change scope to function
+  * push new variable scope
   * visit Params, to type check
   * visit body to type check
-  * return type check is deferred */
+  * return type check is deferred
+  * revert to enclosing scope
+  * pop variable scope
+  */
   @Override
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
     String funcName = ctx.funcName.getText();
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
+
     changeWorkingSymbolTableTo(ctx.funcName.getText());
-
-
     pushEmptyVariableSymbolTable();
 
     // TODO: check if this is needed
@@ -156,36 +168,28 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     visitStatList(ctx.statList());
 
     goUpWorkingSymbolTable();
-
     popCurrentScopeVariableSymbolTable();
-
 
     return expectedReturnType;
   }
 
   /**
   * param: type name;
-  * check type is a valid Type
-  * returns null if not valid */
+  * look up the type in the symbol table
+  * add to current variable scope
+  * return the type
+  */
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
-    Type type = visitIdent(ctx.ident());
+    Type type = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
 
     // Add the param to the current variable scope symbol table
-    if (type == null) {
-      addVariableToCurrentScope(ctx.ident().getText(), null);
-    }
-
-    // TODO: check if this is needed
-    if (type == null) {
-      TypeError error = new TypeError(ctx);
-      errorHandler.complain(error);
-    }
+    addVariableToCurrentScope(ctx.ident().getText(), type);
 
     return type;
   }
 
-  // Statements
+  /************************** Statements ****************************/
 
   /**
   * type varName EQUALS assignRHS
@@ -194,7 +198,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   *  - if it is a pair, check the inner types */
   @Override
   public Type visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    Type lhsType = visitIdent(ctx.ident());
+    Type lhsType = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
     Type rhsType = visitAssignRHS(ctx.assignRHS());
 
     addVariableToCurrentScope(ctx.ident().getText(), lhsType);
@@ -211,17 +215,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitAssignStat(WACCParser.AssignStatContext ctx) {
-    Type lhsType = null;
+    Type lhsType = visitAssignLHS(ctx.assignLHS());
     Type rhsType = visitAssignRHS(ctx.assignRHS());
-
-    try {
-      String varname = ctx.assignLHS().ident().getText();
-      lhsType = getMostRecentBindingForVariable(varname);
-    } catch (Exception ignored) {}
-
-    if (lhsType == null) {
-      lhsType = visitAssignLHS(ctx.assignLHS());
-    }
 
     checkTypes(ctx, lhsType, rhsType);
 
@@ -822,14 +817,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitIdent(WACCParser.IdentContext ctx) {
-    Binding b = workingSymbolTable.lookupAll(ctx.getText());
-    if (b instanceof Variable) {
-      return ((Variable) b).getType();
+
+    // Assume ident is a variable and get its most local type
+    Type local = getMostRecentBindingForVariable(ctx.getText());
+    if (local != null) {
+      return local;
     }
-    if (b instanceof Function) {
-      return ((Function) b).getType();
-    }
-    return null;
+    // Not a variable (it's a function), so look up in working symbol table
+    return lookupTypeInWorkingSymbolTable(ctx.getText());
   }
 
 }

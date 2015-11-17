@@ -2,8 +2,9 @@ package wacc.error;
 
 public interface ErrorHandler<T> {
 
-  public void complain(IError<T> e);
-  public String toString();
-  public int getErrorCount();
+  void complain(IError<T> e);
+  String toString();
+  int getSemanticErrorCount();
+  int getSyntacticErrorCount();
 
 }

@@ -34,11 +34,12 @@ public class ArrayType extends Type {
   }
 
   public static boolean isArray(Type type) {
-    return (type instanceof ArrayType) || Type.isString(type);
+    return type != null && ((type instanceof ArrayType) || Type.isString(type));
   }
 
   public static boolean isCharArray(Type type) {
-    return (type instanceof ArrayType) && Type.isChar(((ArrayType) type).base);
+    return type != null && (type instanceof ArrayType)
+        && Type.isChar(((ArrayType) type).base);
   }
 
   @Override

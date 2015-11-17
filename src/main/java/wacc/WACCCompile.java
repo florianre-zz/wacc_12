@@ -53,7 +53,12 @@ public class WACCCompile {
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
 
-    if (errorHandler.getErrorCount() > 0) {
+    if (errorHandler.getSyntacticErrorCount() > 0) {
+      System.err.println(errorHandler);
+      System.exit(100);
+    }
+
+    if (errorHandler.getSemanticErrorCount() > 0) {
       System.err.println(errorHandler);
       System.exit(200);
     }
