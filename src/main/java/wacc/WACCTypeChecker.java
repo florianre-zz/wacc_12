@@ -226,7 +226,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   * type varName EQUALS assignRHS
   * get lhs & rhs types
   * check that they are equal
-  *  - if it is a pair, check the inner types */
+  *  - if it is a pair, check the inner types
+  */
   @Override
   public Type visitInitStat(WACCParser.InitStatContext ctx) {
     Type lhsType = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
@@ -449,9 +450,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   /**
-   * arrayLitr: [(T, T, T, ...)?];
-   * check all types are the same
-   * return the type of the first element
+   * if array non empty
+   *   - arrayLitr: [(T, T, T, ...)?];
+   *   - check all types are the same
+   *   - return the type of the first element
+   * otherwise
+   *   - return generic array type
    */
   @Override
   public Type visitArrayLitr(WACCParser.ArrayLitrContext ctx) {
@@ -463,12 +467,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return new ArrayType();
   }
 
-  // Expressions
+  /************************** Expressions ****************************/
 
   /**
    * intExpr: (CHR)? (sign)? INTEGER
    * check if it is a char (if CHR is set)
-   * otherwise it should be an int
+   * otherwise it is an int
    */
   @Override
   public Type visitInteger(WACCParser.IntegerContext ctx) {
@@ -503,7 +507,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   /**
    * (ORD)? CHARACTER
    * check if it is an int (if ORD is set)
-   * otherwise it should be a char
+   * otherwise it is a char
    */
   @Override
   public Type visitCharacter(WACCParser.CharacterContext ctx) {
@@ -524,30 +528,34 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
   /**
    * arrayExpr: (LEN)? arrayElem
-   * if we are checking the length of the array
-   *  - we return an int
+   * check the type of the array
+   * if preceded by LEN, we are checking the length of the array
+   *  - return an int
    * otherwise
-   * check that ident is of type array
-   *  - return the inner type
+   *  - return the type of the array
    */
   @Override
   public Type visitArray(WACCParser.ArrayContext ctx) {
+
+    Type arrayType = visitArrayElem(ctx.arrayElem());
+
     if (ctx.LEN() != null) {
       return getType(Types.INT_T);
     }
-    return visitArrayElem(ctx.arrayElem());
+
+    return arrayType;
   }
 
   /**
    * pairLitr: NULL;
-   * return null
+   * return generic pair type
    */
   @Override
   public Type visitPairLitr(WACCParser.PairLitrContext ctx) {
     return new PairType();
   }
 
-  // Expression Helpers
+  /************************** Expression Helpers ****************************/
 
   /**
    * arrayElem: varName[expr];
