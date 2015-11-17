@@ -822,7 +822,11 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitIdent(WACCParser.IdentContext ctx) {
-    Binding b = workingSymbolTable.lookupAll(ctx.getText());
+    return lookupTypeInWorkingSymbolTable(ctx.getText());
+  }
+
+  public Type lookupTypeInWorkingSymbolTable(String key) {
+    Binding b = workingSymbolTable.lookupAll(key);
     if (b instanceof Variable) {
       return ((Variable) b).getType();
     }
