@@ -74,6 +74,7 @@
                         </goals>
                         <configuration>
                             <configLocation>config/checkstyle.xml</configLocation>
+                            <failOnViolation>false</failOnViolation>
                         </configuration>
                     </execution>
                 </executions>
