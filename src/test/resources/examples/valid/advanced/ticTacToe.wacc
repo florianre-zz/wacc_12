@@ -612,12 +612,12 @@ begin
 	# Notify a move made by a human player to the AI. Return true.
 	bool notifyMoveAI(pair(pair, pair) board, char currentTurn, char playerSymbol, pair(pair, pair) aiData, int moveRow, int moveColumn) is
 		
-		pair(char, pair) info = fst aiData ;
+		#pair(char, pair) info = fst aiData ; #unused
 		pair(pair, int) stateTree = snd aiData ;
 		
 		pair(pair, pair) front = fst stateTree ;
 		
-		pair(pair, pair) board = fst front ;
+		#pair(pair, pair) board = fst front ; #unused
 		pair(pair, pair) pointers = snd front ;
 		
 		println "AI is cleaning up its memory..." ;

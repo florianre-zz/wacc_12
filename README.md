@@ -5,7 +5,7 @@ Master [![Build Status](https://magnum.travis-ci.com/egnwd/wacc_12.svg?token=yTG
 Semantic analysis [![Build Status](https://magnum.travis-ci.com/egnwd/wacc_12.svg?token=yTGVwCpHZBQuhLqD9VAk&branch=semantic-analysis)](https://magnum.travis-ci.com/egnwd/wacc_12)
 
 ----------------------------
-Provided files/directories  
+Provided files/directories
 ----------------------------
 
 `pom.xml`
@@ -26,6 +26,7 @@ The antlr directory contains the ANTLR lexer and parser specification
 files WACCLexer.g4 and WACCParser.g4.
 
 `src/main/java`
+
 
 Where we expect you to write your compiler code.
 
@@ -81,8 +82,6 @@ input stream as the EOF character in the file does this for you.
 `compile`
 
 This script call the WACCCompile class. It can be called with the `-d` or `--debug` flag to show all of maven's output. You can call the script with an input file as an argument which will be used as the `System.in` for the WACCCompile program.
-###### TODO
- - check that the file is of the format `*.wacc`
 
 You **do not** need to add the ANTLR jar file to the classpath of your calls
 to Java, as Maven handles this automatically.

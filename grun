@@ -1,4 +1,4 @@
 #!/bin/sh
 
 echo running the ANTLR TestRig grammar tool
-mvn -q exec:java -Dexec.mainClass="org.antlr.v4.runtime.misc.TestRig" -Dexec.args="antlr.WACC prog $@"
+java -cp target/WACC-Compiler-0.2-BETA-jar-with-dependencies.jar org.antlr.v4.runtime.misc.TestRig antlr.WACC prog $@

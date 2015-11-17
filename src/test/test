@@ -1,0 +1,61 @@
+#!/usr/bin/ruby
+require 'find'
+require 'shellwords'
+
+@errFile = "errors.log"
+@tmp = "tmp.log"
+
+open(@errFile, 'w') { |f| f.print "" }
+
+def runCompile(testPath, isValid)
+  teerrFiles = []
+  Find.find(testPath) do |path|
+    teerrFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+  end
+  numTests = teerrFiles.length
+  i = 1
+  hasErrored = 0
+  teerrFiles.each do |test|
+    print "Running Test: #{i}/#{numTests}\r"
+    testRun = `./compile #{test[/src.*/]} 2>#{@tmp}`
+    tmp = File.open("#{@tmp}", "r")
+    tmpContents = tmp.read
+    output = "Running Test: #{File.basename test} \n"
+    output += "Output: \n\t#{testRun} \n"
+    if isValid && !(File.zero?("#{@tmp}") || tmpContents.strip.empty?)
+      hasErrored += 1
+      output += "Error(s): \n\t#{tmpContents}\n"
+      output += "Finished Test."
+      open(@errFile, 'a') { |f| f.puts output}
+    elsif !isValid && (File.zero?("tmp") || tmpContents.strip.empty?)
+      hasErrored += 1
+      output += "Error(s): \n\t No Errors!\n"
+      output += "Finished Test."
+      open(@errFile, 'a') { |f| f.puts output}
+    end
+
+    exit_code = $?.exitstatus
+    if (!isValid && exit_code == 0) || (isValid && (exit_code == 100 || exit_code == 200 || exit_code == 1))
+      exit_code_error = "Wrong exit code: #{exit_code}"
+      open(@errFile, 'a') { |f| f.puts exit_code_error}
+    end
+    `rm #{@tmp}`
+    i += 1
+    break if hasErrored > 100
+  end
+  puts "\n\n"
+end
+
+testFolder = "#{Dir.pwd}/src/test/resources/examples/"
+teerrFiles = []
+Find.find(testFolder) do |path|
+  teerrFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+end
+
+puts "Starting Valid Compile tests..."
+runCompile(testFolder+"valid", true)
+puts "Finished tests."
+
+puts "Starting Invalid Compile tests..."
+runCompile(testFolder+"invalid", false)
+puts "Finished tests."
