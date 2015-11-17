@@ -64,17 +64,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   private void pushEmptyVariableSymbolTable() {
     SymbolTable<String, Type> scope = new SymbolTable<>();
     variableSymbolTableStack.push(scope);
-
   }
 
   private void popCurrentScopeVariableSymbolTable() {
-
     variableSymbolTableStack.pop();
   }
 
   private void addVariableToCurrentScope(String name, Type type) {
     SymbolTable<String, Type> current = variableSymbolTableStack.peek();
-
     current.put(name, type);
   }
 
@@ -88,12 +85,24 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return null;
   }
 
+  public Type lookupTypeInWorkingSymbolTable(String key) {
+    Binding b = workingSymbolTable.lookupAll(key);
+    if (b instanceof Variable) {
+      return ((Variable) b).getType();
+    }
+    if (b instanceof Function) {
+      return ((Function) b).getType();
+    }
+    return null;
+  }
+
   /************************** Visit Functions ****************************/
 
   /**
   * prog: BEGIN func* main END EOF;
-  * change Scope
-  * visit children, to type check children */
+  * change scope
+  * visit children, to type check children
+  */
   @Override
   public Type visitProg(@NotNull WACCParser.ProgContext ctx) {
     String scopeName = Scope.PROG.toString();
@@ -103,45 +112,48 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return null;
   }
 
-  //  Functions
-
   /**
    * main: statList;
    * change scope to 0main
-   * type check children */
+   * push new variable scope
+   * type check children
+   * revert to enclosing scope
+   * pop variable scope
+   */
   @Override
   public Type visitMain(@NotNull WACCParser.MainContext ctx) {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
-
-
     pushEmptyVariableSymbolTable();
 
     Type type = visitStatList(ctx.statList());
 
     workingSymbolTable = workingSymbolTable.getEnclosingST();
-
     popCurrentScopeVariableSymbolTable();
-
 
     return type;
   }
+
+  /************************** Functions ****************************/
 
   /**
   * func: type funcName ( (paramList)? ) IS body END;
   * get return type of function
   * change scope to function
+  * push new variable scope
   * visit Params, to type check
   * visit body to type check
-  * return type check is deferred */
+  * return type check is deferred
+  * revert to enclosing scope
+  * pop variable scope
+  */
   @Override
   public Type visitFunc(@NotNull WACCParser.FuncContext ctx) {
     String funcName = ctx.funcName.getText();
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
+
     changeWorkingSymbolTableTo(ctx.funcName.getText());
-
-
     pushEmptyVariableSymbolTable();
 
     // TODO: check if this is needed
@@ -156,17 +168,17 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     visitStatList(ctx.statList());
 
     goUpWorkingSymbolTable();
-
     popCurrentScopeVariableSymbolTable();
-
 
     return expectedReturnType;
   }
 
   /**
   * param: type name;
-  * check type is a valid Type
-  * returns null if not valid */
+  * look up the type in the symbol table
+  * add to current variable scope
+  * return the type
+  */
   @Override
   public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
     Type type = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
@@ -177,7 +189,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return type;
   }
 
-  // Statements
+  /************************** Statements ****************************/
 
   /**
   * type varName EQUALS assignRHS
@@ -813,17 +825,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
     // Not a variable (it's a function), so look up in working symbol table
     return lookupTypeInWorkingSymbolTable(ctx.getText());
-  }
-
-  public Type lookupTypeInWorkingSymbolTable(String key) {
-    Binding b = workingSymbolTable.lookupAll(key);
-    if (b instanceof Variable) {
-      return ((Variable) b).getType();
-    }
-    if (b instanceof Function) {
-      return ((Function) b).getType();
-    }
-    return null;
   }
 
 }
