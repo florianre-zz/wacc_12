@@ -6,7 +6,8 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
-import java.util.Stack;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 // TODO: do we check if a function has a return function on every branch? *
 // TODO: who checks if an int assignment is too large? *
@@ -15,12 +16,12 @@ import java.util.Stack;
 public class WACCTypeChecker extends WACCVisitor<Type> {
   
   private Function currentFunction;
-  private Stack<SymbolTable<String, Type>> variableSymbolTableStack;
+  private Deque<SymbolTable<String, Type>> variableSymbolTableStack;
   
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          WACCErrorHandler errorHandler) {
     super(top, errorHandler);
-    variableSymbolTableStack = new Stack<>();
+    variableSymbolTableStack = new ArrayDeque<>();
   }
 
   // Helper Methods
