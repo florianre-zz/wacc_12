@@ -629,41 +629,33 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *   return type of expression (as no unary operator)
    */
   @Override
-  // TODO: shorten! (with a sense of urgency) - but last!!!
 	public Type visitUnaryOper(WACCParser.UnaryOperContext ctx) {
     Type exprType = null;
-
     if (ctx.ident() != null) {
       exprType = visitIdent(ctx.ident());
     } else if (ctx.expr() != null) {
       exprType = visitExpr(ctx.expr());
     }
-
     if (ctx.NOT() != null) {
       if (!Type.isBool(exprType)) {
-        incorrectType(ctx, exprType, "'bool'");
+        incorrectType(ctx, exprType, Types.BOOL_T.toString());
       }
       return getType(Types.BOOL_T);
-    } else if (ctx.MINUS() != null) {
+    } else if (ctx.MINUS() != null || ctx.CHR() != null) {
       if (!Type.isInt(exprType)) {
-        incorrectType(ctx, exprType, "'int'");
+        incorrectType(ctx, exprType, Types.INT_T.toString());
       }
-      return getType(Types.INT_T);
+      return ctx.CHR() != null ? getType(Types.CHAR_T) : getType(Types.INT_T);
     } else if (ctx.LEN() != null) {
       if (!ArrayType.isArray(exprType)) {
-        incorrectType(ctx, exprType, "'T[]'");
+        incorrectType(ctx, exprType, Types.GENERIC_ARRAY_T.toString());
       }
       return getType(Types.INT_T);
     } else if (ctx.ORD() != null) {
       if (!Type.isChar(exprType)) {
-        incorrectType(ctx, exprType, "'char'");
+        incorrectType(ctx, exprType, Types.CHAR_T.toString());
       }
       return getType(Types.INT_T);
-    } else if (ctx.CHR() != null) {
-      if (!Type.isInt(exprType)) {
-        incorrectType(ctx, exprType, "'int'");
-      }
-      return getType(Types.CHAR_T);
     }
 		return exprType;
   }
@@ -681,7 +673,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       for (WACCParser.ComparisonOperContext operCtx : ctx.comparisonOper()) {
         Type type = visitComparisonOper(operCtx);
         if (!Type.isBool(type)) {
-          incorrectType(operCtx, type, "'bool'");
+          incorrectType(operCtx, type, Types.BOOL_T.toString());
         }
       }
       return getType(Types.BOOL_T);
@@ -772,7 +764,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       for (WACCParser.AtomContext atomCtx : ctx.atom()) {
         Type type = visitAtom(atomCtx);
         if (!Type.isInt(type)) {
-          incorrectType(atomCtx, type, "'int'");
+          incorrectType(atomCtx, type, Types.INT_T.toString());
         }
       }
       return getType(Types.INT_T);
