@@ -198,6 +198,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       Type lhsType = visitIdent(ctx.ident());
       Type rhsType = visitAssignRHS(ctx.assignRHS());
 
+      // TODO: remove
       // Add the variable to the current variable scope symbol table
       if (lhsType == null) System.out.println("null type");
       addVariableToCurrentScope(ctx.ident().getText(), lhsType);
@@ -215,8 +216,23 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
      */
     @Override
     public Type visitAssignStat(WACCParser.AssignStatContext ctx) {
-      Type lhsType = visitAssignLHS(ctx.assignLHS());
+      Type lhsType = null;// = visitAssignLHS(ctx.assignLHS());
       Type rhsType = visitAssignRHS(ctx.assignRHS());
+
+      try {
+        lhsType = getMostRecentBindingForVariable(ctx.assignLHS().ident().getText());
+      } catch (Exception e) {
+
+      }
+
+      if (lhsType == null) {
+        lhsType = visitAssignLHS(ctx.assignLHS());
+      }
+
+//      Type lhsType = getMostRecentBindingForVariable(ctx.assignLHS().ident().getText());
+//      if (lhsType == null) {
+//        lhsType = visitAssignLHS(ctx.assignLHS());
+//      }
 
       checkTypes(ctx, lhsType, rhsType);
 
@@ -822,7 +838,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Binding b = workingSymbolTable.lookupAll(ctx.getText());
     if (b instanceof Variable) {
       return ((Variable) b).getType();
-//      return getMostRecentBindingForVariable(ctx.getText());
     }
     if (b instanceof Function) {
       return ((Function) b).getType();
