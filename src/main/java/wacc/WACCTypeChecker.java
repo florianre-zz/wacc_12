@@ -9,8 +9,6 @@ import wacc.error.*;
 import java.util.ArrayDeque;
 import java.util.Deque;
 
-// TODO: do we check if a function has a return function on every branch?
-
 public class WACCTypeChecker extends WACCVisitor<Type> {
   
   private Function currentFunction;
@@ -125,6 +123,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
     pushEmptyVariableSymbolTable();
+    currentFunction = null;
 
     Type type = visitStatList(ctx.statList());
 
@@ -277,10 +276,13 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitReturnStat(@NotNull WACCParser.ReturnStatContext ctx) {
 
     Type actualReturnType = visitExpr(ctx.expr());
-    Type expectedReturnType = currentFunction.getType();
-    checkTypes(ctx, expectedReturnType, actualReturnType);
+    if (currentFunction != null) {
+      Type expectedReturnType = currentFunction.getType();
+      checkTypes(ctx, expectedReturnType, actualReturnType);
+      return expectedReturnType;
+    }
 
-    return expectedReturnType;
+    return null;
   }
 
   /**
@@ -564,7 +566,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       int wantedDimensionality = ctx.OPEN_BRACKET().size();
       if (Type.isString(type)) {
         if (wantedDimensionality != 1) {
-          errorHandler.complain(new TypeError(ctx, "String is 1D"));
+          String errorMsg = "String is one dimensional";
+          errorHandler.complain(new TypeError(ctx, errorMsg));
         } else {
           return new Type(Types.CHAR_T);
         }

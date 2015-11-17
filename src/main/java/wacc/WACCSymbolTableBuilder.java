@@ -5,6 +5,7 @@ import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.DeclarationError;
+import wacc.error.SemanticError;
 import wacc.error.SyntaxError;
 import wacc.error.WACCErrorHandler;
 
@@ -226,7 +227,7 @@ public class WACCSymbolTableBuilder extends WACCVisitor<Void> {
     setANewScope(ctx, Scope.MAIN.toString());
     if (hasReturnStat) {
       String errorMsg = "Return statement not required in body of program";
-      errorHandler.complain(new SyntaxError(ctx, errorMsg));
+      errorHandler.complain(new SemanticError(ctx, errorMsg));
     }
     return null;
   }
