@@ -66,4 +66,11 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
     return list;
   }
+
+  @Override
+  public InstructionList visitStatList(@NotNull WACCParser.StatListContext ctx) {
+    InstructionList list = new InstructionList();
+    list.add(visitChildren(ctx));
+    return list;
+  }
 }
