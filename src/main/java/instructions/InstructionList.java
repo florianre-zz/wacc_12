@@ -1,4 +1,4 @@
-package wacc.instructions;
+package instructions;
 
 import java.util.List;
 
