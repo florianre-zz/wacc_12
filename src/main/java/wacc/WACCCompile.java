@@ -2,6 +2,8 @@ package wacc;
 
 import antlr.WACCLexer;
 import antlr.WACCParser;
+import arm11.Instruction;
+import arm11.InstructionList;
 import bindings.Binding;
 import bindings.PairType;
 import bindings.Type;
@@ -77,7 +79,9 @@ public class WACCCompile {
   }
 
   private static void performCodeGeneration(ParseTree tree) {
-
+    CodeGenerator codeGenerator = new CodeGenerator();
+    InstructionList program = codeGenerator.visit(tree);
+    System.out.println(program);
   }
 
 }
