@@ -12,4 +12,9 @@ public class Label extends Operand {
   boolean isLabel() {
     return true;
   }
+
+  @Override
+  public String toString() {
+    return value;
+  }
 }

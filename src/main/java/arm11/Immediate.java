@@ -12,4 +12,9 @@ public class Immediate extends Operand {
   boolean isImmediate() {
     return true;
   }
+
+  @Override
+  public String toString() {
+    return "" + value;
+  }
 }

@@ -6,7 +6,9 @@ public enum InstructionType {
   LABEL("label"),
   PUSH("PUSH"),
   POP("POP"),
-  LTORG(".ltorg");
+  LTORG(".ltorg"),
+  TEXT(".text"),
+  GLOBAL(".global");
 
   private final String name;
 

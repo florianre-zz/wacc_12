@@ -3,10 +3,10 @@ package arm11;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Instruction {
+public abstract class Instruction {
 
-  private InstructionType type;
-  private List<Operand> operands;
+  protected InstructionType type;
+  protected List<Operand> operands;
 
   public Instruction(InstructionType type, List<Operand> operands) {
     this.type = type;
@@ -17,11 +17,11 @@ public class Instruction {
     this(type, new ArrayList<Operand>());
   }
 
-  // TODO: make an abstract method that toString calls then in the factory
-  // make an subclass of this overriding that method for custom toStrings
+  protected abstract String printInstruction();
+
   @Override
   public String toString() {
-    return "Instruction";
+    return printInstruction();
   }
 
 }

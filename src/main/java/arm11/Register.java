@@ -20,5 +20,4 @@ public class Register extends Operand {
     return this.name;
   }
 
-  // TODO: implement is stack pointer or is the other one...
 }

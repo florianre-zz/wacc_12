@@ -27,6 +27,10 @@ public class InstructionList  {
 
   @Override
   public String toString() {
-    return instructions.toString();
+    StringBuilder sb = new StringBuilder("Program:\n");
+    for (Instruction instruction : instructions) {
+      sb.append(instruction).append("\n");
+    }
+    return sb.toString();
   }
 }
