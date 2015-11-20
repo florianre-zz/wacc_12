@@ -5,6 +5,9 @@ import antlr.WACCParserBaseVisitor;
 import arm11.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
+// TODO: review codestyle check errors
+// TODO: Do we need top for labels?
+
 public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
   @Override
