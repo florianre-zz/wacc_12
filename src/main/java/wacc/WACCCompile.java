@@ -10,42 +10,41 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import wacc.error.WACCErrorHandler;
 
-// TODO: Tidy up this main()
+import java.io.IOException;
 
 public class WACCCompile {
   public static void main(String[] args) throws Exception {
-    // create a CharStream that reads from standard input
-    ANTLRInputStream input = new ANTLRInputStream(System.in);
 
-    // create a lexer that feeds off of input CharStream
-    WACCLexer lexer = new WACCLexer(input);
+    CommonTokenStream tokens = performLexicalAnalysis();
+    WACCErrorHandler errorHandler = new WACCErrorHandler(tokens);
 
-    // create a buffer of tokens pulled from the lexer
-    CommonTokenStream tokens = new CommonTokenStream(lexer);
+    ParseTree tree = new WACCParser(tokens).prog();
 
-    // create a parser that feeds off the tokens buffer
-    WACCParser parser = new WACCParser(tokens);
+    performSemanticAnalysis(tree, errorHandler);
 
-    ParseTree tree = parser.prog(); // begin parsing at prog rule
+    checkForErrors(errorHandler);
 
-    int numberOfSyntaxErrors = parser.getNumberOfSyntaxErrors();
-    if (numberOfSyntaxErrors > 0) {
-      System.err.println(numberOfSyntaxErrors + " Syntax Errors");
-      System.exit(100);
-    }
+    performCodeGeneration(tree);
 
-    SymbolTable<String, Binding> top = createTopSymbolTable();
-    TokenStream inputStream = parser.getInputStream();
-    WACCErrorHandler errorHandler = new WACCErrorHandler(inputStream);
-
-    checkSemantics(tree, top, errorHandler);
-
-    System.exit(0);
   }
 
-  private static void checkSemantics(ParseTree tree,
-                                     SymbolTable<String, Binding> top,
-                                     WACCErrorHandler errorHandler) {
+  private static CommonTokenStream performLexicalAnalysis() throws IOException {
+    ANTLRInputStream input = new ANTLRInputStream(System.in);
+    WACCLexer lexer = new WACCLexer(input);
+    return new CommonTokenStream(lexer);
+  }
+
+  private static void performSemanticAnalysis(ParseTree tree,
+                                              WACCErrorHandler errorHandler) {
+
+//    int numberOfSyntaxErrors = parser.getNumberOfSyntaxErrors();
+//    if (numberOfSyntaxErrors > 0) {
+//      System.err.println(numberOfSyntaxErrors + " Syntax Errors");
+//      System.exit(100);
+//    }
+
+    SymbolTable<String, Binding> top = createTopSymbolTable();
+
     WACCSymbolTableFiller buildSTVisitor
         = new WACCSymbolTableFiller(top, errorHandler);
     buildSTVisitor.visit(tree);
@@ -53,15 +52,6 @@ public class WACCCompile {
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
 
-    if (errorHandler.getSyntacticErrorCount() > 0) {
-      System.err.println(errorHandler);
-      System.exit(100);
-    }
-
-    if (errorHandler.getSemanticErrorCount() > 0) {
-      System.err.println(errorHandler);
-      System.exit(200);
-    }
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
@@ -76,6 +66,18 @@ public class WACCCompile {
     top.put(Types.STRING_T.toString(), new Type(Types.STRING_T));
     top.put(Types.PAIR_T.toString(), new PairType());
     return top;
+  }
+
+  private static void checkForErrors(WACCErrorHandler errorHandler) {
+    if (errorHandler.printSyntaxErrors()) {
+      System.exit(100);
+    } else if (errorHandler.printSemanticErrors()) {
+      System.exit(200);
+    }
+  }
+
+  private static void performCodeGeneration(ParseTree tree) {
+
   }
 
 }

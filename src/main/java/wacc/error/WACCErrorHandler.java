@@ -91,4 +91,11 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
     return sb.toString();
   }
 
+  public boolean printSyntaxErrors() {
+    return false;
+  }
+
+  public boolean printSemanticErrors() {
+    return false;
+  }
 }
