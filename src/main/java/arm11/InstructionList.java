@@ -27,7 +27,7 @@ public class InstructionList  {
 
   @Override
   public String toString() {
-    StringBuilder sb = new StringBuilder("Program:\n");
+    StringBuilder sb = new StringBuilder();
     for (Instruction instruction : instructions) {
       sb.append(instruction).append("\n");
     }

@@ -18,6 +18,6 @@ public enum InstructionType {
 
   @Override
   public String toString() {
-    return this.name;
+    return "\t" + this.name;
   }
 }
