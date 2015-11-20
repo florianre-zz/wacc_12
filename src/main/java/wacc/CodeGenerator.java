@@ -8,6 +8,16 @@ import org.antlr.v4.runtime.misc.NotNull;
 public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
   @Override
+  public InstructionList visitProg(@NotNull WACCParser.ProgContext ctx) {
+    InstructionList program = new InstructionList();
+    program.add(InstructionFactory.createText());
+    Label mainLabel = new Label(WACCVisitor.Scope.MAIN.toString());
+    program.add(InstructionFactory.createGlobal(mainLabel));
+    program.add(visitMain(ctx.main()));
+    return program;
+  }
+
+  @Override
   public InstructionList visitMain(@NotNull WACCParser.MainContext ctx) {
 
     InstructionList list = new InstructionList();
@@ -29,7 +39,7 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
     list.add(InstructionFactory.createLTORG());
 
-    return super.visitMain(ctx);
+    return list;
   }
 
   @Override
@@ -46,7 +56,7 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
     Register R0 = ARM11Registers.getRegister(0);
     Long imm = Long.parseLong(ctx.expr().getText());
     Operand value = new Immediate(imm);
-    Label label = new Label("");
+    Label label = new Label("exit");
 
     list.add(InstructionFactory.createLoad(R0, value));
     list.add(InstructionFactory.createBranchLink(label));
