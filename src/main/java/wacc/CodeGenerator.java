@@ -3,7 +3,6 @@ package wacc;
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import arm11.*;
-import org.antlr.v4.runtime.misc.NotNull;
 
 // TODO: review codestyle check errors
 // TODO: Do we need top for labels?
@@ -11,7 +10,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
   @Override
-  public InstructionList visitProg(@NotNull WACCParser.ProgContext ctx) {
+  public InstructionList visitProg(WACCParser.ProgContext ctx) {
     InstructionList program = new InstructionList();
     program.add(InstructionFactory.createText());
     Label mainLabel = new Label(WACCVisitor.Scope.MAIN.toString());
@@ -21,7 +20,7 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitMain(@NotNull WACCParser.MainContext ctx) {
+  public InstructionList visitMain(WACCParser.MainContext ctx) {
 
     InstructionList list = new InstructionList();
 
@@ -46,14 +45,12 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitSkipStat(
-      @NotNull WACCParser.SkipStatContext ctx) {
+  public InstructionList visitSkipStat(WACCParser.SkipStatContext ctx) {
     return new InstructionList();
   }
 
   @Override
-  public InstructionList visitExitStat(
-      @NotNull WACCParser.ExitStatContext ctx) {
+  public InstructionList visitExitStat(WACCParser.ExitStatContext ctx) {
     InstructionList list = new InstructionList();
 
     Register R0 = ARM11Registers.getRegister(0);
@@ -67,10 +64,4 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
     return list;
   }
 
-  @Override
-  public InstructionList visitStatList(@NotNull WACCParser.StatListContext ctx) {
-    InstructionList list = new InstructionList();
-    list.add(visitChildren(ctx));
-    return list;
-  }
 }

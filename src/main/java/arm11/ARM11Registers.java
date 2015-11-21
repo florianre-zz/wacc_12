@@ -1,5 +1,7 @@
 package arm11;
 
+// TODO: don't get by int, unreadable
+
 public class ARM11Registers {
   private static final Register R0  = new Register(0, "r0");
   private static final Register R1  = new Register(1, "r1");
