@@ -3,6 +3,7 @@ package wacc;
 import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import arm11.*;
+import org.antlr.v4.runtime.misc.NotNull;
 
 // TODO: Do we need top for labels?
 
@@ -64,4 +65,11 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitPrintStat(
+      @NotNull WACCParser.PrintStatContext ctx) {
+    InstructionList list = new InstructionList();
+
+    return list;
+  }
 }

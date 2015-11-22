@@ -8,7 +8,11 @@ public enum InstructionType {
   POP("POP"),
   LTORG(".ltorg"),
   TEXT(".text"),
-  GLOBAL(".global");
+  GLOBAL(".global"),
+  MOV("MOV"),
+  ADD("ADD"),
+  WORD(".word"),
+  ASCII(".ascii");
 
   private final String name;
 
