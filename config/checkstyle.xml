@@ -65,7 +65,7 @@
         <!-- See http://checkstyle.sf.net/config_naming.html -->
         <module name="ConstantName"/>
         <module name="LocalFinalVariableName"/>
-        <!--<module name="LocalVariableName"/>-->
+        <module name="LocalVariableName"/>
         <module name="MemberName"/>
         <module name="MethodName"/>
 

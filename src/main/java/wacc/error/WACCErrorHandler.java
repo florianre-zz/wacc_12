@@ -91,8 +91,6 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
     return sb.toString();
   }
 
-  // TODO: Implement these functions
-
   public void printSyntaxErrors() {
     if (hasSyntaxErrors()) {
       System.out.println(printErrors(syntacticErrors));

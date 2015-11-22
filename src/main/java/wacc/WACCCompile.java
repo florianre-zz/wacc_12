@@ -2,7 +2,6 @@ package wacc;
 
 import antlr.WACCLexer;
 import antlr.WACCParser;
-import arm11.Instruction;
 import arm11.InstructionList;
 import bindings.Binding;
 import bindings.PairType;

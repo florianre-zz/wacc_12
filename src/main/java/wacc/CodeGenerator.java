@@ -4,7 +4,6 @@ import antlr.WACCParser;
 import antlr.WACCParserBaseVisitor;
 import arm11.*;
 
-// TODO: review codestyle check errors
 // TODO: Do we need top for labels?
 
 public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
@@ -33,9 +32,9 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
     list.add(visitChildren(ctx));
 
-    Register R0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
+    Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
     Operand value = new Immediate((long) 0);
-    list.add(InstructionFactory.createLoad(R0, value));
+    list.add(InstructionFactory.createLoad(r0, value));
 
     register = ARM11Registers.getRegister(ARM11Registers.ARM11Register.PC);
     list.add(InstructionFactory.createPop(register));
@@ -54,12 +53,12 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
   public InstructionList visitExitStat(WACCParser.ExitStatContext ctx) {
     InstructionList list = new InstructionList();
 
-    Register R0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
+    Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
     Long imm = Long.parseLong(ctx.expr().getText());
     Operand value = new Immediate(imm);
     Label label = new Label("exit");
 
-    list.add(InstructionFactory.createLoad(R0, value));
+    list.add(InstructionFactory.createLoad(r0, value));
     list.add(InstructionFactory.createBranchLink(label));
 
     return list;
