@@ -65,7 +65,7 @@ public class PrintFunctions {
 
     list.add(InstructionFactory.createLabel(label));
     list.add(InstructionFactory.createPush(lr));
-    //list.add(InstructionFactory.createMov(r1, r0));
+    //ldr
     list.add(InstructionFactory.createAdd(r2, r0, 4));
     list.add(InstructionFactory.createLoad(r0, new Label(formatterLabel)));
     list.add(InstructionFactory.createAdd(r0, r0, 4));
@@ -77,7 +77,7 @@ public class PrintFunctions {
     return list;
   }
 
-  public static InstructionList printLn() {
+  public static InstructionList printLn(String formatterLabel) {
     InstructionList list = new InstructionList();
 
     Label label = new Label("p_print_ln");
@@ -96,7 +96,7 @@ public class PrintFunctions {
 
     list.add(InstructionFactory.createLabel(label));
     list.add(InstructionFactory.createPush(lr));
-    list.add(InstructionFactory.createLoad(r0, new Label("\0")));
+    list.add(InstructionFactory.createLoad(r0, new Label(formatterLabel)));
     list.add(InstructionFactory.createAdd(r0, r0, 4));
     list.add(InstructionFactory.createBranchLink(new Label("puts")));
     list.add(InstructionFactory.createMov(r0, 0));
@@ -128,9 +128,11 @@ public class PrintFunctions {
 
     list.add(InstructionFactory.createLabel(label));
     list.add(InstructionFactory.createPush(lr));
-    //cmp
-    //ldrne
-    //ldreq
+    list.add(InstructionFactory.createCompare(r0, 0));
+    list.add(InstructionFactory.createLoadNotEqual(r0,
+                                                   new Label(formatterLabel1)));
+    list.add(InstructionFactory.createLoadEqual(r0,
+                                                new Label(formatterLabel2)));
     list.add(InstructionFactory.createAdd(r0, r0, 4));
     list.add(InstructionFactory.createBranchLink(new Label("printf")));
     list.add(InstructionFactory.createMov(r0, 0));

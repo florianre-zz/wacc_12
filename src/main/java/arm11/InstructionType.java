@@ -12,7 +12,10 @@ public enum InstructionType {
   MOV("MOV"),
   ADD("ADD"),
   WORD(".word"),
-  ASCII(".ascii");
+  ASCII(".ascii"),
+  CMP("CMP"),
+  LDRNE("LDRNE"),
+  LDREQ("LDREQ");
 
   private final String name;
 

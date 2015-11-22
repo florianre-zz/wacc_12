@@ -117,7 +117,7 @@ public class InstructionFactory {
 
 
   public static Instruction createAdd(Register dst, Register src, long imm) {
-    List<Operand> operands = new ArrayList<>(2);
+    List<Operand> operands = new ArrayList<>(3);
     operands.add(dst);
     operands.add(src);
     operands.add(new Immediate(imm));
@@ -131,4 +131,45 @@ public class InstructionFactory {
       }
     };
   }
+
+  public static Instruction createCompare(Register reg, long imm) {
+    List<Operand> operands = new ArrayList<>(2);
+    operands.add(reg);
+    operands.add(new Immediate(imm));
+    return new Instruction(InstructionType.CMP, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " "
+               + operands.get(0) + " "
+               + operands.get(1) + " #"
+               + operands.get(2);
+      }
+    };
+  }
+
+  public static Instruction createLoadNotEqual(Register register, Label label) {
+    List<Operand> operands = new ArrayList<>(2);
+    operands.add(register);
+    operands.add(label);
+    return new Instruction(InstructionType.LDRNE, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + operands.get(0) + " " + operands.get(1);
+      }
+    };
+  }
+
+  public static Instruction createLoadEqual(Register register, Label label) {
+    List<Operand> operands = new ArrayList<>(2);
+    operands.add(register);
+    operands.add(label);
+    return new Instruction(InstructionType.LDREQ, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + operands.get(0) + " " + operands.get(1);
+      }
+    };
+  }
 }
+
+
