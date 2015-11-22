@@ -27,16 +27,17 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
     Label label = new Label(WACCVisitor.Scope.MAIN.toString());
     list.add(InstructionFactory.createLabel(label));
 
-    Register register = ARM11Registers.getRegister(14);
+    Register register
+        = ARM11Registers.getRegister(ARM11Registers.ARM11Register.LR);
     list.add(InstructionFactory.createPush(register));
 
     list.add(visitChildren(ctx));
 
-    Register R0 = ARM11Registers.getRegister(0);
+    Register R0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
     Operand value = new Immediate((long) 0);
     list.add(InstructionFactory.createLoad(R0, value));
 
-    register = ARM11Registers.getRegister(15);
+    register = ARM11Registers.getRegister(ARM11Registers.ARM11Register.PC);
     list.add(InstructionFactory.createPop(register));
 
     list.add(InstructionFactory.createLTORG());
@@ -53,7 +54,7 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
   public InstructionList visitExitStat(WACCParser.ExitStatContext ctx) {
     InstructionList list = new InstructionList();
 
-    Register R0 = ARM11Registers.getRegister(0);
+    Register R0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
     Long imm = Long.parseLong(ctx.expr().getText());
     Operand value = new Immediate(imm);
     Label label = new Label("exit");
