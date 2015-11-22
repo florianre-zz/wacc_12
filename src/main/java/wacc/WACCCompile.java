@@ -69,9 +69,11 @@ public class WACCCompile {
   }
 
   private static void checkForErrors(WACCErrorHandler errorHandler) {
-    if (errorHandler.printSyntaxErrors()) {
+    if (errorHandler.hasSyntaxErrors()) {
+      errorHandler.printSyntaxErrors();
       System.exit(100);
-    } else if (errorHandler.printSemanticErrors()) {
+    } else if (errorHandler.hasSemanticErrors()) {
+      errorHandler.printSemanticErrors();
       System.exit(200);
     }
   }
