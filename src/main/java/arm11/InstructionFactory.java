@@ -4,15 +4,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InstructionFactory {
-  public static Instruction createLoad(Operand register, Operand expr) {
+  public static Instruction createLoad(Register dst, Operand op) {
+    //TODO: Check if it can really be any operand
     List<Operand> operands = new ArrayList<>(2);
-    operands.add(register);
-    operands.add(expr);
+    operands.add(dst);
+    operands.add(op);
     return new Instruction(InstructionType.LDR, operands) {
       @Override
       protected String printInstruction() {
         return type.toString() + " " + operands.get(0)
-            + ", " + "=" + operands.get(1);
+               + ", " + "=" + operands.get(1);
       }
     };
   }

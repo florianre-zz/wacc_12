@@ -48,6 +48,7 @@ public class PrintFunctions {
 
     Label label = new Label("p_print_string");
     Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
+    Register r1 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R1);
     Register r2 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R2);
     Register lr = ARM11Registers.getRegister(ARM11Registers.ARM11Register.LR);
     Register pc = ARM11Registers.getRegister(ARM11Registers.ARM11Register.PC);
@@ -65,7 +66,7 @@ public class PrintFunctions {
 
     list.add(InstructionFactory.createLabel(label));
     list.add(InstructionFactory.createPush(lr));
-    //ldr
+    list.add(InstructionFactory.createLoad(r1, new Address(r0)));
     list.add(InstructionFactory.createAdd(r2, r0, 4));
     list.add(InstructionFactory.createLoad(r0, new Label(formatterLabel)));
     list.add(InstructionFactory.createAdd(r0, r0, 4));
