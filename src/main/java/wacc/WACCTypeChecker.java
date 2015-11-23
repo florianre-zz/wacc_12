@@ -80,13 +80,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     errorHandler.complain(new DeclarationError(ctx, errorMsg));
   }
 
-  private void changeWorkingSymbolTableTo(String scopeName) {
-    NewScope b = (NewScope) workingSymbolTable.lookupAll(scopeName);
-    if (b != null) {
-      workingSymbolTable = (SymbolTable<String, Binding>) b.getSymbolTable();
-    }
-  }
-
   private void pushEmptyVariableSymbolTable() {
     SymbolTable<String, Type> scope = new SymbolTable<>();
     variableSymbolTableStack.push(scope);

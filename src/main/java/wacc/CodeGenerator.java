@@ -1,58 +1,106 @@
 package wacc;
 
 import antlr.WACCParser;
-import antlr.WACCParserBaseVisitor;
 import arm11.*;
+import bindings.Binding;
+import bindings.Variable;
 import org.antlr.v4.runtime.misc.NotNull;
-
 import java.util.HashSet;
+import java.util.List;
 
 // TODO: Do we need top for labels?
 
-public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
+public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private DataInstructions data;
   private HashSet<InstructionList> helperFunctions;
 
-  public CodeGenerator() {
+  public CodeGenerator(SymbolTable top) {
+
+    super(top);
     this.data = new DataInstructions();
     this.helperFunctions = new HashSet<>();
   }
 
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
+    String scopeName = Scope.PROG.toString();
+    changeWorkingSymbolTableTo(scopeName);
     InstructionList program = new InstructionList();
     program.add(InstructionFactory.createText());
     Label mainLabel = new Label(WACCVisitor.Scope.MAIN.toString());
     program.add(InstructionFactory.createGlobal(mainLabel));
     program.add(visitMain(ctx.main()));
+    goUpWorkingSymbolTable();
     return program;
   }
 
   @Override
   public InstructionList visitMain(WACCParser.MainContext ctx) {
+    String scopeName = Scope.MAIN.toString();
+    changeWorkingSymbolTableTo(scopeName);
 
     // TODO: Add the data and helperFunctions sections above and below main
 
     InstructionList list = new InstructionList();
 
-    Label label = new Label(WACCVisitor.Scope.MAIN.toString());
+    Label label = new Label(Scope.MAIN.toString());
     list.add(InstructionFactory.createLabel(label));
 
     Register register
-        = ARM11Registers.getRegister(ARM11Registers.ARM11Register.LR);
+        = ARM11Registers.getRegister(ARM11Registers.Reg.LR);
     list.add(InstructionFactory.createPush(register));
 
+    list.add(allocateSpaceOnStack());
     list.add(visitChildren(ctx));
+    list.add(deallocateSpaceOnStack());
 
-    Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
+    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
     Operand value = new Immediate((long) 0);
     list.add(InstructionFactory.createLoad(r0, value));
 
-    register = ARM11Registers.getRegister(ARM11Registers.ARM11Register.PC);
+    register = ARM11Registers.getRegister(ARM11Registers.Reg.PC);
     list.add(InstructionFactory.createPop(register));
 
     list.add(InstructionFactory.createLTORG());
+
+    goUpWorkingSymbolTable();
+    return list;
+  }
+
+  private InstructionList allocateSpaceOnStack() {
+    InstructionList list = new InstructionList();
+    List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
+    long stackSpaceSize = 0;
+    for (Binding b : variables) {
+      Variable v = (Variable) b;
+      stackSpaceSize += v.getType().getSize();
+    }
+    // TODO: deal with '4095', the max size... of something
+    if (stackSpaceSize > 0) {
+      Operand imm = new Immediate(stackSpaceSize);
+      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      list.add(InstructionFactory.createSub(sp, sp, imm));
+    }
+
+    return list;
+  }
+
+
+  private InstructionList deallocateSpaceOnStack() {
+    InstructionList list = new InstructionList();
+    List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
+    long stackSpaceSize = 0;
+    for (Binding b : variables) {
+      Variable v = (Variable) b;
+      stackSpaceSize += v.getType().getSize();
+    }
+
+    if (stackSpaceSize > 0) {
+      Operand imm = new Immediate(stackSpaceSize);
+      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      list.add(InstructionFactory.createAdd(sp, sp, imm));
+    }
 
     return list;
   }
@@ -67,7 +115,7 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
     InstructionList list = new InstructionList();
 
-    Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
+    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
     Long imm = Long.parseLong(ctx.expr().getText());
     Operand value = new Immediate(imm);
     Label label = new Label("exit");
@@ -87,6 +135,13 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 //  }
 
   @Override
+  public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
+    // TODO: put value in a free register
+    // TODO: move what's in that register to the stack with the offset for this value
+    // TODO: change return value
+    return new InstructionList();
+  }
+
   public InstructionList visitPrintStat(
       @NotNull WACCParser.PrintStatContext ctx) {
     InstructionList list = new InstructionList();
@@ -97,8 +152,8 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
     // TODO:
 
-    Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
-    Register r4 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R4);
+    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+    Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
 
     // Assume it saves reult in r4
     list.add(visitExpr(ctx.expr()));
@@ -111,4 +166,5 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
     return list;
   }
+
 }

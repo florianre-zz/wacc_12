@@ -57,6 +57,13 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     }
   }
 
+  protected void changeWorkingSymbolTableTo(String scopeName) {
+    NewScope b = (NewScope) workingSymbolTable.lookupAll(scopeName);
+    if (b != null) {
+      workingSymbolTable = (SymbolTable<String, Binding>) b.getSymbolTable();
+    }
+  }
+
   protected enum ScopeType {
 
     REGULAR_SCOPE("0"),

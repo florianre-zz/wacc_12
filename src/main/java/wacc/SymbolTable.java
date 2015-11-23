@@ -43,22 +43,21 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
 
   @Override
   public String toString() {
-    List<SymbolTable<String, Binding>> list = new LinkedList<>();
+    List<SymbolTable<S, T>> list = new LinkedList<>();
     StringBuilder sb = new StringBuilder("SymbolTable {\n");
     Enumeration<S> keys = this.keys();
     while (keys.hasMoreElements()) {
-
       sb.append(getKeyElemPairString(list, keys));
     }
     sb.append("}\n");
-    for (SymbolTable<String, Binding> symTable:list) {
+    for (SymbolTable<S, T> symTable:list) {
       sb.append("\n").append(symTable.name).append(": ");
       sb.append(symTable);
     }
     return sb.toString();
   }
 
-  private String getKeyElemPairString(List<SymbolTable<String, Binding>> list,
+  private String getKeyElemPairString(List<SymbolTable<S, T>> list,
                                         Enumeration<S> keys) {
     S element = keys.nextElement();
     StringBuilder sb = new StringBuilder();
@@ -68,7 +67,7 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
     if (this.get(element) instanceof NewScope) {
       NewScope newScope = (NewScope) this.get(element);
       Dictionary<String, Binding> symbolTable = newScope.getSymbolTable();
-      list.add((SymbolTable<String, Binding>) symbolTable);
+      list.add((SymbolTable<S, T>) symbolTable);
       sb.append("SymbolTable");
     } else {
       sb.append(this.get(element));
@@ -76,4 +75,18 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
 
     return sb.append("\n").toString();
   }
+
+
+  public List<T> filterByClass(Class<?> c) {
+    Enumeration<T> elements = elements();
+    List<T> result = new ArrayList<>();
+    while (elements.hasMoreElements()) {
+      T nextElement = elements.nextElement();
+      if (c.isInstance(nextElement)) {
+        result.add(nextElement);
+      }
+    }
+    return result;
+  }
+
 }
