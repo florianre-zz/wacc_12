@@ -16,4 +16,13 @@ public abstract class Operand {
   boolean isLabel() {
     return false;
   }
+
+  boolean isWord() {
+    return false;
+  }
+
+  boolean isAscii() {
+    return false;
+  }
+
 }

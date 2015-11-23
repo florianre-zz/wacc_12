@@ -91,13 +91,23 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
     return sb.toString();
   }
 
-  // TODO: Implement these functions
-
-  public boolean printSyntaxErrors() {
-    return false;
+  public void printSyntaxErrors() {
+    if (hasSyntaxErrors()) {
+      System.out.println(printErrors(syntacticErrors));
+    }
   }
 
-  public boolean printSemanticErrors() {
-    return false;
+  public void printSemanticErrors() {
+    if (hasSemanticErrors()) {
+      System.out.println(printErrors(semanticErrors));
+    }
+  }
+
+  public boolean hasSyntaxErrors() {
+    return syntacticErrors.size() > 0;
+  }
+
+  public boolean hasSemanticErrors() {
+    return semanticErrors.size() > 0;
   }
 }

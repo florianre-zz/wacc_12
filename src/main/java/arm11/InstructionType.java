@@ -10,7 +10,13 @@ public enum InstructionType {
   TEXT(".text"),
   GLOBAL(".global"),
   SUB("SUB"),
-  ADD("ADD");
+  ADD("ADD"),
+  MOV("MOV"),
+  WORD(".word"),
+  ASCII(".ascii"),
+  CMP("CMP"),
+  LDRNE("LDRNE"),
+  LDREQ("LDREQ");
 
   private final String name;
 

@@ -2,7 +2,6 @@ package wacc;
 
 import antlr.WACCLexer;
 import antlr.WACCParser;
-import arm11.Instruction;
 import arm11.InstructionList;
 import bindings.Binding;
 import bindings.PairType;
@@ -61,11 +60,9 @@ public class WACCCompile {
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
     SymbolTable<String, Binding> top = new SymbolTable<>();
-    // TODO: move somewhere more appropriate
-    int min = (int) -Math.pow(2, 31);
-    int max = (int) (Math.pow(2, 31) - 1);
-    top.put(Types.INT_T.toString(), new Type(Types.INT_T, min,
-        max));
+    top.put(Types.INT_T.toString(), new Type(Types.INT_T,
+                                             WACCConstants.MIN_INT,
+                                             WACCConstants.MAX_INT));
     top.put(Types.BOOL_T.toString(), new Type(Types.BOOL_T, 0, 1));
     top.put(Types.CHAR_T.toString(), new Type(Types.CHAR_T, 0, 255));
     top.put(Types.STRING_T.toString(), new Type(Types.STRING_T));
@@ -74,9 +71,11 @@ public class WACCCompile {
   }
 
   private static void checkForErrors(WACCErrorHandler errorHandler) {
-    if (errorHandler.printSyntaxErrors()) {
+    if (errorHandler.hasSyntaxErrors()) {
+      errorHandler.printSyntaxErrors();
       System.exit(100);
-    } else if (errorHandler.printSemanticErrors()) {
+    } else if (errorHandler.hasSemanticErrors()) {
+      errorHandler.printSemanticErrors();
       System.exit(200);
     }
   }

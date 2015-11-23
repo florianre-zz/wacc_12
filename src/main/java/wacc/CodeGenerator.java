@@ -8,7 +8,6 @@ import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.List;
 
-// TODO: review codestyle check errors
 // TODO: Do we need top for labels?
 
 public class CodeGenerator extends WACCVisitor<InstructionList> {
@@ -40,18 +39,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label label = new Label(Scope.MAIN.toString());
     list.add(InstructionFactory.createLabel(label));
 
-    Register register = ARM11Registers.getRegister(14);
+    Register register
+        = ARM11Registers.getRegister(ARM11Registers.Reg.LR);
     list.add(InstructionFactory.createPush(register));
 
     list.add(allocateSpaceOnStack());
     list.add(visitChildren(ctx));
     list.add(deallocateSpaceOnStack());
 
-    Register R0 = ARM11Registers.getRegister(0);
+    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
     Operand value = new Immediate((long) 0);
-    list.add(InstructionFactory.createLoad(R0, value));
+    list.add(InstructionFactory.createLoad(r0, value));
 
-    register = ARM11Registers.getRegister(15);
+    register = ARM11Registers.getRegister(ARM11Registers.Reg.PC);
     list.add(InstructionFactory.createPop(register));
 
     list.add(InstructionFactory.createLTORG());
@@ -71,7 +71,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     // TODO: deal with '4095', the max size... of something
     if (stackSpaceSize > 0) {
       Operand imm = new Immediate(stackSpaceSize);
-      Register sp = ARM11Registers.getRegister(13);
+      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
       list.add(InstructionFactory.createSub(sp, sp, imm));
     }
 
@@ -90,7 +90,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (stackSpaceSize > 0) {
       Operand imm = new Immediate(stackSpaceSize);
-      Register sp = ARM11Registers.getRegister(13);
+      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
       list.add(InstructionFactory.createAdd(sp, sp, imm));
     }
 
@@ -106,12 +106,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitExitStat(WACCParser.ExitStatContext ctx) {
     InstructionList list = new InstructionList();
 
-    Register R0 = ARM11Registers.getRegister(0);
+    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
     Long imm = Long.parseLong(ctx.expr().getText());
     Operand value = new Immediate(imm);
     Label label = new Label("exit");
 
-    list.add(InstructionFactory.createLoad(R0, value));
+    list.add(InstructionFactory.createLoad(r0, value));
     list.add(InstructionFactory.createBranchLink(label));
 
     return list;
@@ -124,4 +124,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     // TODO: change return value
     return new InstructionList();
   }
+
+  public InstructionList visitPrintStat(
+      @NotNull WACCParser.PrintStatContext ctx) {
+    InstructionList list = new InstructionList();
+
+    return list;
+  }
+
 }
