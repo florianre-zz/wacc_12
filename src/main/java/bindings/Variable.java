@@ -5,7 +5,7 @@ public class Variable extends Binding {
   private Type type;
 
   // TODO: finalise?
-  private int offset;
+  private long offset;
 
   public Variable(String name, Type type) {
     super(name);
@@ -21,11 +21,11 @@ public class Variable extends Binding {
     return type.toString();
   }
 
-  public int getOffset() {
+  public long getOffset() {
     return offset;
   }
 
-  public void setOffset(int offset) {
+  public void setOffset(long offset) {
     this.offset = offset;
   }
 }
