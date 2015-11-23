@@ -171,6 +171,28 @@ public class InstructionFactory {
       }
     };
   }
+
+  public static Instruction createWord(int length) {
+    List<Operand> operands = new ArrayList<>(1);
+    operands.add(new Word(length));
+    return new Instruction(InstructionType.WORD, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + operands.get(0);
+      }
+    };
+  }
+
+  public static Instruction createAscii(String ascii) {
+    List<Operand> operands = new ArrayList<>(1);
+    operands.add(new Ascii(ascii));
+    return new Instruction(InstructionType.ASCII, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + "\"" + operands.get(0) + "\"";
+      }
+    };
+  }
 }
 
 
