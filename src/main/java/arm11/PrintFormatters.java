@@ -2,6 +2,8 @@ package arm11;
 
 public enum PrintFormatters {
 
+  // TODO: Check all formatters are correct
+
   INT_PRINT_FORMATTER("%d\0"),
   CHAR_PRINT_FORMATTER("%c\0"),
   STRING_PRINT_FORMATTER("%s\0"),
