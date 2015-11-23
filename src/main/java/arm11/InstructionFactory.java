@@ -12,7 +12,7 @@ public class InstructionFactory {
       @Override
       protected String printInstruction() {
         return type.toString() + " " + operands.get(0)
-            + ", " + "=" + operands.get(1);
+            + ", =" + operands.get(1);
       }
     };
   }
@@ -86,6 +86,36 @@ public class InstructionFactory {
       @Override
       protected String printInstruction() {
         return type.toString() + " " + operands.get(0);
+      }
+    };
+  }
+
+  public static Instruction createSub(Register dst,
+                                          Register rn,
+                                          Operand imm) {
+    List<Operand> operands = new ArrayList<>(3);
+    operands.add(dst);
+    operands.add(rn);
+    operands.add(imm);
+    return new Instruction(InstructionType.SUB, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + operands.get(0) + ", " + operands.get(1)
+            + ", #" + operands.get(2);
+      }
+    };
+  }
+
+  public static Instruction createAdd(Register dst, Register rn, Operand imm) {
+    List<Operand> operands = new ArrayList<>(3);
+    operands.add(dst);
+    operands.add(rn);
+    operands.add(imm);
+    return new Instruction(InstructionType.ADD, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + operands.get(0) + ", " + operands.get(1)
+            + ", #" + operands.get(2);
       }
     };
   }
