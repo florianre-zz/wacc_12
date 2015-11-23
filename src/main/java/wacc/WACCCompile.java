@@ -22,11 +22,12 @@ public class WACCCompile {
 
     ParseTree tree = new WACCParser(tokens).prog();
 
-    performSemanticAnalysis(tree, errorHandler);
+    SymbolTable<String, Binding> top
+        = performSemanticAnalysis(tree, errorHandler);
 
     checkForErrors(errorHandler);
 
-    performCodeGeneration(tree);
+    performCodeGeneration(tree, top);
 
   }
 
@@ -36,7 +37,8 @@ public class WACCCompile {
     return new CommonTokenStream(lexer);
   }
 
-  private static void performSemanticAnalysis(ParseTree tree,
+  private static SymbolTable<String, Binding> performSemanticAnalysis(
+                                              ParseTree tree,
                                               WACCErrorHandler errorHandler) {
 
 //    int numberOfSyntaxErrors = parser.getNumberOfSyntaxErrors();
@@ -54,6 +56,7 @@ public class WACCCompile {
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
 
+    return top;
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
@@ -78,8 +81,9 @@ public class WACCCompile {
     }
   }
 
-  private static void performCodeGeneration(ParseTree tree) {
-    CodeGenerator codeGenerator = new CodeGenerator();
+  private static void performCodeGeneration(ParseTree tree,
+                                            SymbolTable<String, Binding> top) {
+    CodeGenerator codeGenerator = new CodeGenerator(top);
     InstructionList program = codeGenerator.visit(tree);
     System.out.println(program);
   }
