@@ -11,6 +11,7 @@ public class DataInstructionsTest {
     assertEquals(data.addConstString("foo").toString(), "msg_0");
     assertEquals(data.addConstString("bar").toString(), "msg_1");
     assertEquals(data.addConstString("baz").toString(), "msg_2");
+    System.out.println(data);
   }
 
   @Test

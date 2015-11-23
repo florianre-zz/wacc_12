@@ -12,4 +12,9 @@ public class Word extends Operand {
   boolean isWord() {
     return true;
   }
+
+  @Override
+  public String toString() {
+    return "" + word;
+  }
 }

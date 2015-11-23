@@ -12,4 +12,9 @@ public class Ascii extends Operand {
   boolean isAscii() {
     return true;
   }
+
+  @Override
+  public String toString() {
+    return ascii;
+  }
 }
