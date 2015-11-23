@@ -16,7 +16,8 @@ public enum InstructionType {
   ASCII(".ascii"),
   CMP("CMP"),
   LDRNE("LDRNE"),
-  LDREQ("LDREQ");
+  LDREQ("LDREQ"),
+  STR("STR");
 
   private final String name;
 
