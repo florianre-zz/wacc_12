@@ -154,7 +154,6 @@ public class PrintFunctions {
     Label label = new Label("p_print_reference");
     Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
     Register r1 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R1);
-    Register r2 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R2);
     Register lr = ARM11Registers.getRegister(ARM11Registers.ARM11Register.LR);
     Register pc = ARM11Registers.getRegister(ARM11Registers.ARM11Register.PC);
 
