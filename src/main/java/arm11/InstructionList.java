@@ -16,8 +16,10 @@ public class InstructionList  {
   }
 
   public void add(InstructionList instructionList) {
-    for (Instruction instruction : instructionList.getInstructions()) {
-      this.instructions.add(instruction);
+    if (instructionList != null) {
+      for (Instruction instruction : instructionList.getInstructions()) {
+        this.instructions.add(instruction);
+      }
     }
   }
 
