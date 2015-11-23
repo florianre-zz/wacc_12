@@ -9,8 +9,6 @@ import org.antlr.v4.runtime.misc.NotNull;
 
 public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
-  private int messageCounter = 0;
-
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
     InstructionList program = new InstructionList();
@@ -70,7 +68,6 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
   @Override
   public InstructionList visitPrintStat(
       @NotNull WACCParser.PrintStatContext ctx) {
-    messageCounter++;
     InstructionList list = new InstructionList();
 
     return list;
