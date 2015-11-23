@@ -75,6 +75,11 @@ public class ArrayType extends Type {
   }
 
   @Override
+  public int getSize() {
+    return SIZE_OF_ADDRESS;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) {
       return true;

@@ -2,17 +2,23 @@ package bindings;
 
 public enum Types {
 
-  INT_T("int"),
-  BOOL_T("bool"),
-  CHAR_T("char"),
-  STRING_T("string"),
-  PAIR_T("pair"),
-  GENERIC_ARRAY_T("T[]");
+  INT_T("int", 4),
+  BOOL_T("bool", 1),
+  CHAR_T("char", 4),
+  STRING_T("string", 4),
+  PAIR_T("pair", 4),
+  GENERIC_ARRAY_T("T[]", 4);
 
   private final String name;
+  private final int size;
 
-  Types(String name) {
+  Types(String name, int size) {
     this.name = name;
+    this.size = size;
+  }
+
+  public int getSize() {
+    return size;
   }
 
   @Override
