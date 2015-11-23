@@ -5,9 +5,19 @@ import antlr.WACCParserBaseVisitor;
 import arm11.*;
 import org.antlr.v4.runtime.misc.NotNull;
 
+import java.util.HashSet;
+
 // TODO: Do we need top for labels?
 
 public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
+
+  private DataInstructions data;
+  private HashSet<InstructionList> helperFunctions;
+
+  public CodeGenerator() {
+    this.data = new DataInstructions();
+    this.helperFunctions = new HashSet<>();
+  }
 
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
@@ -21,6 +31,8 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
   @Override
   public InstructionList visitMain(WACCParser.MainContext ctx) {
+
+    // TODO: Add the data and helperFunctions sections above and below main
 
     InstructionList list = new InstructionList();
 
@@ -52,6 +64,7 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
 
   @Override
   public InstructionList visitExitStat(WACCParser.ExitStatContext ctx) {
+
     InstructionList list = new InstructionList();
 
     Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
@@ -65,10 +78,36 @@ public class CodeGenerator extends WACCParserBaseVisitor<InstructionList> {
     return list;
   }
 
+//  @Override
+//  public InstructionList visitInteger(@NotNull WACCParser.IntegerContext ctx) {
+//    InstructionList list = new InstructionList();
+//    long intValue = Long.valueOf(ctx.INTEGER().getText());
+//    list.add(InstructionFactory.createMov());
+//    return list;
+//  }
+
   @Override
   public InstructionList visitPrintStat(
       @NotNull WACCParser.PrintStatContext ctx) {
     InstructionList list = new InstructionList();
+
+    // TODO: find the type of what we are printing
+
+    // We are assuming ints
+
+    // TODO:
+
+    Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
+    Register r4 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R4);
+
+    // Assume it saves reult in r4
+    list.add(visitExpr(ctx.expr()));
+
+    list.add(InstructionFactory.createMov(r0, r4));
+    list.add(InstructionFactory.createBranchLink(new Label("p_print_int")));
+
+    InstructionList printHelperFunction = PrintFunctions.printInt(data);
+    helperFunctions.add(printHelperFunction);
 
     return list;
   }

@@ -15,8 +15,8 @@ public class PrintFunctions {
       InstructionList list = new InstructionList();
 
       Label label = new Label("p_print_int");
-      Label intFormatterLabel = data.addPrintFormatter
-          (PrintFormatters.INT_PRINT_FORMATTER);
+      Label intFormatterLabel
+          = data.addPrintFormatter(PrintFormatters.INT_PRINT_FORMATTER);
       Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
       Register r1 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R1);
       Register lr = ARM11Registers.getRegister(ARM11Registers.ARM11Register.LR);
@@ -49,8 +49,8 @@ public class PrintFunctions {
     InstructionList list = new InstructionList();
 
     Label label = new Label("p_print_string");
-    Label stringFormatterLabel = data.addPrintFormatter
-        (PrintFormatters.STRING_PRINT_FORMATTER);
+    Label stringFormatterLabel
+        = data.addPrintFormatter(PrintFormatters.STRING_PRINT_FORMATTER);
     Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
     Register r1 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R1);
     Register r2 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R2);
@@ -86,8 +86,8 @@ public class PrintFunctions {
     InstructionList list = new InstructionList();
 
     Label label = new Label("p_print_ln");
-    Label LnFormatterLabel = data.addPrintFormatter
-        (PrintFormatters.LN_PRINT_FORMATTER);
+    Label LnFormatterLabel
+        = data.addPrintFormatter(PrintFormatters.LN_PRINT_FORMATTER);
     Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
     Register lr = ARM11Registers.getRegister(ARM11Registers.ARM11Register.LR);
     Register pc = ARM11Registers.getRegister(ARM11Registers.ARM11Register.PC);
@@ -117,10 +117,10 @@ public class PrintFunctions {
     InstructionList list = new InstructionList();
 
     Label label = new Label("p_print_bool");
-    Label trueFormatterLabel = data.addPrintFormatter
-        (PrintFormatters.BOOL_TRUE_PRINT_FORMATTER);
-    Label falseFormatterLabel = data.addPrintFormatter
-        (PrintFormatters.BOOL_FALSE_PRINT_FORMATTER);
+    Label trueFormatterLabel
+        = data.addPrintFormatter(PrintFormatters.BOOL_TRUE_PRINT_FORMATTER);
+    Label falseFormatterLabel
+        = data.addPrintFormatter(PrintFormatters.BOOL_FALSE_PRINT_FORMATTER);
     Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
     Register lr = ARM11Registers.getRegister(ARM11Registers.ARM11Register.LR);
     Register pc = ARM11Registers.getRegister(ARM11Registers.ARM11Register.PC);
@@ -159,8 +159,8 @@ public class PrintFunctions {
     InstructionList list = new InstructionList();
 
     Label label = new Label("p_print_reference");
-    Label referenceFormatterLabel = data.addPrintFormatter
-        (PrintFormatters.REFERENCE_PRINT_FORMATTER);
+    Label referenceFormatterLabel
+        = data.addPrintFormatter(PrintFormatters.REFERENCE_PRINT_FORMATTER);
     Register r0 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R0);
     Register r1 = ARM11Registers.getRegister(ARM11Registers.ARM11Register.R1);
     Register lr = ARM11Registers.getRegister(ARM11Registers.ARM11Register.LR);
