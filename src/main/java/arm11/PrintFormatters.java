@@ -18,4 +18,7 @@ public enum PrintFormatters {
     instructions.add(InstructionFactory.createAscii(formatter));
   }
 
+  public InstructionList getInstructions() {
+    return instructions;
+  }
 }

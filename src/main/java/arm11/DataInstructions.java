@@ -18,18 +18,29 @@ public class DataInstructions {
 
   public Label addPrintFormatter(PrintFormatters printFormatter) {
     if (!printFormattersMap.containsKey(printFormatter)) {
-      printFormattersMap.put(printFormatter, new Label("msg_" + labelCounter));
+      Label label = new Label("msg_" + labelCounter);
+      printFormattersMap.put(printFormatter, label);
+
+      instructionList.add(InstructionFactory.createLabel(label));
+      instructionList.add(printFormatter.getInstructions());
+
       labelCounter++;
     }
     return printFormattersMap.get(printFormatter);
   }
 
-  public Label addConstString(String constString) {
-    if (!constStringMap.containsKey(constString)) {
-      constStringMap.put(constString, new Label("msg_" + labelCounter));
+  public Label addConstString(String string) {
+    if (!constStringMap.containsKey(string)) {
+      Label label = new Label("msg_" + labelCounter);
+      constStringMap.put(string, label);
+
+      instructionList.add(InstructionFactory.createLabel(label));
+      instructionList.add(InstructionFactory.createWord(string.length()));
+      instructionList.add(InstructionFactory.createAscii(string));
+
       labelCounter++;
     }
-    return constStringMap.get(constString);
+    return constStringMap.get(string);
   }
 
   @Override
