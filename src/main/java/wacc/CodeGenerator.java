@@ -83,6 +83,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createSub(sp, sp, imm));
     }
 
+    for (Binding b : variables) {
+      Variable v = (Variable) b;
+      stackSpaceSize -= v.getType().getSize();
+      long offset = stackSpaceSize;
+      v.setOffset(offset);
+    }
+
     return list;
   }
 
@@ -135,11 +142,45 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 //  }
 
   @Override
+  public InstructionList visitStatList(@NotNull WACCParser.StatListContext ctx) {
+    InstructionList list = new InstructionList();
+    for (WACCParser.StatContext statContext : ctx.stat()) {
+      list.add(visitStat(statContext));
+    }
+    return list;
+  }
+
+  @Override
+  public InstructionList visitStat(@NotNull WACCParser.StatContext ctx) {
+    if (ctx instanceof WACCParser.InitStatContext) {
+      return visitInitStat((WACCParser.InitStatContext) ctx);
+    }
+    if (ctx instanceof WACCParser.SkipStatContext) {
+      return visitSkipStat((WACCParser.SkipStatContext) ctx);
+    }
+    if (ctx instanceof WACCParser.ExitStatContext) {
+      return visitExitStat((WACCParser.ExitStatContext) ctx);
+    }
+    // TODO: Implement all other stats
+    return null;
+  }
+
+  @Override
   public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
-    // TODO: put value in a free register
-    // TODO: move what's in that register to the stack with the offset for this value
-    // TODO: change return value
-    return new InstructionList();
+    InstructionList list = new InstructionList();
+
+    Register reg = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+    // TODO: take into consideration other types
+    long value = Long.parseLong(ctx.assignRHS().getText());
+
+    Operand op = new Immediate(value);
+    Register sp  = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+    Binding binding = workingSymbolTable.get(ctx.ident().getText());
+    Operand offset = new Immediate(((Variable) binding).getOffset());
+
+    list.add(InstructionFactory.createLoad(reg, op));
+    list.add(InstructionFactory.createStore(reg, sp, offset));
+    return list;
   }
 
   public InstructionList visitPrintStat(
