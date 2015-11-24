@@ -257,7 +257,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
   public Void visitFunc(WACCParser.FuncContext ctx) {
     hasReturnStat = false;
     hasExitStat = false;
-    String funcName = ctx.funcName.getText();
+    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
     setANewScope(ctx, funcName);
     if (!hasReturnStat && !hasExitStat) {
       String errorMsg = "Return statement required in body of " + funcName;

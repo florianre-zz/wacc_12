@@ -28,7 +28,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
 
   protected Function getCalledFunction(WACCParser.CallContext ctx) {
     NewScope progScope = (NewScope) top.get(Scope.PROG.toString());
-    String funcName = ctx.funcName.getText();
+    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
     Binding function = progScope.getSymbolTable().get(funcName);
     if (function instanceof Function) {
       return (Function) function;
@@ -65,7 +65,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
   }
 
   protected enum ScopeType {
-
+    FUNCTION_SCOPE("f_"),
     REGULAR_SCOPE("0"),
     ONE_WAY_SCOPE("1");
 
@@ -83,9 +83,8 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
   }
 
   protected enum Scope {
-
-    MAIN(ScopeType.REGULAR_SCOPE + "main"),
-    PROG(ScopeType.REGULAR_SCOPE + "prog"),
+    MAIN("main"),
+    PROG("prog"),
     BEGIN(ScopeType.REGULAR_SCOPE + "begin"),
     WHILE(ScopeType.ONE_WAY_SCOPE + "while"),
     THEN(ScopeType.ONE_WAY_SCOPE + "then"),
