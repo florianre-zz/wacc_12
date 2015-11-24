@@ -184,9 +184,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       op = new Immediate(value);
       storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
     } else if (Type.isChar(varType)) {
-
+      op = new Immediate(text);
+      storeInstr = InstructionFactory.createStore(reg, sp, offset);
     }
-
 
     list.add(InstructionFactory.createLoad(reg, op));
     list.add(storeInstr);
