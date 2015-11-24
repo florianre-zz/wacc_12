@@ -3,6 +3,7 @@ package wacc;
 import antlr.WACCParser;
 import arm11.*;
 import bindings.Binding;
+import bindings.Type;
 import bindings.Variable;
 import org.antlr.v4.runtime.misc.NotNull;
 import java.util.HashSet;
@@ -153,25 +154,42 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-//  }
-
-//  }
-
   @Override
   public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
     InstructionList list = defaultResult();
 
     Register reg = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
     // TODO: take into consideration other types
-    long value = Long.parseLong(ctx.assignRHS().getText());
 
-    Operand op = new Immediate(value);
+    Operand op = null;
+    Instruction storeInstr = null;
     Register sp  = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
-    Binding binding = workingSymbolTable.get(ctx.ident().getText());
-    Operand offset = new Immediate(((Variable) binding).getOffset());
+    Variable var = (Variable) workingSymbolTable.get(ctx.ident().getText());
+    Operand offset = new Immediate(var.getOffset());
+
+
+    Type varType = var.getType();
+    String text = ctx.assignRHS().getText();
+    if (Type.isInt(varType)) {
+      long value = Long.parseLong(text);
+      op = new Immediate(value);
+      storeInstr = InstructionFactory.createStore(reg, sp, offset);
+    } else if (Type.isBool(varType)) {
+      long value;
+      if (text.equals("true")) {
+        value = 1;
+      } else {
+        value = 0;
+      }
+      op = new Immediate(value);
+      storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
+    } else if (Type.isChar(varType)) {
+
+    }
+
 
     list.add(InstructionFactory.createLoad(reg, op));
-    list.add(InstructionFactory.createStore(reg, sp, offset));
+    list.add(storeInstr);
     return list;
   }
 

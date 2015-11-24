@@ -224,14 +224,36 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createStore(Register reg,
+  public static Instruction createStore(Register src,
                                         Register base,
                                         Operand offset) {
     List<Operand> operands = new ArrayList<>();
-    operands.add(reg);
+    operands.add(src);
     operands.add(base);
     operands.add(offset);
     return new Instruction(InstructionType.STR, operands) {
+      @Override
+      protected String printInstruction() {
+        StringBuilder sb = new StringBuilder(type.toString());
+        sb.append(" ").append(operands.get(0));
+        sb.append(", [").append(operands.get(1));
+        if (!operands.get(2).toString().equals("0")) {
+          sb.append(", #").append(operands.get(2));
+        }
+        sb.append("]");
+        return sb.toString();
+      }
+    };
+  }
+
+  public static Instruction createStoreBool(Register src,
+                                            Register base,
+                                            Operand offset) {
+    List<Operand> operands = new ArrayList<>();
+    operands.add(src);
+    operands.add(base);
+    operands.add(offset);
+    return new Instruction(InstructionType.STRB, operands) {
       @Override
       protected String printInstruction() {
         StringBuilder sb = new StringBuilder(type.toString());
