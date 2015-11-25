@@ -8,6 +8,7 @@ import bindings.Variable;
 import org.antlr.v4.runtime.misc.NotNull;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Stack;
 
 // TODO: Do we need top for labels?
 
@@ -16,11 +17,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   private DataInstructions data;
   private HashSet<InstructionList> helperFunctions;
 
+  private Stack<Register> freeRegisters;
+
   public CodeGenerator(SymbolTable top) {
 
     super(top);
     this.data = new DataInstructions();
     this.helperFunctions = new HashSet<>();
+    this.freeRegisters = new Stack<>();
   }
 
   //@Override
@@ -45,6 +49,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
+    resetFreeRegisters();
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
     InstructionList program = defaultResult();
@@ -56,6 +61,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     program.add(main);
     goUpWorkingSymbolTable();
     return program;
+  }
+
+  private void resetFreeRegisters() {
+    freeRegisters.clear();
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R4));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R5));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R6));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R7));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R8));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R9));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R10));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R11));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R12));
   }
 
   @Override
@@ -160,8 +178,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
     InstructionList list = defaultResult();
 
-    Register reg = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-    // TODO: take into consideration other types
+    Register reg = freeRegisters.pop();
 
     Operand op = null;
     Instruction storeInstr = null;
@@ -195,6 +212,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(InstructionFactory.createLoad(reg, op));
     list.add(storeInstr);
+    freeRegisters.push(reg);
     return list;
   }
 
@@ -209,6 +227,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     // TODO:
 
     Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+    // TODO: uses freeRegisters (Stack)
     Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
 
     // Assume it saves result in r4
