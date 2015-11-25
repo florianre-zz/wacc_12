@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 public class DataInstructions {
 
+  public static final int EMPTY = -1;
   private InstructionList instructionList;
   private Map<PrintFormatters, Label> printFormattersMap;
   private Map<String, Label> constStringMap;
@@ -14,7 +15,7 @@ public class DataInstructions {
     instructionList.add(InstructionFactory.createData());
     this.printFormattersMap = new HashMap<>();
     this.constStringMap = new HashMap<>();
-    this.labelCounter = -1;
+    this.labelCounter = EMPTY;
   }
 
   public Label addPrintFormatter(PrintFormatters printFormatter) {
@@ -48,7 +49,7 @@ public class DataInstructions {
   }
 
   private boolean hasData() {
-    return labelCounter != -1;
+    return labelCounter != EMPTY;
   }
 
   public InstructionList getInstructionList() {
