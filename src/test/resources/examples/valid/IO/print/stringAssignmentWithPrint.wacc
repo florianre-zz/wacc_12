@@ -7,5 +7,6 @@
 # Program:
 
 begin
+  print "foo";
   print "foo"
 end

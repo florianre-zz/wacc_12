@@ -18,6 +18,10 @@ public class DataInstructions {
     this.labelCounter = EMPTY;
   }
 
+  public Map<String, Label> getConstStringMap() {
+    return constStringMap;
+  }
+
   public Label addPrintFormatter(PrintFormatters printFormatter) {
     if (!printFormattersMap.containsKey(printFormatter)) {
       labelCounter++;
@@ -37,7 +41,7 @@ public class DataInstructions {
       constStringMap.put(string, label);
 
       instructionList.add(InstructionFactory.createLabel(label));
-      instructionList.add(InstructionFactory.createWord(string.length()));
+      instructionList.add(InstructionFactory.createWord(string.length() - 2));
       instructionList.add(InstructionFactory.createAscii(string));
     }
     return constStringMap.get(string);

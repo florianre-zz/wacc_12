@@ -16,8 +16,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private DataInstructions data;
   private HashSet<InstructionList> helperFunctions;
-
   private Stack<Register> freeRegisters;
+  private boolean printStringUsed = false;
 
   public CodeGenerator(SymbolTable top) {
 
@@ -59,6 +59,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label mainLabel = new Label(WACCVisitor.Scope.MAIN.toString());
     program.add(InstructionFactory.createGlobal(mainLabel));
     program.add(main);
+
+    // Add the helper functions
+    for (InstructionList instructionList : helperFunctions) {
+      program.add(instructionList);
+    }
+
+
     goUpWorkingSymbolTable();
     return program;
   }
@@ -231,18 +238,26 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
 
     if (Type.isString((Type) ctx.expr().returnType)) {
+      String stringExpr = ctx.expr().getText();
+
+      data.addConstString(stringExpr);
+
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
 
-      // Assume it saves result in r4
-      list.add(visitExpr(ctx.expr()));
-
+      // Make it go to r4
+      Label labelOfStringExpr = data.getConstStringMap().get(stringExpr);
+      list.add(InstructionFactory.createLoad(r4, labelOfStringExpr));
       list.add(InstructionFactory.createMov(r0, r4));
       list.add(InstructionFactory.createBranchLink(new Label("p_print_string")));
 
       InstructionList printHelperFunction = PrintFunctions.printString(data);
-      helperFunctions.add(printHelperFunction);
+      // Avoids showing print helper twice
+      if (!printStringUsed) {
+        helperFunctions.add(printHelperFunction);
+      }
+      printStringUsed = true;
     } else {
 
 

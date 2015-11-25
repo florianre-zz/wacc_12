@@ -15,6 +15,6 @@ public class Ascii extends Operand {
 
   @Override
   public String toString() {
-    return ascii;
+    return ascii.replace("\0", "\\0");
   }
 }

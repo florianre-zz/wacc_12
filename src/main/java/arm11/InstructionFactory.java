@@ -6,6 +6,9 @@ import java.util.List;
 public class InstructionFactory {
   public static Instruction createLoad(Register dst, Operand op) {
     //TODO: Check if it can really be any operand
+    // Cannot - loading a register and a immediate results in a different print:
+    // immediates have an '=' but registers do not.
+    // I tried to change it but it broke stuff on your code
     List<Operand> operands = new ArrayList<>(2);
     operands.add(dst);
     operands.add(op);
