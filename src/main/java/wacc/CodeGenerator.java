@@ -48,10 +48,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
     InstructionList program = defaultResult();
+    InstructionList main = visitMain(ctx.main());
+    program.add(data.getInstructionList());
     program.add(InstructionFactory.createText());
     Label mainLabel = new Label(WACCVisitor.Scope.MAIN.toString());
     program.add(InstructionFactory.createGlobal(mainLabel));
-    program.add(visitMain(ctx.main()));
+    program.add(main);
     goUpWorkingSymbolTable();
     return program;
   }
@@ -185,6 +187,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
     } else if (Type.isChar(varType)) {
       op = new Immediate(text);
+      storeInstr = InstructionFactory.createStore(reg, sp, offset);
+    } else if (Type.isString(varType)) {
+      op = data.addConstString(text);
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
     }
 

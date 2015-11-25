@@ -219,7 +219,7 @@ public class InstructionFactory {
     return new Instruction(InstructionType.ASCII, operands) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " \"" + operands.get(0) + "\"";
+        return type.toString() + " " + operands.get(0);
       }
     };
   }
@@ -264,6 +264,15 @@ public class InstructionFactory {
         }
         sb.append("]");
         return sb.toString();
+      }
+    };
+  }
+
+  public static Instruction createData() {
+    return new Instruction(InstructionType.DATA) {
+      @Override
+      protected String printInstruction() {
+        return type.toString();
       }
     };
   }

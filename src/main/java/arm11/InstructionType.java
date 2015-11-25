@@ -7,8 +7,8 @@ public enum InstructionType {
   PUSH("PUSH"),
   POP("POP"),
   LTORG(".ltorg"),
-  TEXT(".text"),
-  GLOBAL(".global"),
+  TEXT("\n.text"),
+  GLOBAL("\n.global"),
   SUB("SUB"),
   ADD("ADD"),
   MOV("MOV"),
@@ -18,7 +18,8 @@ public enum InstructionType {
   LDRNE("LDRNE"),
   LDREQ("LDREQ"),
   STR("STR"),
-  STRB("STRB");
+  STRB("STRB"),
+  DATA(".data");
 
   private final String name;
 
