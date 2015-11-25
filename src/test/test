@@ -41,7 +41,7 @@ def runCompile(testPath, isValid)
     end
     `rm #{@tmp}`
     i += 1
-    break if hasErrored > 100
+    break if hasErrored > 4
   end
   puts "\n\n"
 end

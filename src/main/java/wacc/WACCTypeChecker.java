@@ -179,11 +179,11 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   */
   @Override
   public Type visitFunc(WACCParser.FuncContext ctx) {
-    String funcName = ctx.funcName.getText();
+    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
 
-    changeWorkingSymbolTableTo(ctx.funcName.getText());
+    changeWorkingSymbolTableTo(funcName);
     pushEmptyVariableSymbolTable();
 
     if (ctx.paramList() != null) {
