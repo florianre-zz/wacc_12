@@ -35,7 +35,7 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr: binaryOper;
+expr returns [Object returnType]: binaryOper {Object returnType = null;};
 sign: MINUS | PLUS;
 binaryOper: logicalOper;
 logicalOper: first=comparisonOper ((AND | OR) otherExprs+=comparisonOper)*

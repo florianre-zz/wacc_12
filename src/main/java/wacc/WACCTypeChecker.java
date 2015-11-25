@@ -3,6 +3,7 @@ package wacc;
 import antlr.WACCParser;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
 import java.util.ArrayDeque;
@@ -276,6 +277,13 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
 
     return exprType;
+  }
+
+  @Override
+  public Type visitPrintStat(@NotNull WACCParser.PrintStatContext ctx) {
+    Type exprType = visitExpr(ctx.expr());
+    ctx.expr().returnType = exprType;
+    return super.visitPrintStat(ctx);
   }
 
   /**

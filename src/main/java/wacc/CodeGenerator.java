@@ -222,6 +222,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     // TODO: find the type of what we are printing
 
+    if (ctx.expr().returnType != null) {
+      Type exprType = (Type)ctx.expr().returnType;
+      System.err.println(exprType);
+    }
     // We are assuming ints
 
     // TODO:
