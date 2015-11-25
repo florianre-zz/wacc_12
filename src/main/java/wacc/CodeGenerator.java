@@ -218,31 +218,35 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   public InstructionList visitPrintStat(
       @NotNull WACCParser.PrintStatContext ctx) {
+
     InstructionList list = defaultResult();
 
     // TODO: find the type of what we are printing
 
-    if (ctx.expr().returnType != null) {
-      Type exprType = (Type)ctx.expr().returnType;
-      System.err.println(exprType);
-    }
+    //    if (ctx.expr().returnType != null) {
+    //      Type exprType = (Type)ctx.expr().returnType;
+    //      System.err.println(exprType);
+    //    }
     // We are assuming ints
 
-    // TODO:
 
-    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-    // TODO: uses freeRegisters (Stack)
-    Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+    if (Type.isString((Type) ctx.expr().returnType)) {
+      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      // TODO: uses freeRegisters (Stack)
+      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
 
-    // Assume it saves result in r4
-    list.add(visitExpr(ctx.expr()));
+      // Assume it saves result in r4
+      list.add(visitExpr(ctx.expr()));
 
-    list.add(InstructionFactory.createMov(r0, r4));
-    list.add(InstructionFactory.createBranchLink(new Label("p_print_int")));
+      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(InstructionFactory.createBranchLink(new Label("p_print_string")));
 
-    InstructionList printHelperFunction = PrintFunctions.printInt(data);
-    helperFunctions.add(printHelperFunction);
+      InstructionList printHelperFunction = PrintFunctions.printString(data);
+      helperFunctions.add(printHelperFunction);
+    } else {
 
+
+    }
     return list;
   }
 

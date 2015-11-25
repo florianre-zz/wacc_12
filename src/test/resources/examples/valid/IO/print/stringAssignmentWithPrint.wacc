@@ -7,8 +7,5 @@
 # Program:
 
 begin
-  string s = "foo" ;
-  println s ;
-  s = "bar" ;
-  println s
+  print "foo"
 end
