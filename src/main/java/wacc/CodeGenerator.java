@@ -5,7 +5,7 @@ import arm11.*;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
-import org.antlr.v4.runtime.misc.NotNull;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
@@ -17,10 +17,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   private DataInstructions data;
   private HashSet<InstructionList> helperFunctions;
   private Stack<Register> freeRegisters;
-  private boolean printStringUsed = false;
 
   public CodeGenerator(SymbolTable top) {
-
     super(top);
     this.data = new DataInstructions();
     this.helperFunctions = new HashSet<>();
@@ -28,7 +26,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   //@Override
-//  public InstructionList visitInteger(@NotNull WACCParser.IntegerContext ctx) {
+//  public InstructionList visitInteger(WACCParser.IntegerContext ctx) {
 //    InstructionList list = defaultResult();
 //    long intValue = Long.valueOf(ctx.INTEGER().getText());
 //    list.add(InstructionFactory.createMov());
@@ -65,7 +63,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       program.add(instructionList);
     }
 
-
     goUpWorkingSymbolTable();
     return program;
   }
@@ -96,8 +93,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label label = new Label(Scope.MAIN.toString());
     list.add(InstructionFactory.createLabel(label));
 
-    Register register
-        = ARM11Registers.getRegister(ARM11Registers.Reg.LR);
+    Register register = ARM11Registers.getRegister(ARM11Registers.Reg.LR);
     list.add(InstructionFactory.createPush(register));
 
     list.add(allocateSpaceOnStack());
@@ -105,8 +101,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(deallocateSpaceOnStack());
 
     Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-    Operand value = new Immediate((long) 0);
-    list.add(InstructionFactory.createLoad(r0, value));
+    Operand imm = new Immediate((long) 0);
+    list.add(InstructionFactory.createLoad(r0, imm));
 
     register = ARM11Registers.getRegister(ARM11Registers.Reg.PC);
     list.add(InstructionFactory.createPop(register));
@@ -174,8 +170,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-    Long imm = Long.parseLong(ctx.expr().getText());
-    Operand value = new Immediate(imm);
+    Operand value = new Immediate(Long.parseLong(ctx.expr().getText()));
     Label label = new Label("exit");
 
     list.add(InstructionFactory.createLoad(r0, value));
@@ -185,7 +180,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
+  public InstructionList visitInitStat(WACCParser.InitStatContext ctx) {
+    // TODO: Elliot - Elyas : Make createLoad take correct Operand type
     InstructionList list = defaultResult();
     addVariableToCurrentScope(ctx.ident().getText());
 
@@ -202,28 +198,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     } else {
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
     }
-//    String text = ctx.assignRHS().getText();
-//    if (Type.isInt(varType)) {
-//      long value = Long.parseLong(text);
-//      op = new Immediate(value);
-//      storeInstr = InstructionFactory.createStore(reg, sp, offset);
-//    } else if (Type.isBool(varType)) {
-//      long value;
-//      if (text.equals("true")) {
-//        value = 1;
-//      } else {
-//        value = 0;
-//      }
-//      op = new Immediate(value);
-//      storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
-//    } else if (Type.isChar(varType)) {
-//      op = new Immediate(text);
-//      storeInstr = InstructionFactory.createStore(reg, sp, offset);
-//    } else if (Type.isString(varType)) {
-//      op = data.addConstString(text);
-//      storeInstr = InstructionFactory.createStore(reg, sp, offset);
-//    }
-//    list.add(load);
 
     list.add(visitAssignRHS(ctx.assignRHS()));
     list.add(storeInstr);
@@ -231,19 +205,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  public InstructionList visitPrintStat(
-      @NotNull WACCParser.PrintStatContext ctx) {
-
+  public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
 
-    // TODO: find the type of what we are printing
-
-    //    if (ctx.expr().returnType != null) {
-    //      Type exprType = (Type)ctx.expr().returnType;
-    //      System.err.println(exprType);
-    //    }
-    // We are assuming ints
-
+    Label printLabel;
 
     if (Type.isString((Type) ctx.expr().returnType)) {
       String stringExpr = ctx.expr().getText();
@@ -253,23 +218,79 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-
-      // Make it go to r4
+      printLabel = new Label("p_print_string");
       Label labelOfStringExpr = data.getConstStringMap().get(stringExpr);
+
       list.add(InstructionFactory.createLoad(r4, labelOfStringExpr));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(new Label("p_print_string")));
+      list.add(InstructionFactory.createBranchLink(printLabel));
 
       InstructionList printHelperFunction = PrintFunctions.printString(data);
-      // Avoids showing print helper twice
-      if (!printStringUsed) {
-        helperFunctions.add(printHelperFunction);
-      }
-      printStringUsed = true;
+      helperFunctions.add(printHelperFunction);
+
+    } else if (Type.isInt((Type) ctx.expr().returnType)) {
+      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      // TODO: uses freeRegisters (Stack)
+      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+      Immediate imm = new Immediate(ctx.expr().getText());
+      printLabel = new Label("p_print_int");
+
+      list.add(InstructionFactory.createLoad(r4, imm));
+      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(InstructionFactory.createBranchLink(printLabel));
+
+      InstructionList printHelperFunction = PrintFunctions.printInt(data);
+      helperFunctions.add(printHelperFunction);
+
+    } else if (Type.isChar((Type) ctx.expr().returnType)){
+      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      // TODO: uses freeRegisters (Stack)
+      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+      Immediate imm = new Immediate(ctx.expr().getText());
+      printLabel = new Label("putchar");
+
+      list.add(InstructionFactory.createMov(r4, imm));
+      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(InstructionFactory.createBranchLink(printLabel));
+
+    } else if (Type.isBool((Type) ctx.expr().returnType)) {
+      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      // TODO: uses freeRegisters (Stack)
+      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+      long value = ctx.expr().getText().equals("true") ? 1 : 0;
+      Immediate imm = new Immediate(value);
+      printLabel = new Label("p_print_bool");
+
+      list.add(InstructionFactory.createMov(r4, imm));
+      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(InstructionFactory.createBranchLink(printLabel));
+
+      InstructionList printHelperFunction = PrintFunctions.printBool(data);
+      helperFunctions.add(printHelperFunction);
+
     } else {
+      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      // TODO: uses freeRegisters (Stack)
+      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      Operand address = new Address(sp);
+      printLabel = new Label("p_print_reference");
 
+      list.add(InstructionFactory.createLoad(r4, address));
+      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(InstructionFactory.createBranchLink(printLabel));
 
+      InstructionList printHelperFunction = PrintFunctions.printReference(data);
+      helperFunctions.add(printHelperFunction);
     }
+
+    if (ctx.PRINTLN() != null) {
+      printLabel = new Label("p_print_ln");
+      list.add(InstructionFactory.createBranchLink(printLabel));
+      InstructionList printHelperFunction = PrintFunctions.printLn(data);
+      helperFunctions.add(printHelperFunction);
+    }
+
     return list;
   }
 
@@ -345,7 +366,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitString(@NotNull WACCParser.StringContext ctx) {
+  public InstructionList visitString(WACCParser.StringContext ctx) {
     InstructionList list = defaultResult();
 
     Operand op;
@@ -375,6 +396,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     } else {
       list.add(InstructionFactory.createLoad(reg, sp, offset));
     }
+    return list;
+  }
+
+  public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
+    InstructionList list = defaultResult();
 
     return list;
   }

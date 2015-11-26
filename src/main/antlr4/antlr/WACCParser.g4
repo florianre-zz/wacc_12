@@ -24,7 +24,8 @@ stat: SKIP                                                       # SkipStat
       | BEGIN statList END                                       # BeginStat
       ;
 
-assignLHS: ident | arrayElem | pairElem;
+assignLHS returns [Object returnType]: (ident | arrayElem | pairElem) {Object
+returnType = null;};
 assignRHS: expr | arrayLitr | newPair | pairElem | call;
 newPair: NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS;
 call: CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS;

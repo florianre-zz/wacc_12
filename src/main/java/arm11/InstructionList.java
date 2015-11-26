@@ -35,4 +35,18 @@ public class InstructionList  {
     }
     return sb.toString();
   }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+
+    InstructionList that = (InstructionList) o;
+    return this.toString().equals(that.toString());
+  }
+
+  @Override
+  public int hashCode() {
+    return instructions != null ? instructions.toString().hashCode() : 0;
+  }
 }

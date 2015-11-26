@@ -1,9 +1,12 @@
-import arm11.DataInstructions;
-import arm11.Label;
-import arm11.PrintFormatters;
+import arm11.*;
 import org.junit.Test;
 
+import java.util.HashSet;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertThat;
+
 public class DataInstructionsTest {
 
   @Test
@@ -21,6 +24,35 @@ public class DataInstructionsTest {
     assertEquals(label.toString(), "msg_0");
     // Adding the same string again returns the same label
     assertEquals(label, data.addConstString("foo"));
+  }
+
+  @Test
+  public void testSameHashCodes() {
+    DataInstructions data = new DataInstructions();
+    assertEquals(PrintFunctions.printBool(data).hashCode(),
+            PrintFunctions.printBool(data).hashCode());
+    assertEquals(PrintFunctions.printString(data).hashCode(),
+            PrintFunctions.printString(data).hashCode());
+    assertNotEquals(PrintFunctions.printBool(data).hashCode(),
+            PrintFunctions.printString(data).hashCode());
+  }
+
+  @Test
+  public void testAddingTheSameHelperFunctionToSet() {
+    DataInstructions data = new DataInstructions();
+    HashSet<InstructionList> helperFunctions = new HashSet<>();
+    assertEquals(0, helperFunctions.size());
+    InstructionList printBool = PrintFunctions.printBool(data);
+    helperFunctions.add(printBool);
+    assertEquals(1, helperFunctions.size());
+    InstructionList printBoolAgain = PrintFunctions.printBool(data);
+    assertEquals(printBool.hashCode(), printBoolAgain.hashCode());
+    helperFunctions.add(printBoolAgain);
+    assertEquals(1, helperFunctions.size());
+    helperFunctions.add(PrintFunctions.printString(data));
+    assertEquals(2, helperFunctions.size());
+    helperFunctions.add(PrintFunctions.printString(data));
+    assertEquals(2, helperFunctions.size());
   }
 
   private static int countLines(String str){
