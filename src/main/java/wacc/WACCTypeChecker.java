@@ -3,7 +3,6 @@ package wacc;
 import antlr.WACCParser;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
 import java.util.ArrayDeque;
@@ -249,6 +248,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return lhsType;
   }
 
+  @Override
+  public Type visitAssignLHS(WACCParser.AssignLHSContext ctx) {
+
+    return super.visitAssignLHS(ctx);
+  }
+
   /**
   * READ assignLHS
   * type check isReadable */
@@ -260,6 +265,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       errorHandler.complain(
           new ReadTypeAssignmentError(ctx, lhsType.toString()));
     }
+
+    ctx.assignLHS().returnType = visitAssignLHS(ctx.assignLHS());
 
     return lhsType;
   }
@@ -280,9 +287,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   @Override
-  public Type visitPrintStat(@NotNull WACCParser.PrintStatContext ctx) {
-    Type exprType = visitExpr(ctx.expr());
-    ctx.expr().returnType = exprType;
+  public Type visitPrintStat(WACCParser.PrintStatContext ctx) {
+    ctx.expr().returnType = visitExpr(ctx.expr());
     return super.visitPrintStat(ctx);
   }
 
