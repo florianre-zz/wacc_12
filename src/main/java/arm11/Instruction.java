@@ -38,4 +38,5 @@ public abstract class Instruction {
   public int hashCode() {
     return this.toString().hashCode();
   }
+
 }
