@@ -333,6 +333,29 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
+  public InstructionList visitCharacter(WACCParser.CharacterContext ctx) {
+    InstructionList list = defaultResult();
+
+    Operand op;
+    Instruction loadOrMove;
+    Register reg = freeRegisters.pop();
+    String chr = ctx.CHARACTER().getText();
+
+    if (ctx.ORD() != null){
+      long value = (int) chr.charAt(1);
+      op = new Immediate(value);
+      loadOrMove = InstructionFactory.createLoad(reg, op);
+    } else {
+      op = new Immediate(chr);
+      loadOrMove = InstructionFactory.createMov(reg, op);
+    }
+
+    list.add(loadOrMove);
+    // TODO: make InstructionList a builder so we wan return list.add(l)
+    return list;
+  }
+
+  @Override
   public InstructionList visitIdent(WACCParser.IdentContext ctx) {
     return null;
   }
