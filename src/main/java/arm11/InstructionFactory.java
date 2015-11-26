@@ -14,8 +14,9 @@ public class InstructionFactory {
       @Override
       protected String printInstruction() {
         if (op instanceof Address) {
-          return type.toString() + " " + operands.get(0)
-                 + ", " + operands.get(1);
+          return type.toString() + " "
+                 + operands.get(0) + ", "
+                 + operands.get(1);
         } else {
           return type.toString() + " " + operands.get(0)
                  + ", =" + operands.get(1);
@@ -121,8 +122,9 @@ public class InstructionFactory {
       @Override
       protected String printInstruction() {
         if (op instanceof Immediate) {
-          return type.toString() + " " + operands.get(0) + ", #" + operands.get
-              (1);
+          return type.toString() + " "
+                 + operands.get(0) + ", #"
+                 + operands.get(1);
         } else {
           return type.toString() + " " + operands.get(0)
                  + ", " + operands.get(1);
@@ -146,8 +148,10 @@ public class InstructionFactory {
                  + operands.get(1) + ", #"
                  + operands.get(2);
         } else {
-          return type.toString() + " " + operands.get(0) + ", " + operands.get(1)
-                 + ", " + operands.get(2);
+          return type.toString() + " "
+                 + operands.get(0) + ", "
+                 + operands.get(1) + ", "
+                 + operands.get(2);
         }
 
       }

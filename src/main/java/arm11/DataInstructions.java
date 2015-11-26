@@ -6,7 +6,7 @@ public class DataInstructions {
 
   public static final int EMPTY = -1;
   private InstructionList instructionList;
-  private Map<PrintFormatters, Label> printFormattersMap;
+  private Map<IOFormatters, Label> printFormattersMap;
   private Map<String, Label> constStringMap;
   private int labelCounter;
 
@@ -22,7 +22,7 @@ public class DataInstructions {
     return constStringMap;
   }
 
-  public Label addPrintFormatter(PrintFormatters printFormatter) {
+  public Label addPrintFormatter(IOFormatters printFormatter) {
     if (!printFormattersMap.containsKey(printFormatter)) {
       labelCounter++;
       Label label = new Label("msg_" + labelCounter);

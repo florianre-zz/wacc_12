@@ -5,9 +5,10 @@ import arm11.*;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
-import org.antlr.v4.runtime.misc.NotNull;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Stack;
 
 // TODO: Do we need top for labels?
 
@@ -16,14 +17,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   private DataInstructions data;
   private HashSet<InstructionList> helperFunctions;
   private Stack<Register> freeRegisters;
-  private boolean printStringUsed = false;
-  private boolean printIntUsed = false;
-  private boolean printBooleanUsed = false;
-  private boolean printLnUsed = false;
-  private boolean printReferenceUsed = false;
 
   public CodeGenerator(SymbolTable top) {
-
     super(top);
     this.data = new DataInstructions();
     this.helperFunctions = new HashSet<>();
@@ -31,7 +26,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   //@Override
-//  public InstructionList visitInteger(@NotNull WACCParser.IntegerContext ctx) {
+//  public InstructionList visitInteger(WACCParser.IntegerContext ctx) {
 //    InstructionList list = defaultResult();
 //    long intValue = Long.valueOf(ctx.INTEGER().getText());
 //    list.add(InstructionFactory.createMov());
@@ -97,8 +92,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label label = new Label(Scope.MAIN.toString());
     list.add(InstructionFactory.createLabel(label));
 
-    Register register
-        = ARM11Registers.getRegister(ARM11Registers.Reg.LR);
+    Register register = ARM11Registers.getRegister(ARM11Registers.Reg.LR);
     list.add(InstructionFactory.createPush(register));
 
     list.add(allocateSpaceOnStack());
@@ -183,7 +177,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
+  public InstructionList visitInitStat(WACCParser.InitStatContext ctx) {
     // TODO: Elliot - Elyas : Make createLoad take correct Operand type
     InstructionList list = defaultResult();
 
@@ -232,7 +226,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Label printLabel;
-
 
     if (Type.isString((Type) ctx.expr().returnType)) {
       String stringExpr = ctx.expr().getText();
@@ -299,19 +292,20 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
       Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      Operand address = new Address(sp);
+      printLabel = new Label("p_print_reference");
 
-
-      list.add(InstructionFactory.createLoad(r4, new Address(sp)));
+      list.add(InstructionFactory.createLoad(r4, address));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(new Label
-                                                       ("p_print_reference")));
+      list.add(InstructionFactory.createBranchLink(printLabel));
 
       InstructionList printHelperFunction = PrintFunctions.printReference(data);
       helperFunctions.add(printHelperFunction);
     }
 
     if (ctx.PRINTLN() != null) {
-      list.add(InstructionFactory.createBranchLink(new Label("p_print_ln")));
+      printLabel = new Label("p_print_ln");
+      list.add(InstructionFactory.createBranchLink(printLabel));
       InstructionList printHelperFunction = PrintFunctions.printLn(data);
       helperFunctions.add(printHelperFunction);
     }
