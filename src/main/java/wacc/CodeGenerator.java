@@ -400,6 +400,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
+
     InstructionList list = defaultResult();
 
     if (Type.isInt((Type) ctx.assignLHS().returnType)) {
@@ -435,7 +436,4 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  private boolean isIdent(WACCParser.ArithmeticOperContext ctx) {
-    return ctx.atom.
-  }
 }

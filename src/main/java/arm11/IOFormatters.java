@@ -17,7 +17,7 @@ public enum IOFormatters {
   IOFormatters(String formatter) {
     this.instructions = new InstructionList();
     instructions.add(InstructionFactory.createWord(formatter.length()));
-    instructions.add(InstructionFactory.createAscii(formatter));
+    instructions.add(InstructionFactory.createAscii("\"" + formatter + "\""));
   }
 
   public InstructionList getInstructions() {
