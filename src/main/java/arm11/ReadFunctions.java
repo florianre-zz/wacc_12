@@ -5,10 +5,10 @@ public class ReadFunctions {
   public static InstructionList readInt(DataInstructions data) {
     InstructionList list = new InstructionList();
 
-    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-    Register r1 = ARM11Registers.getRegister(ARM11Registers.Reg.R1);
-    Register lr = ARM11Registers.getRegister(ARM11Registers.Reg.LR);
-    Register pc = ARM11Registers.getRegister(ARM11Registers.Reg.PC);
+    Register r0 = ARM11Registers.R0;
+    Register r1 = ARM11Registers.R1;
+    Register lr = ARM11Registers.LR;
+    Register pc = ARM11Registers.PC;
     Label formatterLabel
         = data.addPrintFormatter(IOFormatters.INT_FORMATTER);
 
@@ -26,10 +26,10 @@ public class ReadFunctions {
   public static InstructionList readChar(DataInstructions data) {
     InstructionList list = new InstructionList();
 
-    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-    Register r1 = ARM11Registers.getRegister(ARM11Registers.Reg.R1);
-    Register lr = ARM11Registers.getRegister(ARM11Registers.Reg.LR);
-    Register pc = ARM11Registers.getRegister(ARM11Registers.Reg.PC);
+    Register r0 = ARM11Registers.R0;
+    Register r1 = ARM11Registers.R1;
+    Register lr = ARM11Registers.LR;
+    Register pc = ARM11Registers.PC;
     Label formatterLabel
         = data.addPrintFormatter(IOFormatters.CHAR_FORMATTER);
 

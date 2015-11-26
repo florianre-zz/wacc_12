@@ -24,14 +24,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     this.helperFunctions = new HashSet<>();
     this.freeRegisters = new Stack<>();
   }
-
-  //@Override
-//  public InstructionList visitInteger(WACCParser.IntegerContext ctx) {
-//    InstructionList list = defaultResult();
-//    long intValue = Long.valueOf(ctx.INTEGER().getText());
-//    list.add(InstructionFactory.createMov());
-//    return list;
-//  }
   
   @Override
   protected InstructionList defaultResult() {
@@ -69,15 +61,15 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private void resetFreeRegisters() {
     freeRegisters.clear();
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R12));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R11));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R10));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R9));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R8));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R7));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R6));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R5));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R4));
+    freeRegisters.push(ARM11Registers.R12);
+    freeRegisters.push(ARM11Registers.R11);
+    freeRegisters.push(ARM11Registers.R10);
+    freeRegisters.push(ARM11Registers.R9);
+    freeRegisters.push(ARM11Registers.R8);
+    freeRegisters.push(ARM11Registers.R7);
+    freeRegisters.push(ARM11Registers.R6);
+    freeRegisters.push(ARM11Registers.R5);
+    freeRegisters.push(ARM11Registers.R4);
   }
 
   @Override
@@ -93,18 +85,18 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label label = new Label(Scope.MAIN.toString());
     list.add(InstructionFactory.createLabel(label));
 
-    Register register = ARM11Registers.getRegister(ARM11Registers.Reg.LR);
+    Register register = ARM11Registers.LR;
     list.add(InstructionFactory.createPush(register));
 
     list.add(allocateSpaceOnStack());
     list.add(visitChildren(ctx));
     list.add(deallocateSpaceOnStack());
 
-    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+    Register r0 = ARM11Registers.R0;
     Operand imm = new Immediate((long) 0);
     list.add(InstructionFactory.createLoad(r0, imm));
 
-    register = ARM11Registers.getRegister(ARM11Registers.Reg.PC);
+    register = ARM11Registers.PC;
     list.add(InstructionFactory.createPop(register));
 
     list.add(InstructionFactory.createLTORG());
@@ -127,7 +119,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     // TODO: deal with '4095', the max size... of something
     if (stackSpaceSize > 0) {
       Operand imm = new Immediate(stackSpaceSize);
-      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      Register sp = ARM11Registers.SP;
       list.add(InstructionFactory.createSub(sp, sp, imm));
     }
 
@@ -152,7 +144,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (stackSpaceSize > 0) {
       Operand imm = new Immediate(stackSpaceSize);
-      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      Register sp = ARM11Registers.SP;
       list.add(InstructionFactory.createAdd(sp, sp, imm));
     }
 
@@ -169,7 +161,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     InstructionList list = defaultResult();
 
-    Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+    Register r0 = ARM11Registers.R0;
     Operand value = new Immediate(Long.parseLong(ctx.expr().getText()));
     Label label = new Label("exit");
 
@@ -188,7 +180,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register reg = freeRegisters.peek();
 
     Instruction storeInstr;
-    Register sp  = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+    Register sp  = ARM11Registers.SP;
     Variable var = (Variable) workingSymbolTable.get(ctx.ident().getText());
     Operand offset = new Immediate(var.getOffset());
 
@@ -362,7 +354,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Variable variable = getMostRecentBindingForVariable(ctx.getText());
     long offset = variable.getOffset();
     Register reg = freeRegisters.pop();
-    Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+    Register sp = ARM11Registers.SP;
 
     if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
       list.add(InstructionFactory.createLoadStoredBool(reg, sp, offset));
@@ -377,10 +369,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     if (Type.isInt((Type) ctx.assignLHS().returnType)) {
-      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      Register r0 = ARM11Registers.R0;
       // TODO: uses freeRegisters (Stack)
-      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      Register r4 = ARM11Registers.R4;
+      Register sp = ARM11Registers.SP;
       Immediate imm = new Immediate((long) 0);
       Label readLabel = new Label("p_read_int");
 
@@ -392,10 +384,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       helperFunctions.add(printHelperFunction);
 
     } else {
-      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      Register r0 = ARM11Registers.R0;
       // TODO: uses freeRegisters (Stack)
-      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      Register r4 = ARM11Registers.R4;
+      Register sp = ARM11Registers.SP;
       Immediate imm = new Immediate((long) 0);
       Label readLabel = new Label("p_read_char");
 
