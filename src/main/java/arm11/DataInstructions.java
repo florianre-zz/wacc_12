@@ -35,13 +35,14 @@ public class DataInstructions {
   }
 
   public Label addConstString(String string) {
+
     if (!constStringMap.containsKey(string)) {
       labelCounter++;
       Label label = new Label("msg_" + labelCounter);
       constStringMap.put(string, label);
 
       instructionList.add(InstructionFactory.createLabel(label));
-      instructionList.add(InstructionFactory.createWord(string.length() - 2));
+      instructionList.add(InstructionFactory.createWord(string.length()));
       instructionList.add(InstructionFactory.createAscii(string));
     }
     return constStringMap.get(string);

@@ -215,7 +215,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       op = new Immediate(text);
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
     } else if (Type.isString(varType)) {
-      op = data.addConstString(text);
+
+      // Strip the "" at the start and end "string" -> string
+      op = data.addConstString(text.substring(1, text.length() - 1));
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
     }
 
@@ -232,7 +234,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (Type.isString((Type) ctx.expr().returnType)) {
       String stringExpr = ctx.expr().getText();
 
-      data.addConstString(stringExpr);
+      // Strip the "" at the start and end "string" -> string
+      data.addConstString(stringExpr.substring(1, stringExpr.length() - 1));
 
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
       // TODO: uses freeRegisters (Stack)
@@ -245,6 +248,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
       InstructionList printHelperFunction = PrintFunctions.printString(data);
       // Avoids showing print helper twice
+      //TODO: this shouldn't be needed
       if (!printStringUsed) {
         helperFunctions.add(printHelperFunction);
         printStringUsed = true;
@@ -284,12 +288,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
 
       String expr = ctx.expr().getText();
-      Immediate imm;
-      if (expr.equals("true")) {
-        imm = new Immediate((long) 1);
-      } else {
-        imm = new Immediate((long) 0);
-      }
+      long value = expr.equals("true") ? 1 : 0;
+      Immediate imm = new Immediate(value);
+
       list.add(InstructionFactory.createMov(r4, imm));
       list.add(InstructionFactory.createMov(r0, r4));
       list.add(InstructionFactory.createBranchLink(new Label("p_print_bool")));
