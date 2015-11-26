@@ -4,12 +4,13 @@ public enum IOFormatters {
 
   // TODO: Check all formatters are correct
 
-  INT_FORMATTER("%.*d\0"),
+  INT_FORMATTER("%d\0"),
   STRING_FORMATTER("%.*s\0"),
   REFERENCE_FORMATTER("%p\0"),
   BOOL_TRUE_FORMATTER("true\0"),
   BOOL_FALSE_FORMATTER("false\0"),
-  LN_FORMATTER("\0");
+  LN_FORMATTER("\0"),
+  CHAR_FORMATTER(" %c\0");
 
   private InstructionList instructions;
 

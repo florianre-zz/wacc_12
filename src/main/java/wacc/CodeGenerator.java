@@ -222,7 +222,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
-
     InstructionList list = defaultResult();
 
     Label printLabel;
@@ -313,4 +312,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
+    InstructionList list = defaultResult();
+
+    return list;
+  }
 }
