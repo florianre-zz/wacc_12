@@ -3,7 +3,6 @@ package wacc;
 import antlr.WACCParser;
 import arm11.*;
 import bindings.Binding;
-import bindings.Function;
 import bindings.Type;
 import bindings.Variable;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -88,7 +87,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitMain(WACCParser.MainContext ctx) {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
-    pushEmptyVariableSymbolTable();
+    pushEmptyVariableSet();
 
     // TODO: Add the data and helperFunctions sections above and below main
 
@@ -115,7 +114,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createLTORG());
 
     goUpWorkingSymbolTable();
-    popCurrentScopeVariableSymbolTable();
+    popCurrentScopeVariableSet();
     return list;
   }
 
@@ -188,8 +187,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
     InstructionList list = defaultResult();
-    Type lhsType = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
-    addVariableToCurrentScope(ctx.ident().getText(), lhsType);
+    addVariableToCurrentScope(ctx.ident().getText());
 
     // TODO: move the pop to visitAssignRHS
     Register reg = freeRegisters.peek();
