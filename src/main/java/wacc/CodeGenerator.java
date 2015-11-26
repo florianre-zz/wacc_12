@@ -316,6 +316,40 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
     InstructionList list = defaultResult();
 
+    if (Type.isInt((Type) ctx.assignLHS().returnType)) {
+      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      // TODO: uses freeRegisters (Stack)
+      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      Immediate imm = new Immediate((long) 0);
+      Label readLabel = new Label("p_read_int");
+
+      list.add(InstructionFactory.createAdd(r4, sp, imm));
+      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(InstructionFactory.createBranchLink(readLabel));
+
+      InstructionList printHelperFunction = ReadFunctions.readInt(data);
+      helperFunctions.add(printHelperFunction);
+
+    } else {
+      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      // TODO: uses freeRegisters (Stack)
+      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      Immediate imm = new Immediate((long) 0);
+      Label readLabel = new Label("p_read_char");
+
+      list.add(InstructionFactory.createAdd(r4, sp, imm));
+      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(InstructionFactory.createBranchLink(readLabel));
+
+      InstructionList printHelperFunction = ReadFunctions.readChar(data);
+      helperFunctions.add(printHelperFunction);
+    }
     return list;
+  }
+
+  private boolean isIdent(WACCParser.ArithmeticOperContext ctx) {
+    return ctx.atom.
   }
 }
