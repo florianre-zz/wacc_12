@@ -72,15 +72,15 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private void resetFreeRegisters() {
     freeRegisters.clear();
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R4));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R5));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R6));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R7));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R8));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R9));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R10));
-    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R11));
     freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R12));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R11));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R10));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R9));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R8));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R7));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R6));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R5));
+    freeRegisters.push(ARM11Registers.getRegister(ARM11Registers.Reg.R4));
   }
 
   @Override
@@ -118,6 +118,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
 
   private InstructionList allocateSpaceOnStack() {
+    // TODO: account for newScopes within...
     InstructionList list = defaultResult();
     List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
     long stackSpaceSize = 0;
@@ -185,39 +186,43 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
     InstructionList list = defaultResult();
 
-    Register reg = freeRegisters.pop();
+    // TODO: move the pop to visitAssignRHS
+    Register reg = freeRegisters.peek();
 
-    Operand op = null;
-    Instruction storeInstr = null;
+    Instruction storeInstr;
     Register sp  = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
     Variable var = (Variable) workingSymbolTable.get(ctx.ident().getText());
     Operand offset = new Immediate(var.getOffset());
 
-
-    Type varType = var.getType();
-    String text = ctx.assignRHS().getText();
-    if (Type.isInt(varType)) {
-      long value = Long.parseLong(text);
-      op = new Immediate(value);
-      storeInstr = InstructionFactory.createStore(reg, sp, offset);
-    } else if (Type.isBool(varType)) {
-      long value;
-      if (text.equals("true")) {
-        value = 1;
-      } else {
-        value = 0;
-      }
-      op = new Immediate(value);
+    if (Type.isBool(var.getType())){
       storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
-    } else if (Type.isChar(varType)) {
-      op = new Immediate(text);
-      storeInstr = InstructionFactory.createStore(reg, sp, offset);
-    } else if (Type.isString(varType)) {
-      op = data.addConstString(text);
+    } else {
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
     }
+//    String text = ctx.assignRHS().getText();
+//    if (Type.isInt(varType)) {
+//      long value = Long.parseLong(text);
+//      op = new Immediate(value);
+//      storeInstr = InstructionFactory.createStore(reg, sp, offset);
+//    } else if (Type.isBool(varType)) {
+//      long value;
+//      if (text.equals("true")) {
+//        value = 1;
+//      } else {
+//        value = 0;
+//      }
+//      op = new Immediate(value);
+//      storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
+//    } else if (Type.isChar(varType)) {
+//      op = new Immediate(text);
+//      storeInstr = InstructionFactory.createStore(reg, sp, offset);
+//    } else if (Type.isString(varType)) {
+//      op = data.addConstString(text);
+//      storeInstr = InstructionFactory.createStore(reg, sp, offset);
+//    }
+//    list.add(load);
 
-    list.add(InstructionFactory.createLoad(reg, op));
+    list.add(visitAssignRHS(ctx.assignRHS()));
     list.add(storeInstr);
     freeRegisters.push(reg);
     return list;
@@ -265,4 +270,70 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitUnaryOper(WACCParser.UnaryOperContext ctx) {
+    InstructionList list = defaultResult();
+    if (ctx.ident() != null) {
+      Register reg = freeRegisters.pop();
+      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+      Variable variable
+          = (Variable) workingSymbolTable.lookupAll(ctx.ident().getText());
+      long offset = variable.getOffset();
+      list.add(InstructionFactory.createLoad(reg, sp, offset));
+    }
+    return list;
+  }
+
+  @Override
+  public InstructionList visitInteger(WACCParser.IntegerContext ctx) {
+    InstructionList list = defaultResult();
+
+    Operand op;
+    Instruction loadOrMove;
+    Register reg = freeRegisters.pop();
+    String digits = ctx.INTEGER().getText();
+    long value = Long.parseLong(digits);
+
+    if (ctx.CHR() != null){
+      String chr = "\'" + (char) ((int) value) + "\'";
+      op = new Immediate(chr);
+      loadOrMove = InstructionFactory.createMov(reg, op);
+    } else {
+      op = new Immediate(value);
+      loadOrMove = InstructionFactory.createLoad(reg, op);
+    }
+
+    list.add(loadOrMove);
+    // TODO: make InstructionList a builder so we wan return list.add(l)
+    return list;
+  }
+
+  @Override
+  public InstructionList visitBool(WACCParser.BoolContext ctx) {
+    InstructionList list = defaultResult();
+
+    Operand op;
+    Instruction move;
+    Register reg = freeRegisters.pop();
+
+    String boolLitr = ctx.boolLitr().getText();
+    long value = boolLitr.equals("false") ? 0 : 1;
+
+    if (ctx.NOT() != null){
+      // ^ is XOR
+      op = new Immediate(value^1);
+    } else {
+      op = new Immediate(value);
+    }
+    move = InstructionFactory.createMov(reg, op);
+
+    list.add(move);
+    // TODO: make InstructionList a builder so we wan return list.add(l)
+    return list;
+  }
+
+  @Override
+  public InstructionList visitIdent(WACCParser.IdentContext ctx) {
+    return null;
+  }
 }
