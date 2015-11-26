@@ -20,7 +20,9 @@ public enum InstructionType {
   STR("STR"),
   STRB("STRB"),
   DATA(".data"),
-  LDRSB("LDRSB");
+  LDRSB("LDRSB"),
+  EOR("EOR"),
+  RSBS("RSBS");
 
   private final String name;
 

@@ -1,0 +1,5 @@
+begin
+ int i = 99;
+ char c = chr i;
+ int i2 = ord c
+end

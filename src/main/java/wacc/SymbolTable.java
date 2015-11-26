@@ -5,7 +5,7 @@ import bindings.NewScope;
 
 import java.util.*;
 
-public class SymbolTable<S, T> extends Hashtable<S, T> {
+public class SymbolTable<S, T> extends LinkedHashMap<S, T> {
 
   private String name;
   private SymbolTable<S, T> enclosingST;
@@ -45,8 +45,8 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
   public String toString() {
     List<SymbolTable<S, T>> list = new LinkedList<>();
     StringBuilder sb = new StringBuilder("SymbolTable {\n");
-    Enumeration<S> keys = this.keys();
-    while (keys.hasMoreElements()) {
+    Iterator<S> keys = this.keySet().iterator();
+    while (keys.hasNext()) {
       sb.append(getKeyElemPairString(list, keys));
     }
     sb.append("}\n");
@@ -58,15 +58,15 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
   }
 
   private String getKeyElemPairString(List<SymbolTable<S, T>> list,
-                                        Enumeration<S> keys) {
-    S element = keys.nextElement();
+                                        Iterator<S> keys) {
+    S element = keys.next();
     StringBuilder sb = new StringBuilder();
     sb.append("\t");
     sb.append(element);
     sb.append(": ");
     if (this.get(element) instanceof NewScope) {
       NewScope newScope = (NewScope) this.get(element);
-      Dictionary<String, Binding> symbolTable = newScope.getSymbolTable();
+      LinkedHashMap<String, Binding> symbolTable = newScope.getSymbolTable();
       list.add((SymbolTable<S, T>) symbolTable);
       sb.append("SymbolTable");
     } else {
@@ -78,10 +78,10 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
 
 
   public List<T> filterByClass(Class<?> c) {
-    Enumeration<T> elements = elements();
+    Iterator<T> elements = this.values().iterator();
     List<T> result = new ArrayList<>();
-    while (elements.hasMoreElements()) {
-      T nextElement = elements.nextElement();
+    while (elements.hasNext()) {
+      T nextElement = elements.next();
       if (c.isInstance(nextElement)) {
         result.add(nextElement);
       }

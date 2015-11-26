@@ -121,7 +121,7 @@ public class InstructionFactory {
     return new Instruction(InstructionType.MOV, operands) {
       @Override
       protected String printInstruction() {
-        if (op instanceof Immediate) {
+        if (op.isImmediate()) {
           return type.toString() + " "
                  + operands.get(0) + ", #"
                  + operands.get(1);
@@ -143,7 +143,7 @@ public class InstructionFactory {
     return new Instruction(InstructionType.ADD, operands) {
       @Override
       protected String printInstruction() {
-        if (op instanceof Immediate) {
+        if (op.isImmediate()) {
           return type.toString() + " "
                  + operands.get(0) + ", "
                  + operands.get(1) + ", #"
@@ -180,7 +180,7 @@ public class InstructionFactory {
     return new Instruction(InstructionType.LDRNE, operands) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + operands.get(0) + " " + operands.get(1);
+        return type.toString() + " " + operands.get(0) + ", " + operands.get(1);
       }
     };
   }
@@ -192,7 +192,7 @@ public class InstructionFactory {
     return new Instruction(InstructionType.LDREQ, operands) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + operands.get(0) + " " + operands.get(1);
+        return type.toString() + " " + operands.get(0) + ", " + operands.get(1);
       }
     };
   }
@@ -312,6 +312,40 @@ public class InstructionFactory {
         }
         sb.append("]");
         return sb.toString();
+      }
+    };
+  }
+
+  public static Instruction createEOR(Register dst, Register src, Operand imm) {
+    List<Operand> operands = new ArrayList<>(3);
+    operands.add(dst);
+    operands.add(src);
+    operands.add(imm);
+    return new Instruction(InstructionType.EOR, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " "
+            + operands.get(0) + ", "
+            + operands.get(1) + ", #"
+            + operands.get(2);
+      }
+    };
+  }
+
+  public static Instruction createRSBS(Register dst,
+                                       Register src,
+                                       Operand imm) {
+    List<Operand> operands = new ArrayList<>(3);
+    operands.add(dst);
+    operands.add(src);
+    operands.add(imm);
+    return new Instruction(InstructionType.RSBS, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " "
+            + operands.get(0) + ", "
+            + operands.get(1) + ", #"
+            + operands.get(2);
       }
     };
   }

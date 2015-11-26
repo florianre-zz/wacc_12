@@ -181,7 +181,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitInitStat(WACCParser.InitStatContext ctx) {
-    // TODO: Elliot - Elyas : Make createLoad take correct Operand type
     InstructionList list = defaultResult();
     addVariableToCurrentScope(ctx.ident().getText());
 
@@ -216,12 +215,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       data.addConstString(ctx.expr().getText());
       printLabel = new Label("p_print_string");
       list.add(visitExpr(ctx.expr()));
-    } else if (Type.isInt(returnType)) {
+    } else if (Type.isInt((Type) ctx.expr().returnType)) {
       printHelperFunction = PrintFunctions.printInt(data);
       printLabel = new Label("p_print_int");
-    } else if (Type.isChar(returnType)){
+    } else if (Type.isChar((Type) ctx.expr().returnType)){
       printLabel = new Label("putchar");
-    } else if (Type.isBool(returnType)) {
+    } else if (Type.isBool((Type) ctx.expr().returnType)) {
       printHelperFunction = PrintFunctions.printBool(data);
       printLabel = new Label("p_print_bool");
     } else {
@@ -249,9 +248,23 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitUnaryOper(WACCParser.UnaryOperContext ctx) {
     InstructionList list = defaultResult();
+    Register dst = freeRegisters.peek();
     if (ctx.ident() != null) {
       list.add(visitIdent(ctx.ident()));
+    } else if (ctx.expr() != null) {
+      list.add(visitExpr(ctx.expr()));
     }
+
+    if (ctx.NOT() != null) {
+      Operand imm = new Immediate((long) 1);
+      list.add(InstructionFactory.createEOR(dst, dst, imm));
+    } else if (ctx.MINUS() != null) {
+      Operand imm = new Immediate((long) 0);
+      list.add(InstructionFactory.createRSBS(dst, dst, imm));
+    } else if (ctx.LEN() != null) {
+      list.add(InstructionFactory.createLoad(dst, dst, 0));
+    }
+
     return list;
   }
 
@@ -260,12 +273,21 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Operand op;
+    Instruction loadOrMove;
     Register reg = freeRegisters.pop();
     String digits = ctx.INTEGER().getText();
     long value = Long.parseLong(digits);
-    op = new Immediate(value);
 
-    list.add(InstructionFactory.createLoad(reg, op));
+    if (ctx.CHR() != null){
+      String chr = "\'" + (char) ((int) value) + "\'";
+      op = new Immediate(chr);
+      loadOrMove = InstructionFactory.createMov(reg, op);
+    } else {
+      op = new Immediate(value);
+      loadOrMove = InstructionFactory.createLoad(reg, op);
+    }
+
+    list.add(loadOrMove);
     // TODO: make InstructionList a builder so we wan return list.add(l)
     return list;
   }
@@ -348,6 +370,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     } else {
       list.add(InstructionFactory.createLoad(reg, sp, offset));
     }
+
     return list;
   }
 
