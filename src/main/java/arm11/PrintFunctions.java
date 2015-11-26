@@ -36,9 +36,9 @@ public class PrintFunctions {
       list.add(InstructionFactory.createPush(lr));
       list.add(InstructionFactory.createMov(r1, r0));
       list.add(InstructionFactory.createLoad(r0, intFormatterLabel));
-      list.add(InstructionFactory.createAdd(r0, r0, 4));
+      list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
       list.add(InstructionFactory.createBranchLink(new Label("printf")));
-      list.add(InstructionFactory.createMov(r1, 0));
+      list.add(InstructionFactory.createMov(r1, new Immediate((long) 0)));
       list.add(InstructionFactory.createBranchLink(new Label("fflush")));
       list.add(InstructionFactory.createPop(pc));
 
@@ -71,11 +71,11 @@ public class PrintFunctions {
     list.add(InstructionFactory.createLabel(label));
     list.add(InstructionFactory.createPush(lr));
     list.add(InstructionFactory.createLoad(r1, new Address(r0)));
-    list.add(InstructionFactory.createAdd(r2, r0, 4));
+    list.add(InstructionFactory.createAdd(r2, r0, new Immediate((long) 4)));
     list.add(InstructionFactory.createLoad(r0, stringFormatterLabel));
-    list.add(InstructionFactory.createAdd(r0, r0, 4));
+    list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
     list.add(InstructionFactory.createBranchLink(new Label("printf")));
-    list.add(InstructionFactory.createMov(r0, 0));
+    list.add(InstructionFactory.createMov(r0, new Immediate((long) 0)));
     list.add(InstructionFactory.createBranchLink(new Label("fflush")));
     list.add(InstructionFactory.createPop(pc));
 
@@ -104,9 +104,9 @@ public class PrintFunctions {
     list.add(InstructionFactory.createLabel(label));
     list.add(InstructionFactory.createPush(lr));
     list.add(InstructionFactory.createLoad(r0, LnFormatterLabel));
-    list.add(InstructionFactory.createAdd(r0, r0, 4));
+    list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
     list.add(InstructionFactory.createBranchLink(new Label("puts")));
-    list.add(InstructionFactory.createMov(r0, 0));
+    list.add(InstructionFactory.createMov(r0, new Immediate((long) 0)));
     list.add(InstructionFactory.createBranchLink(new Label("fflush")));
     list.add(InstructionFactory.createPop(pc));
 
@@ -141,9 +141,9 @@ public class PrintFunctions {
     list.add(InstructionFactory.createCompare(r0, 0));
     list.add(InstructionFactory.createLoadNotEqual(r0, trueFormatterLabel));
     list.add(InstructionFactory.createLoadEqual(r0, falseFormatterLabel));
-    list.add(InstructionFactory.createAdd(r0, r0, 4));
+    list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
     list.add(InstructionFactory.createBranchLink(new Label("printf")));
-    list.add(InstructionFactory.createMov(r0, 0));
+    list.add(InstructionFactory.createMov(r0, new Immediate((long) 0)));
     list.add(InstructionFactory.createBranchLink(new Label("fflush")));
     list.add(InstructionFactory.createPop(pc));
 
@@ -180,9 +180,9 @@ public class PrintFunctions {
     list.add(InstructionFactory.createPush(lr));
     list.add(InstructionFactory.createLoad(r1, r0));
     list.add(InstructionFactory.createLoad(r0, referenceFormatterLabel));
-    list.add(InstructionFactory.createAdd(r0, r0, 4));
+    list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
     list.add(InstructionFactory.createBranchLink(new Label("printf")));
-    list.add(InstructionFactory.createMov(r0, 0));
+    list.add(InstructionFactory.createMov(r0, new Immediate((long) 0)));
     list.add(InstructionFactory.createBranchLink(new Label("fflush")));
     list.add(InstructionFactory.createPop(pc));
 

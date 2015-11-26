@@ -4,19 +4,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InstructionFactory {
-  public static Instruction createLoad(Register dst, Operand op) {
+
+  public static Instruction createLoad(Register dst, final Operand op) {
     //TODO: Check if it can really be any operand
-    // Cannot - loading a register and a immediate results in a different print:
-    // immediates have an '=' but registers do not.
-    // I tried to change it but it broke stuff on your code
     List<Operand> operands = new ArrayList<>(2);
     operands.add(dst);
     operands.add(op);
     return new Instruction(InstructionType.LDR, operands) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + operands.get(0)
-            + ", =" + operands.get(1);
+        if (op instanceof Address) {
+          return type.toString() + " " + operands.get(0)
+                 + ", " + operands.get(1);
+        } else {
+          return type.toString() + " " + operands.get(0)
+                 + ", =" + operands.get(1);
+        }
       }
     };
   }
@@ -110,31 +113,26 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createMov(Register dst, Register src) {
+  public static Instruction createMov(Register dst, final Operand op) {
     List<Operand> operands = new ArrayList<>(2);
     operands.add(dst);
-    operands.add(src);
+    operands.add(op);
     return new Instruction(InstructionType.MOV, operands) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + operands.get(0) + " " + operands.get(1);
+        if (op instanceof Immediate) {
+          return type.toString() + " " + operands.get(0) + ", #" + operands.get
+              (1);
+        } else {
+          return type.toString() + " " + operands.get(0)
+                 + ", " + operands.get(1);
+        }
       }
     };
   }
 
-  public static Instruction createMov(Register dst, long imm) {
-    List<Operand> operands = new ArrayList<>(2);
-    operands.add(dst);
-    operands.add(new Immediate(imm));
-    return new Instruction(InstructionType.MOV, operands) {
-      @Override
-      protected String printInstruction() {
-        return type.toString() + " " + operands.get(0) + " #" + operands.get(1);
-      }
-    };
-  }
-
-  public static Instruction createAdd(Register dst, Register rn, Operand op) {
+  public static Instruction createAdd(Register dst, Register rn, final Operand
+      op) {
     List<Operand> operands = new ArrayList<>(3);
     operands.add(dst);
     operands.add(rn);
@@ -142,26 +140,16 @@ public class InstructionFactory {
     return new Instruction(InstructionType.ADD, operands) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + operands.get(0) + ", " + operands.get(1)
-            + ", #" + operands.get(2);
-      }
-    };
-  }
+        if (op instanceof Immediate) {
+          return type.toString() + " "
+                 + operands.get(0) + ", "
+                 + operands.get(1) + ", #"
+                 + operands.get(2);
+        } else {
+          return type.toString() + " " + operands.get(0) + ", " + operands.get(1)
+                 + ", " + operands.get(2);
+        }
 
-
- // TODO: remove
-  public static Instruction createAdd(Register dst, Register src, long imm) {
-    List<Operand> operands = new ArrayList<>(3);
-    operands.add(dst);
-    operands.add(src);
-    operands.add(new Immediate(imm));
-    return new Instruction(InstructionType.ADD, operands) {
-      @Override
-      protected String printInstruction() {
-        return type.toString() + " "
-               + operands.get(0) + " "
-               + operands.get(1) + " #"
-               + operands.get(2);
       }
     };
   }

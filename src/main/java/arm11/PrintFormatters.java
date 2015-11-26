@@ -5,7 +5,6 @@ public enum PrintFormatters {
   // TODO: Check all formatters are correct
 
   INT_PRINT_FORMATTER("\"%.*d\0\""),
-  CHAR_PRINT_FORMATTER("%.*c\0"),
   STRING_PRINT_FORMATTER("\"%.*s\0\""),
   REFERENCE_PRINT_FORMATTER("%.*p\0"),
   BOOL_TRUE_PRINT_FORMATTER(".*true\0"),

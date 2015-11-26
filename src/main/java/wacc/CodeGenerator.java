@@ -6,9 +6,8 @@ import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
 import org.antlr.v4.runtime.misc.NotNull;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Stack;
+
+import java.util.*;
 
 // TODO: Do we need top for labels?
 
@@ -18,6 +17,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   private HashSet<InstructionList> helperFunctions;
   private Stack<Register> freeRegisters;
   private boolean printStringUsed = false;
+  private boolean printIntUsed = false;
+  private boolean printLnUsed = false;
+  private boolean printReferenceUsed = false;
 
   public CodeGenerator(SymbolTable top) {
 
@@ -65,7 +67,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       program.add(instructionList);
     }
 
-
     goUpWorkingSymbolTable();
     return program;
   }
@@ -104,8 +105,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(deallocateSpaceOnStack());
 
     Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-    Operand value = new Immediate((long) 0);
-    list.add(InstructionFactory.createLoad(r0, value));
+    Immediate imm = new Immediate((long) 0);
+    list.add(InstructionFactory.createLoad(r0, imm));
 
     register = ARM11Registers.getRegister(ARM11Registers.Reg.PC);
     list.add(InstructionFactory.createPop(register));
@@ -171,8 +172,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-    Long imm = Long.parseLong(ctx.expr().getText());
-    Operand value = new Immediate(imm);
+    Immediate value = new Immediate(Long.parseLong(ctx.expr().getText()));
     Label label = new Label("exit");
 
     list.add(InstructionFactory.createLoad(r0, value));
@@ -183,6 +183,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
+    // TODO: Elliot - Elyas : Make createLoad take correct Operand type
     InstructionList list = defaultResult();
 
     Register reg = freeRegisters.pop();
@@ -228,15 +229,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     InstructionList list = defaultResult();
 
-    // TODO: find the type of what we are printing
-
-    //    if (ctx.expr().returnType != null) {
-    //      Type exprType = (Type)ctx.expr().returnType;
-    //      System.err.println(exprType);
-    //    }
-    // We are assuming ints
-
-
     if (Type.isString((Type) ctx.expr().returnType)) {
       String stringExpr = ctx.expr().getText();
 
@@ -246,7 +238,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
 
-      // Make it go to r4
       Label labelOfStringExpr = data.getConstStringMap().get(stringExpr);
       list.add(InstructionFactory.createLoad(r4, labelOfStringExpr));
       list.add(InstructionFactory.createMov(r0, r4));
@@ -256,10 +247,38 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       // Avoids showing print helper twice
       if (!printStringUsed) {
         helperFunctions.add(printHelperFunction);
+        printStringUsed = true;
       }
-      printStringUsed = true;
-    } else {
 
+    } else if (Type.isInt((Type) ctx.expr().returnType)) {
+      data.addPrintFormatter(PrintFormatters.INT_PRINT_FORMATTER);
+
+      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      // TODO: uses freeRegisters (Stack)
+      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+
+      Immediate imm = new Immediate(ctx.expr().getText());
+      list.add(InstructionFactory.createLoad(r4, imm));
+      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(InstructionFactory.createBranchLink(new Label("p_print_int")));
+
+      InstructionList printHelperFunction = PrintFunctions.printInt(data);
+      // Avoids showing print helper twice
+      if (!printIntUsed) {
+        helperFunctions.add(printHelperFunction);
+        printIntUsed = true;
+      }
+
+    } else if (Type.isChar((Type) ctx.expr().returnType)){
+      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
+      // TODO: uses freeRegisters (Stack)
+      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+
+      Immediate imm = new Immediate(ctx.expr().getText());
+      list.add(InstructionFactory.createMov(r4, imm));
+      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(InstructionFactory.createBranchLink(new Label("putchar")));
+    } else {
 
     }
     return list;
