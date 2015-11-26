@@ -84,7 +84,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     current.add(name);
   }
 
-  protected Type getMostRecentBindingForVariable(String varName) {
+  protected Variable getMostRecentBindingForVariable(String varName) {
     // Keep looking up the variable down the stack, if not found return null
     HashSet<String> declaredVars = variableStack.peek();
     Binding b;
@@ -93,7 +93,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     } else {
       b = workingSymbolTable.getEnclosingST().lookupAll(varName);
     }
-    return ((Variable) b ).getType();
+    return (Variable) b;
   }
 
   protected enum ScopeType {
