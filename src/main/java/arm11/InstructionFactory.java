@@ -162,9 +162,8 @@ public class InstructionFactory {
       @Override
       protected String printInstruction() {
         return type.toString() + " "
-               + operands.get(0) + " "
-               + operands.get(1) + " #"
-               + operands.get(2);
+               + operands.get(0) + ", #"
+               + operands.get(1);
       }
     };
   }
