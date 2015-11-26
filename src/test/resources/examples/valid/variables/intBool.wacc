@@ -1,5 +1,6 @@
-begin 
+begin
   int x = 42;
   bool b = true;
+  bool f = !true;
   exit 3
 end
