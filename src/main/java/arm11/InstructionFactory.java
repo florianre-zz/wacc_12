@@ -309,6 +309,28 @@ public class InstructionFactory {
       }
     };
   }
+
+  public static Instruction createLoadStoredBool(Register dst,
+                                                 Register base,
+                                                 long offset) {
+    List<Operand> operands = new ArrayList<>(2);
+    operands.add(dst);
+    operands.add(base);
+    operands.add(new Immediate(offset));
+    return new Instruction(InstructionType.LDRSB, operands) {
+      @Override
+      protected String printInstruction() {
+        StringBuilder sb = new StringBuilder(type.toString());
+        sb.append(" ").append(operands.get(0));
+        sb.append(", [").append(operands.get(1));
+        if (!operands.get(2).toString().equals("0")) {
+          sb.append(", #").append(operands.get(2));
+        }
+        sb.append("]");
+        return sb.toString();
+      }
+    };
+  }
 }
 
 

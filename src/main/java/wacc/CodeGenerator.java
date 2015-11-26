@@ -197,7 +197,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Variable var = (Variable) workingSymbolTable.get(ctx.ident().getText());
     Operand offset = new Immediate(var.getOffset());
 
-    if (Type.isBool(var.getType())){
+    if (Type.isBool(var.getType()) || Type.isChar(var.getType())){
       storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
     } else {
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
@@ -277,12 +277,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitUnaryOper(WACCParser.UnaryOperContext ctx) {
     InstructionList list = defaultResult();
     if (ctx.ident() != null) {
-      Register reg = freeRegisters.pop();
-      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
-      Variable variable
-          = (Variable) workingSymbolTable.lookupAll(ctx.ident().getText());
-      long offset = variable.getOffset();
-      list.add(InstructionFactory.createLoad(reg, sp, offset));
+      list.add(visitIdent(ctx.ident()));
     }
     return list;
   }
@@ -292,21 +287,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Operand op;
-    Instruction loadOrMove;
     Register reg = freeRegisters.pop();
     String digits = ctx.INTEGER().getText();
     long value = Long.parseLong(digits);
+    op = new Immediate(value);
 
-    if (ctx.CHR() != null){
-      String chr = "\'" + (char) ((int) value) + "\'";
-      op = new Immediate(chr);
-      loadOrMove = InstructionFactory.createMov(reg, op);
-    } else {
-      op = new Immediate(value);
-      loadOrMove = InstructionFactory.createLoad(reg, op);
-    }
-
-    list.add(loadOrMove);
+    list.add(InstructionFactory.createLoad(reg, op));
     // TODO: make InstructionList a builder so we wan return list.add(l)
     return list;
   }
@@ -377,7 +363,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitIdent(WACCParser.IdentContext ctx) {
-    Type type = getMostRecentBindingForVariable(ctx.getText());
-    return null;
+    InstructionList list = defaultResult();
+
+    Variable variable = getMostRecentBindingForVariable(ctx.getText());
+    long offset = variable.getOffset();
+    Register reg = freeRegisters.pop();
+    Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
+
+    if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
+      list.add(InstructionFactory.createLoadStoredBool(reg, sp, offset));
+    } else {
+      list.add(InstructionFactory.createLoad(reg, sp, offset));
+    }
+
+    return list;
   }
 }
