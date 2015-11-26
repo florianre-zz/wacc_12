@@ -1,5 +1,7 @@
-begin 
+begin
   int x = 42;
+  char char71 = chr 71;
   bool b = true;
-  char c = 'a'
+  char c = 'a';
+  int f = ord 'f'
 end
