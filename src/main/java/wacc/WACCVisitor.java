@@ -5,12 +5,16 @@ import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import wacc.error.*;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
 
   protected final SymbolTable<String, Binding> top;
   protected SymbolTable<String, Binding> workingSymbolTable;
   protected final WACCErrorHandler errorHandler;
   protected int ifCount, whileCount, beginCount;
+  protected Deque<SymbolTable<String, Type>> variableSymbolTableStack;
 
   public WACCVisitor(SymbolTable<String, Binding> top) {
     this(top, null);
@@ -24,6 +28,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     this.beginCount = 0;
     this.whileCount = 0;
     this.ifCount = 0;
+    variableSymbolTableStack = new ArrayDeque<>();
   }
 
   protected Function getCalledFunction(WACCParser.CallContext ctx) {
@@ -62,6 +67,41 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     if (b != null) {
       workingSymbolTable = (SymbolTable<String, Binding>) b.getSymbolTable();
     }
+  }
+
+  protected void pushEmptyVariableSymbolTable() {
+    SymbolTable<String, Type> scope = new SymbolTable<>();
+    variableSymbolTableStack.push(scope);
+  }
+
+  protected void popCurrentScopeVariableSymbolTable() {
+    variableSymbolTableStack.pop();
+  }
+
+  protected void addVariableToCurrentScope(String name, Type type) {
+    SymbolTable<String, Type> current = variableSymbolTableStack.peek();
+    current.put(name, type);
+  }
+
+  protected Type getMostRecentBindingForVariable(String varname) {
+    // Keep looking up the variable down the stack, if not found return null
+    for (SymbolTable<String, Type> symbolTable : variableSymbolTableStack) {
+      if (symbolTable.containsKey(varname)) {
+        return symbolTable.get(varname);
+      }
+    }
+    return null;
+  }
+
+  public Type lookupTypeInWorkingSymbolTable(String key) {
+    Binding b = workingSymbolTable.lookupAll(key);
+    if (b instanceof Variable) {
+      return ((Variable) b).getType();
+    }
+    if (b instanceof Function) {
+      return ((Function) b).getType();
+    }
+    return null;
   }
 
   protected enum ScopeType {

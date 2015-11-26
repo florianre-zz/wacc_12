@@ -6,19 +6,15 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
 import java.util.List;
 
 public class WACCTypeChecker extends WACCVisitor<Type> {
 
   private Function currentFunction;
-  private Deque<SymbolTable<String, Type>> variableSymbolTableStack;
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          WACCErrorHandler errorHandler) {
     super(top, errorHandler);
-    variableSymbolTableStack = new ArrayDeque<>();
   }
 
   /***************************** Helper Method *******************************/
@@ -79,41 +75,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     String errorMsg = sb.toString();
     errorHandler.complain(new DeclarationError(ctx, errorMsg));
-  }
-
-  private void pushEmptyVariableSymbolTable() {
-    SymbolTable<String, Type> scope = new SymbolTable<>();
-    variableSymbolTableStack.push(scope);
-  }
-
-  private void popCurrentScopeVariableSymbolTable() {
-    variableSymbolTableStack.pop();
-  }
-
-  private void addVariableToCurrentScope(String name, Type type) {
-    SymbolTable<String, Type> current = variableSymbolTableStack.peek();
-    current.put(name, type);
-  }
-
-  private Type getMostRecentBindingForVariable(String varname) {
-    // Keep looking up the variable down the stack, if not found return null
-    for (SymbolTable<String, Type> symbolTable : variableSymbolTableStack) {
-      if (symbolTable.containsKey(varname)) {
-        return symbolTable.get(varname);
-      }
-    }
-    return null;
-  }
-
-  public Type lookupTypeInWorkingSymbolTable(String key) {
-    Binding b = workingSymbolTable.lookupAll(key);
-    if (b instanceof Variable) {
-      return ((Variable) b).getType();
-    }
-    if (b instanceof Function) {
-      return ((Function) b).getType();
-    }
-    return null;
   }
 
   private void checkArrayElemExpressions(
@@ -524,6 +485,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitString(WACCParser.StringContext ctx) {
+    if (ctx.LEN() != null) {
+      return getType(Types.INT_T);
+    }
     return getType(Types.STRING_T);
   }
 
