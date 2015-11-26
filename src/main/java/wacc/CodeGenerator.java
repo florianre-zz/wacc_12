@@ -181,7 +181,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitInitStat(WACCParser.InitStatContext ctx) {
-    // TODO: Elliot - Elyas : Make createLoad take correct Operand type
     InstructionList list = defaultResult();
     addVariableToCurrentScope(ctx.ident().getText());
 
@@ -216,22 +215,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       data.addConstString(ctx.expr().getText());
       printLabel = new Label("p_print_string");
       list.add(visitExpr(ctx.expr()));
-
     } else if (Type.isInt((Type) ctx.expr().returnType)) {
       printHelperFunction = PrintFunctions.printInt(data);
       printLabel = new Label("p_print_int");
-
     } else if (Type.isChar((Type) ctx.expr().returnType)){
       printLabel = new Label("putchar");
-
     } else if (Type.isBool((Type) ctx.expr().returnType)) {
       printHelperFunction = PrintFunctions.printBool(data);
       printLabel = new Label("p_print_bool");
-
     } else {
       printHelperFunction = PrintFunctions.printReference(data);
       printLabel = new Label("p_print_reference");
-
     }
     list.add(visitExpr(ctx.expr()));
     list.add(InstructionFactory.createBranchLink(printLabel));
@@ -256,6 +250,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register dst = freeRegisters.peek();
     if (ctx.ident() != null) {
       list.add(visitIdent(ctx.ident()));
+    } else if (ctx.expr() != null) {
+      list.add(visitExpr(ctx.expr()));
     }
 
     if (ctx.NOT() != null) {
