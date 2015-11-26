@@ -231,75 +231,68 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     InstructionList list = defaultResult();
 
+    Label printLabel;
+
+
     if (Type.isString((Type) ctx.expr().returnType)) {
       String stringExpr = ctx.expr().getText();
-
       // Strip the "" at the start and end "string" -> string
-      data.addConstString(stringExpr.substring(1, stringExpr.length() - 1));
+      stringExpr = stringExpr.substring(1, stringExpr.length() - 1);
+
+      data.addConstString(stringExpr);
 
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-
+      printLabel = new Label("p_print_string");
       Label labelOfStringExpr = data.getConstStringMap().get(stringExpr);
+
       list.add(InstructionFactory.createLoad(r4, labelOfStringExpr));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(new Label("p_print_string")));
+      list.add(InstructionFactory.createBranchLink(printLabel));
 
       InstructionList printHelperFunction = PrintFunctions.printString(data);
-      // Avoids showing print helper twice
-      //TODO: this shouldn't be needed
-      if (!printStringUsed) {
-        helperFunctions.add(printHelperFunction);
-        printStringUsed = true;
-      }
+      helperFunctions.add(printHelperFunction);
 
     } else if (Type.isInt((Type) ctx.expr().returnType)) {
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-
       Immediate imm = new Immediate(ctx.expr().getText());
+      printLabel = new Label("p_print_int");
+
       list.add(InstructionFactory.createLoad(r4, imm));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(new Label("p_print_int")));
+      list.add(InstructionFactory.createBranchLink(printLabel));
 
       InstructionList printHelperFunction = PrintFunctions.printInt(data);
-      // Avoids showing print helper twice
-      if (!printIntUsed) {
-        helperFunctions.add(printHelperFunction);
-        printIntUsed = true;
-      }
+      helperFunctions.add(printHelperFunction);
 
     } else if (Type.isChar((Type) ctx.expr().returnType)){
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-
       Immediate imm = new Immediate(ctx.expr().getText());
+      printLabel = new Label("putchar");
+
       list.add(InstructionFactory.createMov(r4, imm));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(new Label("putchar")));
+      list.add(InstructionFactory.createBranchLink(printLabel));
 
     } else if (Type.isBool((Type) ctx.expr().returnType)) {
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-
-      String expr = ctx.expr().getText();
-      long value = expr.equals("true") ? 1 : 0;
+      long value = ctx.expr().getText().equals("true") ? 1 : 0;
       Immediate imm = new Immediate(value);
+      printLabel = new Label("p_print_bool");
 
       list.add(InstructionFactory.createMov(r4, imm));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(new Label("p_print_bool")));
+      list.add(InstructionFactory.createBranchLink(printLabel));
 
       InstructionList printHelperFunction = PrintFunctions.printBool(data);
-      // Avoids showing print helper twice
-      if (!printBooleanUsed) {
-        helperFunctions.add(printHelperFunction);
-        printBooleanUsed = true;
-      }
+      helperFunctions.add(printHelperFunction);
 
     } else {
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
@@ -307,26 +300,20 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
       Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
 
+
       list.add(InstructionFactory.createLoad(r4, new Address(sp)));
       list.add(InstructionFactory.createMov(r0, r4));
       list.add(InstructionFactory.createBranchLink(new Label
                                                        ("p_print_reference")));
 
       InstructionList printHelperFunction = PrintFunctions.printReference(data);
-      if (!printReferenceUsed) {
-        helperFunctions.add(printHelperFunction);
-        printReferenceUsed = true;
-      }
+      helperFunctions.add(printHelperFunction);
     }
 
     if (ctx.PRINTLN() != null) {
       list.add(InstructionFactory.createBranchLink(new Label("p_print_ln")));
-
       InstructionList printHelperFunction = PrintFunctions.printLn(data);
-      if (!printLnUsed) {
-        helperFunctions.add(printHelperFunction);
-        printLnUsed = true;
-      }
+      helperFunctions.add(printHelperFunction);
     }
 
     return list;
