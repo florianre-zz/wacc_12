@@ -205,57 +205,51 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  // TODO: uses freeRegisters (Stack)
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
-
     Label printLabel;
+    InstructionList printHelperFunction = null;
 
     if (Type.isString((Type) ctx.expr().returnType)) {
-      String stringExpr = ctx.expr().getText();
+      printHelperFunction = PrintFunctions.printString(data);
 
+      String stringExpr = ctx.expr().getText();
       data.addConstString(stringExpr);
 
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
       printLabel = new Label("p_print_string");
       Label labelOfStringExpr = data.getConstStringMap().get(stringExpr);
 
       list.add(InstructionFactory.createLoad(r4, labelOfStringExpr));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(printLabel));
-
-      InstructionList printHelperFunction = PrintFunctions.printString(data);
-      helperFunctions.add(printHelperFunction);
 
     } else if (Type.isInt((Type) ctx.expr().returnType)) {
+      printHelperFunction = PrintFunctions.printInt(data);
+
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
       Immediate imm = new Immediate(ctx.expr().getText());
       printLabel = new Label("p_print_int");
 
-      list.add(InstructionFactory.createLoad(r4, imm));
-      list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(printLabel));
-
-      InstructionList printHelperFunction = PrintFunctions.printInt(data);
-      helperFunctions.add(printHelperFunction);
+      list.add(visitExpr(ctx.expr()));
+//      list.add(InstructionFactory.createLoad(r4, imm));
+//      list.add(InstructionFactory.createMov(r0, r4));
 
     } else if (Type.isChar((Type) ctx.expr().returnType)){
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
       Immediate imm = new Immediate(ctx.expr().getText());
       printLabel = new Label("putchar");
 
       list.add(InstructionFactory.createMov(r4, imm));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(printLabel));
 
     } else if (Type.isBool((Type) ctx.expr().returnType)) {
+      printHelperFunction = PrintFunctions.printBool(data);
+
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
       long value = ctx.expr().getText().equals("true") ? 1 : 0;
       Immediate imm = new Immediate(value);
@@ -263,14 +257,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
       list.add(InstructionFactory.createMov(r4, imm));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(printLabel));
-
-      InstructionList printHelperFunction = PrintFunctions.printBool(data);
-      helperFunctions.add(printHelperFunction);
 
     } else {
+      printHelperFunction = PrintFunctions.printReference(data);
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
       Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
       Operand address = new Address(sp);
@@ -278,16 +268,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
       list.add(InstructionFactory.createLoad(r4, address));
       list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(printLabel));
+    }
+    list.add(InstructionFactory.createBranchLink(printLabel));
 
-      InstructionList printHelperFunction = PrintFunctions.printReference(data);
+    if (helperFunctions != null) {
       helperFunctions.add(printHelperFunction);
     }
 
     if (ctx.PRINTLN() != null) {
       printLabel = new Label("p_print_ln");
       list.add(InstructionFactory.createBranchLink(printLabel));
-      InstructionList printHelperFunction = PrintFunctions.printLn(data);
+      printHelperFunction = PrintFunctions.printLn(data);
       helperFunctions.add(printHelperFunction);
     }
 
@@ -400,7 +391,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
-
     InstructionList list = defaultResult();
 
     if (Type.isInt((Type) ctx.assignLHS().returnType)) {
