@@ -3,6 +3,7 @@ package wacc;
 import antlr.WACCParser;
 import arm11.*;
 import bindings.Binding;
+import bindings.Function;
 import bindings.Type;
 import bindings.Variable;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -87,6 +88,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitMain(WACCParser.MainContext ctx) {
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
+    pushEmptyVariableSymbolTable();
 
     // TODO: Add the data and helperFunctions sections above and below main
 
@@ -113,6 +115,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createLTORG());
 
     goUpWorkingSymbolTable();
+    popCurrentScopeVariableSymbolTable();
     return list;
   }
 
@@ -185,6 +188,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitInitStat(@NotNull WACCParser.InitStatContext ctx) {
     InstructionList list = defaultResult();
+    Type lhsType = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
+    addVariableToCurrentScope(ctx.ident().getText(), lhsType);
 
     // TODO: move the pop to visitAssignRHS
     Register reg = freeRegisters.peek();
@@ -356,7 +361,25 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
+  public InstructionList visitString(@NotNull WACCParser.StringContext ctx) {
+    InstructionList list = defaultResult();
+
+    Operand op;
+    Register reg = freeRegisters.pop();
+    String text = ctx.STRING().getText();
+    op = data.addConstString(text);
+    list.add(InstructionFactory.createLoad(reg, op));
+
+    if (ctx.LEN() != null) {
+     // TODO: allow for 0 default offset
+      list.add(InstructionFactory.createLoad(reg, reg, 0));
+    }
+    return list;
+  }
+
+  @Override
   public InstructionList visitIdent(WACCParser.IdentContext ctx) {
+    Type type = getMostRecentBindingForVariable(ctx.getText());
     return null;
   }
 }
