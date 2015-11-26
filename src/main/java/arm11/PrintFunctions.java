@@ -175,7 +175,7 @@ public class PrintFunctions {
     //  POP {pc}
 
     Label referenceFormatterLabel
-        = data.addPrintFormatter(PrintFormatters.LN_PRINT_FORMATTER);
+        = data.addPrintFormatter(PrintFormatters.REFERENCE_PRINT_FORMATTER);
     list.add(InstructionFactory.createLabel(label));
     list.add(InstructionFactory.createPush(lr));
     list.add(InstructionFactory.createLoad(r1, r0));
