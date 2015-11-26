@@ -205,34 +205,30 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  // TODO: uses freeRegisters (Stack)
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
     Label printLabel;
     InstructionList printHelperFunction = null;
+    Type returnType = (Type) ctx.expr().returnType;
 
-    if (Type.isString((Type) ctx.expr().returnType)) {
+    if (Type.isString(returnType)) {
       printHelperFunction = PrintFunctions.printString(data);
       data.addConstString(ctx.expr().getText());
       printLabel = new Label("p_print_string");
       list.add(visitExpr(ctx.expr()));
-
-    } else if (Type.isInt((Type) ctx.expr().returnType)) {
+    } else if (Type.isInt(returnType)) {
       printHelperFunction = PrintFunctions.printInt(data);
       printLabel = new Label("p_print_int");
-
-    } else if (Type.isChar((Type) ctx.expr().returnType)){
+    } else if (Type.isChar(returnType)){
       printLabel = new Label("putchar");
-
-    } else if (Type.isBool((Type) ctx.expr().returnType)) {
+    } else if (Type.isBool(returnType)) {
       printHelperFunction = PrintFunctions.printBool(data);
       printLabel = new Label("p_print_bool");
-
     } else {
       printHelperFunction = PrintFunctions.printReference(data);
       printLabel = new Label("p_print_reference");
-
     }
+
     list.add(visitExpr(ctx.expr()));
     list.add(InstructionFactory.createBranchLink(printLabel));
 
