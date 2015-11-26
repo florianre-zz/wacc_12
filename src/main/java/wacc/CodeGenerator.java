@@ -213,62 +213,27 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (Type.isString((Type) ctx.expr().returnType)) {
       printHelperFunction = PrintFunctions.printString(data);
-
-      String stringExpr = ctx.expr().getText();
-      data.addConstString(stringExpr);
-
-      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
+      data.addConstString(ctx.expr().getText());
       printLabel = new Label("p_print_string");
-      Label labelOfStringExpr = data.getConstStringMap().get(stringExpr);
-
-      list.add(InstructionFactory.createLoad(r4, labelOfStringExpr));
-      list.add(InstructionFactory.createMov(r0, r4));
+      list.add(visitExpr(ctx.expr()));
 
     } else if (Type.isInt((Type) ctx.expr().returnType)) {
       printHelperFunction = PrintFunctions.printInt(data);
-
-      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-      Immediate imm = new Immediate(ctx.expr().getText());
       printLabel = new Label("p_print_int");
 
-      list.add(visitExpr(ctx.expr()));
-//      list.add(InstructionFactory.createLoad(r4, imm));
-//      list.add(InstructionFactory.createMov(r0, r4));
-
     } else if (Type.isChar((Type) ctx.expr().returnType)){
-      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-      Immediate imm = new Immediate(ctx.expr().getText());
       printLabel = new Label("putchar");
-
-      list.add(InstructionFactory.createMov(r4, imm));
-      list.add(InstructionFactory.createMov(r0, r4));
 
     } else if (Type.isBool((Type) ctx.expr().returnType)) {
       printHelperFunction = PrintFunctions.printBool(data);
-
-      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-      long value = ctx.expr().getText().equals("true") ? 1 : 0;
-      Immediate imm = new Immediate(value);
       printLabel = new Label("p_print_bool");
-
-      list.add(InstructionFactory.createMov(r4, imm));
-      list.add(InstructionFactory.createMov(r0, r4));
 
     } else {
       printHelperFunction = PrintFunctions.printReference(data);
-      Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
-      Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
-      Register sp = ARM11Registers.getRegister(ARM11Registers.Reg.SP);
-      Operand address = new Address(sp);
       printLabel = new Label("p_print_reference");
 
-      list.add(InstructionFactory.createLoad(r4, address));
-      list.add(InstructionFactory.createMov(r0, r4));
     }
+    list.add(visitExpr(ctx.expr()));
     list.add(InstructionFactory.createBranchLink(printLabel));
 
     if (helperFunctions != null) {
