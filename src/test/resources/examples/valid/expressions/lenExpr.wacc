@@ -1,0 +1,4 @@
+begin
+  string s = "Hello";
+  int l = len s
+end
