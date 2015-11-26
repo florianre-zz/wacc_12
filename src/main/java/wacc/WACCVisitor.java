@@ -5,12 +5,17 @@ import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import wacc.error.*;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+
 public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
 
   protected final SymbolTable<String, Binding> top;
   protected SymbolTable<String, Binding> workingSymbolTable;
   protected final WACCErrorHandler errorHandler;
   protected int ifCount, whileCount, beginCount;
+  protected Deque<HashSet<String>> variableStack;
 
   public WACCVisitor(SymbolTable<String, Binding> top) {
     this(top, null);
@@ -24,6 +29,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     this.beginCount = 0;
     this.whileCount = 0;
     this.ifCount = 0;
+    variableStack = new ArrayDeque<>();
   }
 
   protected Function getCalledFunction(WACCParser.CallContext ctx) {
@@ -62,6 +68,32 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     if (b != null) {
       workingSymbolTable = (SymbolTable<String, Binding>) b.getSymbolTable();
     }
+  }
+
+  protected void pushEmptyVariableSet() {
+    HashSet<String> scope = new HashSet<>();
+    variableStack.push(scope);
+  }
+
+  protected void popCurrentScopeVariableSet() {
+    variableStack.pop();
+  }
+
+  protected void addVariableToCurrentScope(String name) {
+    HashSet<String> current = variableStack.peek();
+    current.add(name);
+  }
+
+  protected Variable getMostRecentBindingForVariable(String varName) {
+    // Keep looking up the variable down the stack, if not found return null
+    HashSet<String> declaredVars = variableStack.peek();
+    Binding b;
+    if (declaredVars.contains(varName)) {
+      b = workingSymbolTable.get(varName);
+    } else {
+      b = workingSymbolTable.getEnclosingST().lookupAll(varName);
+    }
+    return (Variable) b;
   }
 
   protected enum ScopeType {

@@ -65,7 +65,7 @@ integer: (CHR)? (sign)? INTEGER;
 bool: (NOT)? boolLitr;
 character: (ORD)? CHARACTER;
 array: (LEN)? arrayElem;
-string: STRING;
+string: (LEN)? STRING;
 unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
 pairElem: (FST | SND) ident;
 arrayElem: varName=ident (OPEN_BRACKET expr CLOSE_BRACKET)+;

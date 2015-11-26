@@ -19,7 +19,8 @@ public enum InstructionType {
   LDREQ("LDREQ"),
   STR("STR"),
   STRB("STRB"),
-  DATA(".data");
+  DATA(".data"),
+  LDRSB("LDRSB");
 
   private final String name;
 

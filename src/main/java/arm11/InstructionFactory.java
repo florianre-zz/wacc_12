@@ -133,11 +133,12 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createAdd(Register dst, Register rn, final Operand
+ // TODO: remove
+  public static Instruction createAdd(Register dst, Register src, final Operand
       op) {
     List<Operand> operands = new ArrayList<>(3);
     operands.add(dst);
-    operands.add(rn);
+    operands.add(src);
     operands.add(op);
     return new Instruction(InstructionType.ADD, operands) {
       @Override
@@ -267,6 +268,50 @@ public class InstructionFactory {
       @Override
       protected String printInstruction() {
         return type.toString();
+      }
+    };
+  }
+
+  public static Instruction createLoad(Register dst,
+                                       Register base,
+                                       long offset) {
+    List<Operand> operands = new ArrayList<>(2);
+    operands.add(dst);
+    operands.add(base);
+    operands.add(new Immediate(offset));
+    return new Instruction(InstructionType.LDR, operands) {
+      @Override
+      protected String printInstruction() {
+        StringBuilder sb = new StringBuilder(type.toString());
+        sb.append(" ").append(operands.get(0));
+        sb.append(", [").append(operands.get(1));
+        if (!operands.get(2).toString().equals("0")) {
+          sb.append(", #").append(operands.get(2));
+        }
+        sb.append("]");
+        return sb.toString();
+      }
+    };
+  }
+
+  public static Instruction createLoadStoredBool(Register dst,
+                                                 Register base,
+                                                 long offset) {
+    List<Operand> operands = new ArrayList<>(2);
+    operands.add(dst);
+    operands.add(base);
+    operands.add(new Immediate(offset));
+    return new Instruction(InstructionType.LDRSB, operands) {
+      @Override
+      protected String printInstruction() {
+        StringBuilder sb = new StringBuilder(type.toString());
+        sb.append(" ").append(operands.get(0));
+        sb.append(", [").append(operands.get(1));
+        if (!operands.get(2).toString().equals("0")) {
+          sb.append(", #").append(operands.get(2));
+        }
+        sb.append("]");
+        return sb.toString();
       }
     };
   }
