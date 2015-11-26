@@ -5,6 +5,7 @@ import java.util.Map;
 public class DataInstructions {
 
   public static final int EMPTY = -1;
+  public static final int QUOTE_LENGTH = 2;
   private InstructionList instructionList;
   private Map<IOFormatters, Label> printFormattersMap;
   private Map<String, Label> constStringMap;
@@ -42,7 +43,8 @@ public class DataInstructions {
       constStringMap.put(string, label);
 
       instructionList.add(InstructionFactory.createLabel(label));
-      instructionList.add(InstructionFactory.createWord(string.length()));
+      int length = string.length() - QUOTE_LENGTH;
+      instructionList.add(InstructionFactory.createWord(length));
       instructionList.add(InstructionFactory.createAscii(string));
     }
     return constStringMap.get(string);
