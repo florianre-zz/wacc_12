@@ -282,7 +282,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createBranchLink(new Label("putchar")));
 
     } else if (Type.isBool((Type) ctx.expr().returnType)) {
-      data.addPrintFormatter(PrintFormatters.REFERENCE_PRINT_FORMATTER);
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
@@ -302,7 +301,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         printBooleanUsed = true;
       }
 
-      } else {
+    } else {
       Register r0 = ARM11Registers.getRegister(ARM11Registers.Reg.R0);
       // TODO: uses freeRegisters (Stack)
       Register r4 = ARM11Registers.getRegister(ARM11Registers.Reg.R4);
@@ -319,6 +318,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         printReferenceUsed = true;
       }
     }
+
+    if (ctx.PRINTLN() != null) {
+      list.add(InstructionFactory.createBranchLink(new Label("p_print_ln")));
+
+      InstructionList printHelperFunction = PrintFunctions.printLn(data);
+      if (!printLnUsed) {
+        helperFunctions.add(printHelperFunction);
+        printLnUsed = true;
+      }
+    }
+
     return list;
   }
 
