@@ -2,123 +2,101 @@ package arm11;
 
 public class PrintFunctions {
 
-    public static InstructionList printInt(DataInstructions data) {
-      InstructionList list = new InstructionList();
+  private static void printAsciiAndFlush(InstructionList list) {
+    list.add(InstructionFactory.createBranchLink(new Label("puts")));
+    list.add(InstructionFactory.createMov(ARM11Registers.R0, new Immediate((long) 0)));
+    list.add(InstructionFactory.createBranchLink(new Label("fflush")));
+  }
 
-      Label label = new Label("p_print_int");
-      Register r0 = ARM11Registers.R0;
-      Register r1 = ARM11Registers.R1;
-      Register lr = ARM11Registers.LR;
-      Register pc = ARM11Registers.PC;
-      Label intFormatterLabel
-          = data.addPrintFormatter(IOFormatters.INT_FORMATTER);
+  private static void saveLinkRegister(InstructionList list,
+                                       Label printLabel) {
+    list.add(InstructionFactory.createLabel(printLabel));
+    list.add(InstructionFactory.createPush(ARM11Registers.LR));
+  }
 
-      list.add(InstructionFactory.createLabel(label));
-      list.add(InstructionFactory.createPush(lr));
-      list.add(InstructionFactory.createMov(r1, r0));
-      list.add(InstructionFactory.createLoad(r0, intFormatterLabel));
-      list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
-      list.add(InstructionFactory.createBranchLink(new Label("printf")));
-      list.add(InstructionFactory.createMov(r1, new Immediate((long) 0)));
-      list.add(InstructionFactory.createBranchLink(new Label("fflush")));
-      list.add(InstructionFactory.createPop(pc));
+  public static InstructionList printInt(DataInstructions data) {
+    InstructionList list = new InstructionList();
+    
+    Label printLabel = new Label("p_print_int");
+    Label intFormatterLabel
+        = data.addPrintFormatter(IOFormatters.INT_FORMATTER);
 
-      return list;
-    }
+    saveLinkRegister(list, printLabel);
+    list.add(InstructionFactory.createMov(ARM11Registers.R1, ARM11Registers.R0));
+    list.add(InstructionFactory.createLoad(ARM11Registers.R0, intFormatterLabel));
+    list.add(InstructionFactory.createAdd(ARM11Registers.R0, ARM11Registers.R0, new Immediate((long) 4)));
+    printAsciiAndFlush(list);
+
+    list.add(InstructionFactory.createPop(ARM11Registers.PC));
+    
+    return list;
+  }
 
   public static InstructionList printString(DataInstructions data) {
     InstructionList list = new InstructionList();
-
-    Label label = new Label("p_print_string");
-    Register r0 = ARM11Registers.R0;
-    Register r1 = ARM11Registers.R1;
-    Register r2 = ARM11Registers.R2;
-    Register lr = ARM11Registers.LR;
-    Register pc = ARM11Registers.PC;
+    
+    Label printLabel = new Label("p_print_string");
     Label stringFormatterLabel
         = data.addPrintFormatter(IOFormatters.STRING_FORMATTER);
 
-    list.add(InstructionFactory.createLabel(label));
-    list.add(InstructionFactory.createPush(lr));
-    list.add(InstructionFactory.createLoad(r1, new Address(r0)));
-    list.add(InstructionFactory.createAdd(r2, r0, new Immediate((long) 4)));
-    list.add(InstructionFactory.createLoad(r0, stringFormatterLabel));
-    list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
-    list.add(InstructionFactory.createBranchLink(new Label("printf")));
-    list.add(InstructionFactory.createMov(r0, new Immediate((long) 0)));
-    list.add(InstructionFactory.createBranchLink(new Label("fflush")));
-    list.add(InstructionFactory.createPop(pc));
+    saveLinkRegister(list, printLabel);
+    list.add(InstructionFactory.createLoad(ARM11Registers.R1, new Address(ARM11Registers.R0)));
+    list.add(InstructionFactory.createAdd(ARM11Registers.R2, ARM11Registers.R0, new Immediate((long) 4)));
+    list.add(InstructionFactory.createLoad(ARM11Registers.R0, stringFormatterLabel));
+    list.add(InstructionFactory.createAdd(ARM11Registers.R0, ARM11Registers.R0, new Immediate((long) 4)));
+    printAsciiAndFlush(list);
+    list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
   }
 
   public static InstructionList printLn(DataInstructions data) {
     InstructionList list = new InstructionList();
+    Label printLabel = new Label("p_print_ln");
+    Label LnFormatterLabel = data.addPrintFormatter(IOFormatters.LN_FORMATTER);
 
-    Label label = new Label("p_print_ln");
-    Register r0 = ARM11Registers.R0;
-    Register lr = ARM11Registers.LR;
-    Register pc = ARM11Registers.PC;
-    Label lnFormatterLabel = data.addPrintFormatter(IOFormatters.LN_FORMATTER);
-
-    list.add(InstructionFactory.createLabel(label));
-    list.add(InstructionFactory.createPush(lr));
-    list.add(InstructionFactory.createLoad(r0, lnFormatterLabel));
-    list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
-    list.add(InstructionFactory.createBranchLink(new Label("puts")));
-    list.add(InstructionFactory.createMov(r0, new Immediate((long) 0)));
-    list.add(InstructionFactory.createBranchLink(new Label("fflush")));
-    list.add(InstructionFactory.createPop(pc));
+    saveLinkRegister(list, printLabel);
+    list.add(InstructionFactory.createLoad(ARM11Registers.R0, LnFormatterLabel));
+    list.add(InstructionFactory.createAdd(ARM11Registers.R0, ARM11Registers.R0, new Immediate((long) 4)));
+    printAsciiAndFlush(list);
+    list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
   }
 
   public static InstructionList printBool(DataInstructions data) {
     InstructionList list = new InstructionList();
-
-    Label label = new Label("p_print_bool");
-    Register r0 = ARM11Registers.R0;
-    Register lr = ARM11Registers.LR;
-    Register pc = ARM11Registers.PC;
+    
+    Label printLabel = new Label("p_print_bool");
     Label trueFormatterLabel
         = data.addPrintFormatter(IOFormatters.BOOL_TRUE_FORMATTER);
     Label falseFormatterLabel
         = data.addPrintFormatter(IOFormatters.BOOL_FALSE_FORMATTER);
 
-    list.add(InstructionFactory.createLabel(label));
-    list.add(InstructionFactory.createPush(lr));
-    list.add(InstructionFactory.createCompare(r0, 0));
-    list.add(InstructionFactory.createLoadNotEqual(r0, trueFormatterLabel));
-    list.add(InstructionFactory.createLoadEqual(r0, falseFormatterLabel));
-    list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
-    list.add(InstructionFactory.createBranchLink(new Label("printf")));
-    list.add(InstructionFactory.createMov(r0, new Immediate((long) 0)));
-    list.add(InstructionFactory.createBranchLink(new Label("fflush")));
-    list.add(InstructionFactory.createPop(pc));
+    saveLinkRegister(list, printLabel);
+    list.add(InstructionFactory.createCompare(ARM11Registers.R0, 0));
+    list.add(InstructionFactory.createLoadNotEqual(ARM11Registers.R0, trueFormatterLabel));
+    list.add(InstructionFactory.createLoadEqual(ARM11Registers.R0, falseFormatterLabel));
+    list.add(InstructionFactory.createAdd(ARM11Registers.R0, ARM11Registers.R0, new Immediate((long) 4)));
+    printAsciiAndFlush(list);
+    list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
   }
 
   public static InstructionList printReference(DataInstructions data) {
     InstructionList list = new InstructionList();
-
-    Label label = new Label("p_print_reference");
-    Register r0 = ARM11Registers.R0;
-    Register r1 = ARM11Registers.R1;
-    Register lr = ARM11Registers.LR;
-    Register pc = ARM11Registers.PC;
-
+    
+    Label printLabel = new Label("p_print_reference");
     Label referenceFormatterLabel
         = data.addPrintFormatter(IOFormatters.REFERENCE_FORMATTER);
-    list.add(InstructionFactory.createLabel(label));
-    list.add(InstructionFactory.createPush(lr));
-    list.add(InstructionFactory.createLoad(r1, r0));
-    list.add(InstructionFactory.createLoad(r0, referenceFormatterLabel));
-    list.add(InstructionFactory.createAdd(r0, r0, new Immediate((long) 4)));
-    list.add(InstructionFactory.createBranchLink(new Label("printf")));
-    list.add(InstructionFactory.createMov(r0, new Immediate((long) 0)));
-    list.add(InstructionFactory.createBranchLink(new Label("fflush")));
-    list.add(InstructionFactory.createPop(pc));
+
+    saveLinkRegister(list, printLabel);
+    list.add(InstructionFactory.createLoad(ARM11Registers.R1, ARM11Registers.R0));
+    list.add(InstructionFactory.createLoad(ARM11Registers.R0, referenceFormatterLabel));
+    list.add(InstructionFactory.createAdd(ARM11Registers.R0, ARM11Registers.R0, new Immediate((long) 4)));
+    printAsciiAndFlush(list);
+    list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
   }

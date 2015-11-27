@@ -196,13 +196,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  // TODO: uses freeRegisters (Stack)
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
     Label printLabel;
     InstructionList printHelperFunction = null;
+    Type returnType = (Type) ctx.expr().returnType;
 
-    if (Type.isString((Type) ctx.expr().returnType)) {
+    if (Type.isString(returnType)) {
       printHelperFunction = PrintFunctions.printString(data);
       data.addConstString(ctx.expr().getText());
       printLabel = new Label("p_print_string");
@@ -219,6 +219,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       printHelperFunction = PrintFunctions.printReference(data);
       printLabel = new Label("p_print_reference");
     }
+
     list.add(visitExpr(ctx.expr()));
     list.add(InstructionFactory.createBranchLink(printLabel));
 
