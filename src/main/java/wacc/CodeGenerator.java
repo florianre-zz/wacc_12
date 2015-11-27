@@ -354,37 +354,27 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
     InstructionList list = defaultResult();
+    Register reg = freeRegisters.pop();
+    Register dst;
+    Immediate imm = new Immediate((long) 0);
+    InstructionList printHelperFunction;
+    Label readLabel;
 
     if (Type.isInt((Type) ctx.assignLHS().returnType)) {
-      Register r0 = ARM11Registers.R0;
-      // TODO: uses freeRegisters (Stack)
-      Register r4 = ARM11Registers.R4;
-      Register sp = ARM11Registers.SP;
-      Immediate imm = new Immediate((long) 0);
-      Label readLabel = new Label("p_read_int");
-
-      list.add(InstructionFactory.createAdd(r4, sp, imm));
-      list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(readLabel));
-
-      InstructionList printHelperFunction = ReadFunctions.readInt(data);
-      helperFunctions.add(printHelperFunction);
-
+      readLabel = new Label("p_read_int");
+      dst = ARM11Registers.SP;
+      printHelperFunction = ReadFunctions.readInt(data);
     } else {
-      Register r0 = ARM11Registers.R0;
-      // TODO: uses freeRegisters (Stack)
-      Register r4 = ARM11Registers.R4;
-      Register sp = ARM11Registers.SP;
-      Immediate imm = new Immediate((long) 0);
-      Label readLabel = new Label("p_read_char");
-
-      list.add(InstructionFactory.createAdd(r4, sp, imm));
-      list.add(InstructionFactory.createMov(r0, r4));
-      list.add(InstructionFactory.createBranchLink(readLabel));
-
-      InstructionList printHelperFunction = ReadFunctions.readChar(data);
-      helperFunctions.add(printHelperFunction);
+      readLabel = new Label("p_read_char");
+      dst = ARM11Registers.R0;
+      printHelperFunction = ReadFunctions.readChar(data);
     }
+
+    list.add(InstructionFactory.createAdd(reg, ARM11Registers.SP, imm))
+        .add(InstructionFactory.createMov(dst, reg))
+        .add(InstructionFactory.createBranchLink(readLabel));
+    helperFunctions.add(printHelperFunction);
+
     return list;
   }
 
