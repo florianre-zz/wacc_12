@@ -401,6 +401,46 @@ public class InstructionFactory {
       }
     };
   }
+
+  public static Instruction createMovGt(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVGT) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createMovLe(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVLE) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createMovGe(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVGE) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createMovLt(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVLT) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
 }
 
 

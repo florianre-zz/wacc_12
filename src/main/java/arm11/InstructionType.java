@@ -25,7 +25,11 @@ public enum InstructionType {
   RSBS("RSBS"),
   ADDS("ADDS"),
   MOVEQ("MOVEQ"),
-  MOVNE("MOVNE");
+  MOVNE("MOVNE"),
+  MOVGT("MOVGT"),
+  MOVGE("MOVGE"),
+  MOVLT("MOVLT"),
+  MOVLE("MOVLE");
 
   private final String name;
 
