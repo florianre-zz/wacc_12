@@ -39,10 +39,11 @@ pairElemType: baseType | arrayType | PAIR;
 expr returns [Object returnType]: binaryOper {Object returnType = null;};
 sign: MINUS | PLUS;
 binaryOper: logicalOper;
-logicalOper: first=comparisonOper ((AND | OR) otherExprs+=comparisonOper)*
+logicalOper: first=comparisonOper (ops+=(AND | OR) otherExprs+=comparisonOper)*
 {
   WACCParser.ComparisonOperContext first;
   List<WACCParser.ComparisonOperContext> otherExprs = new ArrayList();
+  List<TerminalNode> ops = new ArrayList();
 };
 comparisonOper: orderingOper | equalityOper;
 orderingOper: first=arithmeticOper ((GT | GE | LT | LE) second=arithmeticOper)?
@@ -55,10 +56,11 @@ equalityOper: first=arithmeticOper ((EQ | NE) second=arithmeticOper)?
   WACCParser.ArithmeticOperContext first;
   WACCParser.ArithmeticOperContext second;
 };
-arithmeticOper: first=atom ((MUL | DIV | MOD | PLUS | MINUS) otherExprs+=atom)*
+arithmeticOper: first=atom (ops+=(MUL | DIV | MOD | PLUS | MINUS) otherExprs+=atom)*
 {
   WACCParser.AtomContext first;
   List<WACCParser.AtomContext> otherExprs = new ArrayList();
+  List<TerminalNode> ops = new ArrayList();
 };
 atom: integer | bool | character | string | pairLitr | unaryOper | array;
 integer: (CHR)? (sign)? INTEGER;
