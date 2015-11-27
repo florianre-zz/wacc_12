@@ -234,6 +234,59 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
+  public InstructionList visitLogicalOper(WACCParser.LogicalOperContext ctx) {
+    InstructionList list = defaultResult();
+    Register dst1 = freeRegisters.peek();
+    list.add(visitComparisonOper(ctx.first));
+    if (!ctx.otherExprs.isEmpty()) {
+      Register dst2;
+      // for loop used instead of visitChildren so only 2 registers used up
+      for (WACCParser.ComparisonOperContext otherExpr : ctx.otherExprs) {
+        dst2 = freeRegisters.peek();
+        list.add(visitComparisonOper(otherExpr))
+            .add(InstructionFactory.createAnd(dst1, dst1, dst2));
+        freeRegisters.push(dst2);
+      }
+    }
+
+    return list;
+  }
+
+  // TODO: Arith change just adds
+
+  @Override
+  public InstructionList visitOrderingOper(WACCParser.OrderingOperContext ctx) {
+    InstructionList list = defaultResult();
+
+    Register dst1 = freeRegisters.peek();
+    list.add(visitArithmeticOper(ctx.first));
+    if (ctx.second != null) {
+      Register dst2 = freeRegisters.peek();
+      Operand trueOp = new Immediate((long) 1);
+      Operand falseOp = new Immediate((long) 0);
+      list.add(visitArithmeticOper(ctx.second))
+          .add(InstructionFactory.createCompare(dst1, dst2));
+      if (ctx.GT() != null){
+        list.add(InstructionFactory.createMovGt(dst1, trueOp))
+            .add(InstructionFactory.createMovLe(dst1, falseOp));
+      } else if (ctx.GE() != null) {
+        list.add(InstructionFactory.createMovGe(dst1, trueOp))
+            .add(InstructionFactory.createMovLt(dst1, falseOp));
+      } else if (ctx.LT() != null) {
+        list.add(InstructionFactory.createMovLt(dst1, trueOp))
+            .add(InstructionFactory.createMovGe(dst1, falseOp));
+      } else if (ctx.LE() != null) {
+        list.add(InstructionFactory.createMovLe(dst1, trueOp))
+            .add(InstructionFactory.createMovGt(dst1, falseOp));
+      }
+
+      freeRegisters.push(dst2);
+    }
+
+    return list;
+  }
+
+  @Override
   public InstructionList visitEqualityOper(WACCParser.EqualityOperContext ctx) {
     InstructionList list = defaultResult();
     Register dst1 = freeRegisters.peek();
@@ -377,38 +430,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
      // TODO: allow for 0 default offset
       list.add(InstructionFactory.createLoad(reg, reg, 0));
     }
-    return list;
-  }
-
-  @Override
-  public InstructionList visitOrderingOper(WACCParser.OrderingOperContext ctx) {
-    InstructionList list = defaultResult();
-
-    Register dst1 = freeRegisters.peek();
-    list.add(visitArithmeticOper(ctx.first));
-    if (ctx.second != null) {
-      Register dst2 = freeRegisters.peek();
-      Operand trueOp = new Immediate((long) 1);
-      Operand falseOp = new Immediate((long) 0);
-      list.add(visitArithmeticOper(ctx.second))
-          .add(InstructionFactory.createCompare(dst1, dst2));
-      if (ctx.GT() != null){
-        list.add(InstructionFactory.createMovGt(dst1, trueOp))
-            .add(InstructionFactory.createMovLe(dst1, falseOp));
-      } else if (ctx.GE() != null) {
-        list.add(InstructionFactory.createMovGe(dst1, trueOp))
-            .add(InstructionFactory.createMovLt(dst1, falseOp));
-      } else if (ctx.LT() != null) {
-        list.add(InstructionFactory.createMovLt(dst1, trueOp))
-            .add(InstructionFactory.createMovGe(dst1, falseOp));
-      } else if (ctx.LE() != null) {
-        list.add(InstructionFactory.createMovLe(dst1, trueOp))
-            .add(InstructionFactory.createMovGt(dst1, falseOp));
-      }
-
-      freeRegisters.push(dst2);
-    }
-
     return list;
   }
 

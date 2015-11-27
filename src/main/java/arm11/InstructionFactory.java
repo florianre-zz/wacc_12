@@ -441,6 +441,28 @@ public class InstructionFactory {
       }
     };
   }
+
+  public static Instruction createAnd(final Register dst,
+                                      final Register src1,
+                                      final Register src2) {
+    return new Instruction(InstructionType.AND) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + dst + ", " + src1 + ", " + src2;
+      }
+    };
+  }
+
+  public static Instruction createOrr(final Register dst,
+                                      final Register src1,
+                                      final Register src2) {
+    return new Instruction(InstructionType.ORR) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + dst + ", " + src1 + ", " + src2;
+      }
+    };
+  }
 }
 
 
