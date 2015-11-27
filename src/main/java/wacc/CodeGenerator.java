@@ -173,15 +173,31 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitInitStat(WACCParser.InitStatContext ctx) {
-    InstructionList list = defaultResult();
-    addVariableToCurrentScope(ctx.ident().getText());
+    String varName = ctx.ident().getText();
+    WACCParser.AssignRHSContext assignRHS = ctx.assignRHS();
+    addVariableToCurrentScope(varName);
 
+    return storeToVariable(varName, assignRHS);
+  }
+
+  @Override
+  public InstructionList visitAssignStat(WACCParser.AssignStatContext ctx) {
+    if (ctx.assignLHS().ident() != null){
+      String varName = ctx.assignLHS().ident().getText();
+      return storeToVariable(varName, ctx.assignRHS());
+    }
+    return super.visitAssignStat(ctx);
+  }
+
+  private InstructionList storeToVariable(String varName,
+                                          WACCParser.AssignRHSContext assignRHS) {
+    InstructionList list = defaultResult();
     // TODO: move the pop to visitAssignRHS
     Register reg = freeRegisters.peek();
 
     Instruction storeInstr;
     Register sp  = ARM11Registers.SP;
-    Variable var = (Variable) workingSymbolTable.get(ctx.ident().getText());
+    Variable var = (Variable) workingSymbolTable.get(varName);
     Operand offset = new Immediate(var.getOffset());
 
     if (Type.isBool(var.getType()) || Type.isChar(var.getType())){
@@ -190,15 +206,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
     }
 
-    list.add(visitAssignRHS(ctx.assignRHS()));
+    list.add(visitAssignRHS(assignRHS));
     list.add(storeInstr);
     freeRegisters.push(reg);
     return list;
-  }
-
-  @Override
-  public InstructionList visitAssignStat(WACCParser.AssignStatContext ctx) {
-    return super.visitAssignStat(ctx);
   }
 
   @Override

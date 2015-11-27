@@ -117,6 +117,7 @@ public class InstructionFactory {
     };
   }
 
+  // TODO: make printInstructions consistent
   public static Instruction createMov(Register dst, final Operand op) {
     List<Operand> operands = new ArrayList<>(2);
     operands.add(dst);
