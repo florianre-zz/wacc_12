@@ -5,6 +5,7 @@ import arm11.*;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -196,6 +197,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitAssignStat(@NotNull WACCParser.AssignStatContext ctx) {
+    return super.visitAssignStat(ctx);
+  }
+
+  @Override
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
     Label printLabel;
