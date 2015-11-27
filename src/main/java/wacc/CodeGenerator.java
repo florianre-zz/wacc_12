@@ -5,7 +5,6 @@ import arm11.*;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -192,44 +191,58 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
     Label printLabel;
-    InstructionList printHelperFunction = null;
+    InstructionList printFunction = null;
     Type returnType = (Type) ctx.expr().returnType;
 
     if (Type.isString(returnType)) {
-      printHelperFunction = PrintFunctions.printString(data);
+      printFunction = PrintFunctions.printString(data);
       printLabel = new Label("p_print_string");
       data.addConstString(ctx.expr().getText());
       list.add(visitExpr(ctx.expr()));
     } else if (Type.isInt((Type) ctx.expr().returnType)) {
-      printHelperFunction = PrintFunctions.printInt(data);
+      printFunction = PrintFunctions.printInt(data);
       printLabel = new Label("p_print_int");
     } else if (Type.isChar((Type) ctx.expr().returnType)){
       printLabel = new Label("putchar");
     } else if (Type.isBool((Type) ctx.expr().returnType)) {
-      printHelperFunction = PrintFunctions.printBool(data);
+      printFunction = PrintFunctions.printBool(data);
       printLabel = new Label("p_print_bool");
     } else {
-      printHelperFunction = PrintFunctions.printReference(data);
+      printFunction = PrintFunctions.printReference(data);
       printLabel = new Label("p_print_reference");
     }
 
     Register res = freeRegisters.peek();
-    list.add(visitExpr(ctx.expr()))
-        .add(InstructionFactory.createMov(ARM11Registers.R0, res))
-        .add(InstructionFactory.createBranchLink(printLabel));
-
-    if (helperFunctions != null) {
-      helperFunctions.add(printHelperFunction);
-    }
-
+    list.add(printInstructions(list, ctx.expr(), res, printLabel));
+    addPrintFunctionToHelperFunctions(printFunction);
     if (ctx.PRINTLN() != null) {
-      printLabel = new Label("p_print_ln");
-      list.add(InstructionFactory.createBranchLink(printLabel));
-      printHelperFunction = PrintFunctions.printLn(data);
-      helperFunctions.add(printHelperFunction);
+      printNewLine(list);
     }
 
     return list;
+  }
+
+  private InstructionList printInstructions(InstructionList list,
+                                            WACCParser.ExprContext ctx,
+                                            Register res,
+                                            Label printLabel) {
+    return list.add(visitExpr(ctx))
+               .add(InstructionFactory.createMov(ARM11Registers.R0, res))
+               .add(InstructionFactory.createBranchLink(printLabel));
+  }
+
+  private void addPrintFunctionToHelperFunctions(
+      InstructionList printFunction) {
+    if (helperFunctions != null) {
+      helperFunctions.add(printFunction);
+    }
+  }
+
+  private void printNewLine(InstructionList list) {
+    Label printLabel = new Label("p_print_ln");
+    list.add(InstructionFactory.createBranchLink(printLabel));
+    InstructionList printHelperFunction = PrintFunctions.printLn(data);
+    helperFunctions.add(printHelperFunction);
   }
 
   @Override
