@@ -22,7 +22,10 @@ public enum InstructionType {
   DATA(".data"),
   LDRSB("LDRSB"),
   EOR("EOR"),
-  RSBS("RSBS");
+  RSBS("RSBS"),
+  ADDS("ADDS"),
+  MOVEQ("MOVEQ"),
+  MOVNE("MOVNE");
 
   private final String name;
 

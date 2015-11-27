@@ -159,16 +159,22 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createCompare(Register reg, long imm) {
+  public static Instruction createCompare(Register reg, final Operand op) {
     List<Operand> operands = new ArrayList<>(2);
     operands.add(reg);
-    operands.add(new Immediate(imm));
+    operands.add(op);
     return new Instruction(InstructionType.CMP, operands) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " "
-               + operands.get(0) + ", #"
-               + operands.get(1);
+        if (op.isImmediate()) {
+          return type.toString() + " "
+              + operands.get(0) + ", #"
+              + operands.get(1);
+        } else {
+          return type.toString() + " "
+              + operands.get(0) + ", "
+              + operands.get(1);
+        }
       }
     };
   }
@@ -346,6 +352,52 @@ public class InstructionFactory {
             + operands.get(0) + ", "
             + operands.get(1) + ", #"
             + operands.get(2);
+      }
+    };
+  }
+
+  public static Instruction createAdds(Register dst, Register src,
+                                       final Operand op) {
+    List<Operand> operands = new ArrayList<>(3);
+    operands.add(dst);
+    operands.add(src);
+    operands.add(op);
+    return new Instruction(InstructionType.ADDS, operands) {
+      @Override
+      protected String printInstruction() {
+        if (op.isImmediate()) {
+          return type.toString() + " "
+              + operands.get(0) + ", "
+              + operands.get(1) + ", #"
+              + operands.get(2);
+        } else {
+          return type.toString() + " "
+              + operands.get(0) + ", "
+              + operands.get(1) + ", "
+              + operands.get(2);
+        }
+
+      }
+    };
+  }
+
+  // TODO: make all prints like these
+  public static Instruction createMovEq(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVEQ) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createMovNe(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVNE) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
       }
     };
   }
