@@ -31,7 +31,9 @@ public enum InstructionType {
   MOVLT("MOVLT"),
   MOVLE("MOVLE"),
   AND("AND"),
-  ORR("ORR");
+  ORR("ORR"),
+  SUBS("SUBS"),
+  SMULL("SMULL");
 
   private final String name;
 

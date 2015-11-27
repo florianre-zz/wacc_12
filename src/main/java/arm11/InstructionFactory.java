@@ -5,6 +5,9 @@ import java.util.List;
 
 public class InstructionFactory {
 
+  public static final String AEABI_IDIV = "__aeabi_idiv";
+  private static final String AEABI_IDIVMOD = AEABI_IDIV + "mod";
+
   public static Instruction createLoad(Register dst, final Operand op) {
     //TODO: Check if it can really be any operand
     List<Operand> operands = new ArrayList<>(2);
@@ -463,6 +466,49 @@ public class InstructionFactory {
       }
     };
   }
+
+  public static Instruction createSubs(final Register dst,
+                                       final Register src1,
+                                       final Register src2) {
+    return new Instruction(InstructionType.SUBS) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + dst + ", " + src1 + ", " + src2;
+      }
+    };
+  }
+
+  public static Instruction createSmull(final Register dstHi,
+                                        final Register dstLo,
+                                        final Register src1,
+                                        final Register src2) {
+    return new Instruction(InstructionType.SMULL) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + dstHi + ", "
+            + dstLo + ", " + src1 + ", " + src2;
+      }
+    };
+  }
+
+  public static Instruction createDiv() {
+    return new Instruction(InstructionType.BL) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + AEABI_IDIV;
+      }
+    };
+  }
+
+  public static Instruction createMod() {
+    return new Instruction(InstructionType.BL) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + AEABI_IDIVMOD;
+      }
+    };
+  }
+
 }
 
 

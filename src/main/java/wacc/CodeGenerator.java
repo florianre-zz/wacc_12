@@ -5,7 +5,6 @@ import arm11.*;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -269,8 +268,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  // TODO: Arith change just adds
-
   @Override
   public InstructionList visitOrderingOper(WACCParser.OrderingOperContext ctx) {
     InstructionList list = defaultResult();
@@ -334,15 +331,42 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (!ctx.otherExprs.isEmpty()) {
       Register dst2;
       // for loop used instead of visitChildren so only 2 registers used up
-      for (WACCParser.AtomContext otherExpr : ctx.otherExprs) {
+      for (int i = 0; i < ctx.ops.size(); i++) {
+        InstructionList arithmeticInstr = defaultResult();
+        WACCParser.AtomContext otherExpr = ctx.otherExprs.get(i);
         dst2 = freeRegisters.peek();
+// TODO: parser precedence
+        String op = ctx.ops.get(i).getText();
+        if (op.equals(getToken(WACCParser.PLUS))){
+          arithmeticInstr.add(InstructionFactory.createAdds(dst1, dst1, dst2));
+        } else if (op.equals(getToken(WACCParser.MINUS))){
+          arithmeticInstr.add(InstructionFactory.createSubs(dst1, dst1, dst2));
+        } else if (op.equals(getToken(WACCParser.MUL))){
+          // TODO: check this is right for all cases
+          arithmeticInstr.add(InstructionFactory.createSmull(dst1, dst2, dst1, dst2));
+        } else if (op.equals(getToken(WACCParser.DIV))){
+          arithmeticInstr.add(divMoves(dst1, dst2))
+              .add(InstructionFactory.createDiv())
+              .add(InstructionFactory.createMov(dst1, ARM11Registers.R0));
+        } else {
+          arithmeticInstr.add(divMoves(dst1, dst2))
+              .add(InstructionFactory.createMod())
+              .add(InstructionFactory.createMov(dst1, ARM11Registers.R1));
+        }
+
         list.add(visitAtom(otherExpr))
-            .add(InstructionFactory.createAdds(dst1, dst1, dst2));
+            .add(arithmeticInstr);
         freeRegisters.push(dst2);
       }
     }
 
     return list;
+  }
+
+  private InstructionList divMoves(Operand dst1, Operand dst2) {
+    return defaultResult()
+        .add(InstructionFactory.createMov(ARM11Registers.R0, dst1))
+        .add(InstructionFactory.createMov(ARM11Registers.R1, dst2));
   }
 
   @Override
