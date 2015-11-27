@@ -78,28 +78,20 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     changeWorkingSymbolTableTo(scopeName);
     pushEmptyVariableSet();
 
-    // TODO: Add the data and helperFunctions sections above and below main
-
     InstructionList list = defaultResult();
 
     Label label = new Label(Scope.MAIN.toString());
-    list.add(InstructionFactory.createLabel(label));
-
-    Register register = ARM11Registers.LR;
-    list.add(InstructionFactory.createPush(register));
-
-    list.add(allocateSpaceOnStack());
-    list.add(visitChildren(ctx));
-    list.add(deallocateSpaceOnStack());
-
     Register r0 = ARM11Registers.R0;
     Operand imm = new Immediate((long) 0);
-    list.add(InstructionFactory.createLoad(r0, imm));
 
-    register = ARM11Registers.PC;
-    list.add(InstructionFactory.createPop(register));
-
-    list.add(InstructionFactory.createLTORG());
+    list.add(InstructionFactory.createLabel(label))
+        .add(InstructionFactory.createPush(ARM11Registers.LR))
+        .add(allocateSpaceOnStack())
+        .add(visitChildren(ctx))
+        .add(deallocateSpaceOnStack())
+        .add(InstructionFactory.createLoad(r0, imm))
+        .add(InstructionFactory.createPop(ARM11Registers.PC))
+        .add(InstructionFactory.createLTORG());
 
     goUpWorkingSymbolTable();
     popCurrentScopeVariableSet();
@@ -279,9 +271,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       loadOrMove = InstructionFactory.createLoad(reg, op);
     }
 
-    list.add(loadOrMove);
-    // TODO: make InstructionList a builder so we wan return list.add(l)
-    return list;
+    return list.add(loadOrMove);
   }
 
   @Override
@@ -303,9 +293,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     }
     move = InstructionFactory.createMov(reg, op);
 
-    list.add(move);
-    // TODO: make InstructionList a builder so we wan return list.add(l)
-    return list;
+    return list.add(move);
   }
 
   @Override
@@ -326,9 +314,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       loadOrMove = InstructionFactory.createMov(reg, op);
     }
 
-    list.add(loadOrMove);
-    // TODO: make InstructionList a builder so we wan return list.add(l)
-    return list;
+    return list.add(loadOrMove);
   }
 
   @Override

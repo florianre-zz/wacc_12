@@ -11,16 +11,18 @@ public class InstructionList  {
     this.instructions = new ArrayList<>();
   }
 
-  public void add(Instruction instruction) {
+  public InstructionList add(Instruction instruction) {
     instructions.add(instruction);
+    return this;
   }
 
-  public void add(InstructionList instructionList) {
+  public InstructionList add(InstructionList instructionList) {
     if (instructionList != null) {
       for (Instruction instruction : instructionList.getInstructions()) {
         this.instructions.add(instruction);
       }
     }
+    return this;
   }
 
   private List<Instruction> getInstructions() {
