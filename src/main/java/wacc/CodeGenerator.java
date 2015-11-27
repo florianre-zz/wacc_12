@@ -227,19 +227,21 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     Register result = freeRegisters.peek();
     list.add(visitExpr(ctx.expr()))
-        .add(InstructionFactory.createMov(ARM11Registers.R0, result))
-        .add(InstructionFactory.createBranchLink(printLabel));
-
-    if (helperFunctions != null) {
-      helperFunctions.add(printFunction);
-    }
-
+       .add(InstructionFactory.createMov(ARM11Registers.R0, result))
+       .add(InstructionFactory.createBranchLink(printLabel));
+    addPrintFunctionToHelpers(printFunction);
     if (ctx.PRINTLN() != null) {
       printNewLine(list);
     }
     freeRegisters.push(result);
 
     return list;
+  }
+
+  private void addPrintFunctionToHelpers(InstructionList printFunction) {
+    if (printFunction != null) {
+      helperFunctions.add(printFunction);
+    }
   }
 
   @Override
@@ -300,15 +302,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     }
 
     return list;
-  }
-
-  private InstructionList printInstructions(InstructionList list,
-                                            WACCParser.ExprContext ctx,
-                                            Register res,
-                                            Label printLabel) {
-    return list.add(visitExpr(ctx))
-               .add(InstructionFactory.createMov(ARM11Registers.R0, res))
-               .add(InstructionFactory.createBranchLink(printLabel));
   }
 
   private void printNewLine(InstructionList list) {
@@ -385,7 +378,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
         if (op.equals(getToken(WACCParser.MUL))){
           // TODO: check this is right for all cases
-          arithmeticInstr.add(InstructionFactory.createSmull(dst1, dst2, dst1, dst2));
+          arithmeticInstr.add(InstructionFactory.createSmull(dst1,
+                                                             dst2,
+                                                             dst1,
+                                                             dst2));
         } else if (op.equals(getToken(WACCParser.DIV))){
           arithmeticInstr.add(divMoves(dst1, dst2))
               .add(InstructionFactory.createDiv())
