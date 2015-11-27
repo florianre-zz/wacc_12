@@ -87,13 +87,12 @@ public class PrintFunctions {
         = data.addPrintFormatter(IOFormatters.BOOL_FALSE_FORMATTER);
 
     saveLinkRegister(list, printLabel);
-    list.add(InstructionFactory.createCompare(ARM11Registers.R0,
-                                              new Immediate((long) 0)))
-        .add(InstructionFactory.createLoadNotEqual(ARM11Registers.R0,
-                                                   trueFormatterLabel))
-        .add(InstructionFactory.createLoadEqual(ARM11Registers.R0,
-                                                falseFormatterLabel))
-        .add(InstructionFactory.createAdd(ARM11Registers.R0,
+    list.add(InstructionFactory.createCompare(ARM11Registers.R0, 0));
+    list.add(InstructionFactory.createLoadNotEqual(ARM11Registers.R0,
+                                                   trueFormatterLabel));
+    list.add(InstructionFactory.createLoadEqual(ARM11Registers.R0,
+                                                falseFormatterLabel));
+    list.add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
                                           new Immediate((long) 4)));
     printAsciiAndFlush(list);

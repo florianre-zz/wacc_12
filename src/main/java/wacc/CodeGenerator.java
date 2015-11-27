@@ -214,7 +214,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     Register res = freeRegisters.peek();
     list.add(printInstructions(list, ctx.expr(), res, printLabel));
-    addPrintFunctionToHelperFunctions(printFunction);
+
+    if (helperFunctions != null) {
+      helperFunctions.add(printFunction);
+    }
+
     if (ctx.PRINTLN() != null) {
       printNewLine(list);
     }
@@ -231,59 +235,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
                .add(InstructionFactory.createBranchLink(printLabel));
   }
 
-  private void addPrintFunctionToHelperFunctions(
-      InstructionList printFunction) {
-    if (helperFunctions != null) {
-      helperFunctions.add(printFunction);
-    }
-  }
-
   private void printNewLine(InstructionList list) {
     Label printLabel = new Label("p_print_ln");
     list.add(InstructionFactory.createBranchLink(printLabel));
     InstructionList printHelperFunction = PrintFunctions.printLn(data);
     helperFunctions.add(printHelperFunction);
-  }
-
-  @Override
-  public InstructionList visitEqualityOper(WACCParser.EqualityOperContext ctx) {
-    InstructionList list = defaultResult();
-    Register dst1 = freeRegisters.peek();
-    list.add(visitArithmeticOper(ctx.first));
-    if (ctx.second != null) {
-      Register dst2 = freeRegisters.peek();
-
-      long trueLong = (ctx.EQ() != null) ? 1 : 0;
-      long falseLong = (ctx.EQ() != null) ? 0 : 1;
-      Operand trueOp = new Immediate(trueLong);
-      Operand falseOp = new Immediate(falseLong);
-      list.add(visitArithmeticOper(ctx.second))
-          .add(InstructionFactory.createCompare(dst1, dst2))
-          .add(InstructionFactory.createMovEq(dst1, trueOp))
-          .add(InstructionFactory.createMovNe(dst1, falseOp));
-      freeRegisters.push(dst2);
-    }
-
-    return list;
-  }
-
-  @Override
-  public InstructionList visitArithmeticOper(
-      WACCParser.ArithmeticOperContext ctx) {
-    InstructionList list = defaultResult();
-    Register dst1 = freeRegisters.peek();
-    list.add(visitAtom(ctx.first));
-    if (!ctx.otherExprs.isEmpty()) {
-      Register dst2;
-      for (WACCParser.AtomContext otherExpr : ctx.otherExprs) {
-        dst2 = freeRegisters.peek();
-        list.add(visitAtom(otherExpr))
-            .add(InstructionFactory.createAdds(dst1, dst1, dst2));
-        freeRegisters.push(dst2);
-      }
-    }
-
-    return list;
   }
 
   @Override
