@@ -38,6 +38,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return aggregate;
   }
 
+  private String getToken(int index){
+    String tokenName = WACCParser.tokenNames[index];
+
+    assert(tokenName.charAt(0) != '\'');
+
+    return tokenName.substring(1, tokenName.length() - 1);
+  }
+
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
     resetFreeRegisters();
@@ -241,10 +249,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (!ctx.otherExprs.isEmpty()) {
       Register dst2;
       // for loop used instead of visitChildren so only 2 registers used up
-      for (WACCParser.ComparisonOperContext otherExpr : ctx.otherExprs) {
+      Instruction logicalInstr;
+      for (int i = 0; i < ctx.ops.size(); i++) {
+        WACCParser.ComparisonOperContext otherExpr = ctx.otherExprs.get(i);
         dst2 = freeRegisters.peek();
+
+        if (ctx.ops.get(i).getText().equals(getToken(WACCParser.AND))){
+          logicalInstr = InstructionFactory.createAnd(dst1, dst1, dst2);
+        } else {
+          logicalInstr = InstructionFactory.createOrr(dst1, dst1, dst2);
+        }
+
         list.add(visitComparisonOper(otherExpr))
-            .add(InstructionFactory.createAnd(dst1, dst1, dst2));
+            .add(logicalInstr);
         freeRegisters.push(dst2);
       }
     }
