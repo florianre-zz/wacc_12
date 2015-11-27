@@ -46,17 +46,23 @@ logicalOper: first=comparisonOper (ops+=(AND | OR) otherExprs+=comparisonOper)*
   List<TerminalNode> ops = new ArrayList();
 };
 comparisonOper: orderingOper | equalityOper;
-orderingOper: first=arithmeticOper ((GT | GE | LT | LE) second=arithmeticOper)?
+orderingOper: first=addOper ((GT | GE | LT | LE) second=addOper)?
 {
-  WACCParser.ArithmeticOperContext first;
-  WACCParser.ArithmeticOperContext second;
+  WACCParser.AddOperContext first;
+  WACCParser.AddOperContext second;
 };
-equalityOper: first=arithmeticOper ((EQ | NE) second=arithmeticOper)?
+equalityOper: first=addOper ((EQ | NE) second=addOper)?
 {
-  WACCParser.ArithmeticOperContext first;
-  WACCParser.ArithmeticOperContext second;
+  WACCParser.AddOperContext first;
+  WACCParser.AddOperContext second;
 };
-arithmeticOper: first=atom (ops+=(MUL | DIV | MOD | PLUS | MINUS) otherExprs+=atom)*
+addOper: first=multOper (ops+=(PLUS | MINUS) otherExprs+=multOper)*
+{
+  WACCParser.MultOperContext first;
+  List<WACCParser.MultOperContext> otherExprs = new ArrayList();
+  List<TerminalNode> ops = new ArrayList();
+};
+multOper: first=atom (ops+=(MUL | DIV | MOD) otherExprs+=atom)*
 {
   WACCParser.AtomContext first;
   List<WACCParser.AtomContext> otherExprs = new ArrayList();

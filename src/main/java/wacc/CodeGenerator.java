@@ -273,12 +273,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Register dst1 = freeRegisters.peek();
-    list.add(visitArithmeticOper(ctx.first));
+    list.add(visitAddOper(ctx.first));
     if (ctx.second != null) {
       Register dst2 = freeRegisters.peek();
       Operand trueOp = new Immediate((long) 1);
       Operand falseOp = new Immediate((long) 0);
-      list.add(visitArithmeticOper(ctx.second))
+      list.add(visitAddOper(ctx.second))
           .add(InstructionFactory.createCompare(dst1, dst2));
       if (ctx.GT() != null){
         list.add(InstructionFactory.createMovGt(dst1, trueOp))
@@ -304,7 +304,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitEqualityOper(WACCParser.EqualityOperContext ctx) {
     InstructionList list = defaultResult();
     Register dst1 = freeRegisters.peek();
-    list.add(visitArithmeticOper(ctx.first));
+    list.add(visitAddOper(ctx.first));
     if (ctx.second != null) {
       Register dst2 = freeRegisters.peek();
 
@@ -312,7 +312,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       long falseLong = (ctx.EQ() != null) ? 0 : 1;
       Operand trueOp = new Immediate(trueLong);
       Operand falseOp = new Immediate(falseLong);
-      list.add(visitArithmeticOper(ctx.second))
+      list.add(visitAddOper(ctx.second))
           .add(InstructionFactory.createCompare(dst1, dst2))
           .add(InstructionFactory.createMovEq(dst1, trueOp))
           .add(InstructionFactory.createMovNe(dst1, falseOp));
@@ -323,8 +323,36 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitArithmeticOper(
-      WACCParser.ArithmeticOperContext ctx) {
+  public InstructionList visitAddOper(WACCParser.AddOperContext ctx) {
+    InstructionList list = defaultResult();
+    Register dst1 = freeRegisters.peek();
+    list.add(visitMultOper(ctx.first));
+    if (!ctx.otherExprs.isEmpty()) {
+      Register dst2;
+      // for loop used instead of visitChildren so only 2 registers used up
+      for (int i = 0; i < ctx.ops.size(); i++) {
+        InstructionList arithmeticInstr = defaultResult();
+        WACCParser.MultOperContext otherExpr = ctx.otherExprs.get(i);
+        dst2 = freeRegisters.peek();
+        String op = ctx.ops.get(i).getText();
+
+        if (op.equals(getToken(WACCParser.PLUS))){
+          arithmeticInstr.add(InstructionFactory.createAdds(dst1, dst1, dst2));
+        } else {
+          arithmeticInstr.add(InstructionFactory.createSubs(dst1, dst1, dst2));
+        }
+
+        list.add(visitMultOper(otherExpr))
+            .add(arithmeticInstr);
+        freeRegisters.push(dst2);
+      }
+    }
+
+    return list;
+  }
+
+  @Override
+  public InstructionList visitMultOper(WACCParser.MultOperContext ctx) {
     InstructionList list = defaultResult();
     Register dst1 = freeRegisters.peek();
     list.add(visitAtom(ctx.first));
@@ -335,13 +363,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         InstructionList arithmeticInstr = defaultResult();
         WACCParser.AtomContext otherExpr = ctx.otherExprs.get(i);
         dst2 = freeRegisters.peek();
-// TODO: parser precedence
         String op = ctx.ops.get(i).getText();
-        if (op.equals(getToken(WACCParser.PLUS))){
-          arithmeticInstr.add(InstructionFactory.createAdds(dst1, dst1, dst2));
-        } else if (op.equals(getToken(WACCParser.MINUS))){
-          arithmeticInstr.add(InstructionFactory.createSubs(dst1, dst1, dst2));
-        } else if (op.equals(getToken(WACCParser.MUL))){
+
+        if (op.equals(getToken(WACCParser.MUL))){
           // TODO: check this is right for all cases
           arithmeticInstr.add(InstructionFactory.createSmull(dst1, dst2, dst1, dst2));
         } else if (op.equals(getToken(WACCParser.DIV))){

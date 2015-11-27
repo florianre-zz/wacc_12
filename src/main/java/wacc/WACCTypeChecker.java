@@ -3,6 +3,7 @@ package wacc;
 import antlr.WACCParser;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
 import java.util.List;
@@ -692,8 +693,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitOrderingOper(WACCParser.OrderingOperContext ctx) {
     if (ctx.second != null) {
-      Type fstType = visitArithmeticOper(ctx.first);
-      Type sndType = visitArithmeticOper(ctx.second);
+      Type fstType = visitAddOper(ctx.first);
+      Type sndType = visitAddOper(ctx.second);
 
       if (!fstType.equals(sndType)) {
         errorHandler.complain(new TypeError(ctx.first));
@@ -704,7 +705,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       }
       return getType(Types.BOOL_T);
     } else {
-      return visitArithmeticOper(ctx.first);
+      return visitAddOper(ctx.first);
     }
   }
 
@@ -718,8 +719,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitEqualityOper(WACCParser.EqualityOperContext ctx) {
     if (ctx.second != null) {
-      Type fstType = visitArithmeticOper(ctx.first);
-      Type sndType = visitArithmeticOper(ctx.second);
+      Type fstType = visitAddOper(ctx.first);
+      Type sndType = visitAddOper(ctx.second);
 
       if (!fstType.equals(sndType)) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -736,7 +737,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
       return getType(Types.BOOL_T);
     } else {
-      return visitArithmeticOper(ctx.first);
+      return visitAddOper(ctx.first);
     }
   }
 
@@ -748,13 +749,30 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    *  - check all exprs are int(s)
    */
   @Override
-  public Type visitArithmeticOper(
-      WACCParser.ArithmeticOperContext ctx) {
-    if (ctx.otherExprs.size() > 0) {
-      for (WACCParser.AtomContext atomCtx : ctx.atom()) {
-        Type type = visitAtom(atomCtx);
+  public Type visitMultOper(
+      WACCParser.MultOperContext ctx) {
+    if (!ctx.otherExprs.isEmpty()) {
+      for (WACCParser.AtomContext atomContext : ctx.atom()) {
+        Type type = visitAtom(atomContext);
         if (!Type.isInt(type)) {
-          incorrectType(atomCtx, type, Types.INT_T.toString());
+          incorrectType(atomContext, type, Types.INT_T.toString());
+        }
+      }
+      return getType(Types.INT_T);
+    } else {
+      return visitChildren(ctx);
+    }
+  }
+
+  // TODO: Invalid may fail here
+
+  @Override
+  public Type visitAddOper(@NotNull WACCParser.AddOperContext ctx) {
+    if (!ctx.otherExprs.isEmpty()) {
+      for (WACCParser.MultOperContext multOperContext : ctx.multOper()) {
+        Type type = visitMultOper(multOperContext);
+        if (!Type.isInt(type)) {
+          incorrectType(multOperContext, type, Types.INT_T.toString());
         }
       }
       return getType(Types.INT_T);
