@@ -1,0 +1,4 @@
+begin
+  int i = 10;
+  int x = i + 2 * 5 - 4 % 2
+end

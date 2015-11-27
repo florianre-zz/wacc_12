@@ -87,7 +87,8 @@ public class PrintFunctions {
         = data.addPrintFormatter(IOFormatters.BOOL_FALSE_FORMATTER);
 
     saveLinkRegister(list, printLabel);
-    list.add(InstructionFactory.createCompare(ARM11Registers.R0, 0));
+    list.add(InstructionFactory.createCompare(ARM11Registers.R0, new
+        Immediate((long) 0)));
     list.add(InstructionFactory.createLoadNotEqual(ARM11Registers.R0,
                                                    trueFormatterLabel));
     list.add(InstructionFactory.createLoadEqual(ARM11Registers.R0,

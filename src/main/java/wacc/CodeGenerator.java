@@ -37,6 +37,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return aggregate;
   }
 
+  private String getToken(int index){
+    String tokenName = WACCParser.tokenNames[index];
+
+    assert(tokenName.charAt(0) != '\'');
+
+    return tokenName.substring(1, tokenName.length() - 1);
+  }
+
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
     resetFreeRegisters();
@@ -188,6 +196,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitAssignStat(WACCParser.AssignStatContext ctx) {
+    return super.visitAssignStat(ctx);
+  }
+
+  @Override
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
     Label printLabel;
@@ -198,7 +212,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       printFunction = PrintFunctions.printString(data);
       printLabel = new Label("p_print_string");
       data.addConstString(ctx.expr().getText());
-      list.add(visitExpr(ctx.expr()));
     } else if (Type.isInt((Type) ctx.expr().returnType)) {
       printFunction = PrintFunctions.printInt(data);
       printLabel = new Label("p_print_int");
@@ -212,8 +225,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       printLabel = new Label("p_print_reference");
     }
 
-    Register res = freeRegisters.peek();
-    list.add(printInstructions(list, ctx.expr(), res, printLabel));
+    Register result = freeRegisters.peek();
+    list.add(visitExpr(ctx.expr()))
+        .add(InstructionFactory.createMov(ARM11Registers.R0, result))
+        .add(InstructionFactory.createBranchLink(printLabel));
 
     if (helperFunctions != null) {
       helperFunctions.add(printFunction);
@@ -221,6 +236,67 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (ctx.PRINTLN() != null) {
       printNewLine(list);
+    }
+    freeRegisters.push(result);
+
+    return list;
+  }
+
+  @Override
+  public InstructionList visitLogicalOper(WACCParser.LogicalOperContext ctx) {
+    InstructionList list = defaultResult();
+    Register dst1 = freeRegisters.peek();
+    list.add(visitComparisonOper(ctx.first));
+    if (!ctx.otherExprs.isEmpty()) {
+      Register dst2;
+      // for loop used instead of visitChildren so only 2 registers used up
+      Instruction logicalInstr;
+      for (int i = 0; i < ctx.ops.size(); i++) {
+        WACCParser.ComparisonOperContext otherExpr = ctx.otherExprs.get(i);
+        dst2 = freeRegisters.peek();
+
+        if (ctx.ops.get(i).getText().equals(getToken(WACCParser.AND))){
+          logicalInstr = InstructionFactory.createAnd(dst1, dst1, dst2);
+        } else {
+          logicalInstr = InstructionFactory.createOrr(dst1, dst1, dst2);
+        }
+
+        list.add(visitComparisonOper(otherExpr))
+            .add(logicalInstr);
+        freeRegisters.push(dst2);
+      }
+    }
+
+    return list;
+  }
+
+  @Override
+  public InstructionList visitOrderingOper(WACCParser.OrderingOperContext ctx) {
+    InstructionList list = defaultResult();
+
+    Register dst1 = freeRegisters.peek();
+    list.add(visitAddOper(ctx.first));
+    if (ctx.second != null) {
+      Register dst2 = freeRegisters.peek();
+      Operand trueOp = new Immediate((long) 1);
+      Operand falseOp = new Immediate((long) 0);
+      list.add(visitAddOper(ctx.second))
+          .add(InstructionFactory.createCompare(dst1, dst2));
+      if (ctx.GT() != null){
+        list.add(InstructionFactory.createMovGt(dst1, trueOp))
+            .add(InstructionFactory.createMovLe(dst1, falseOp));
+      } else if (ctx.GE() != null) {
+        list.add(InstructionFactory.createMovGe(dst1, trueOp))
+            .add(InstructionFactory.createMovLt(dst1, falseOp));
+      } else if (ctx.LT() != null) {
+        list.add(InstructionFactory.createMovLt(dst1, trueOp))
+            .add(InstructionFactory.createMovGe(dst1, falseOp));
+      } else if (ctx.LE() != null) {
+        list.add(InstructionFactory.createMovLe(dst1, trueOp))
+            .add(InstructionFactory.createMovGt(dst1, falseOp));
+      }
+
+      freeRegisters.push(dst2);
     }
 
     return list;
@@ -240,6 +316,99 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createBranchLink(printLabel));
     InstructionList printHelperFunction = PrintFunctions.printLn(data);
     helperFunctions.add(printHelperFunction);
+  }
+
+  @Override
+  public InstructionList visitEqualityOper(WACCParser.EqualityOperContext ctx) {
+    InstructionList list = defaultResult();
+    Register dst1 = freeRegisters.peek();
+    list.add(visitAddOper(ctx.first));
+    if (ctx.second != null) {
+      Register dst2 = freeRegisters.peek();
+
+      long trueLong = (ctx.EQ() != null) ? 1 : 0;
+      long falseLong = (ctx.EQ() != null) ? 0 : 1;
+      Operand trueOp = new Immediate(trueLong);
+      Operand falseOp = new Immediate(falseLong);
+      list.add(visitAddOper(ctx.second))
+          .add(InstructionFactory.createCompare(dst1, dst2))
+          .add(InstructionFactory.createMovEq(dst1, trueOp))
+          .add(InstructionFactory.createMovNe(dst1, falseOp));
+      freeRegisters.push(dst2);
+    }
+
+    return list;
+  }
+
+  @Override
+  public InstructionList visitAddOper(WACCParser.AddOperContext ctx) {
+    InstructionList list = defaultResult();
+    Register dst1 = freeRegisters.peek();
+    list.add(visitMultOper(ctx.first));
+    if (!ctx.otherExprs.isEmpty()) {
+      Register dst2;
+      // for loop used instead of visitChildren so only 2 registers used up
+      for (int i = 0; i < ctx.ops.size(); i++) {
+        InstructionList arithmeticInstr = defaultResult();
+        WACCParser.MultOperContext otherExpr = ctx.otherExprs.get(i);
+        dst2 = freeRegisters.peek();
+        String op = ctx.ops.get(i).getText();
+
+        if (op.equals(getToken(WACCParser.PLUS))){
+          arithmeticInstr.add(InstructionFactory.createAdds(dst1, dst1, dst2));
+        } else {
+          arithmeticInstr.add(InstructionFactory.createSubs(dst1, dst1, dst2));
+        }
+
+        list.add(visitMultOper(otherExpr))
+            .add(arithmeticInstr);
+        freeRegisters.push(dst2);
+      }
+    }
+
+    return list;
+  }
+
+  @Override
+  public InstructionList visitMultOper(WACCParser.MultOperContext ctx) {
+    InstructionList list = defaultResult();
+    Register dst1 = freeRegisters.peek();
+    list.add(visitAtom(ctx.first));
+    if (!ctx.otherExprs.isEmpty()) {
+      Register dst2;
+      // for loop used instead of visitChildren so only 2 registers used up
+      for (int i = 0; i < ctx.ops.size(); i++) {
+        InstructionList arithmeticInstr = defaultResult();
+        WACCParser.AtomContext otherExpr = ctx.otherExprs.get(i);
+        dst2 = freeRegisters.peek();
+        String op = ctx.ops.get(i).getText();
+
+        if (op.equals(getToken(WACCParser.MUL))){
+          // TODO: check this is right for all cases
+          arithmeticInstr.add(InstructionFactory.createSmull(dst1, dst2, dst1, dst2));
+        } else if (op.equals(getToken(WACCParser.DIV))){
+          arithmeticInstr.add(divMoves(dst1, dst2))
+              .add(InstructionFactory.createDiv())
+              .add(InstructionFactory.createMov(dst1, ARM11Registers.R0));
+        } else {
+          arithmeticInstr.add(divMoves(dst1, dst2))
+              .add(InstructionFactory.createMod())
+              .add(InstructionFactory.createMov(dst1, ARM11Registers.R1));
+        }
+
+        list.add(visitAtom(otherExpr))
+            .add(arithmeticInstr);
+        freeRegisters.push(dst2);
+      }
+    }
+
+    return list;
+  }
+
+  private InstructionList divMoves(Operand dst1, Operand dst2) {
+    return defaultResult()
+        .add(InstructionFactory.createMov(ARM11Registers.R0, dst1))
+        .add(InstructionFactory.createMov(ARM11Registers.R1, dst2));
   }
 
   @Override

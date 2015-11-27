@@ -5,6 +5,9 @@ import java.util.List;
 
 public class InstructionFactory {
 
+  public static final String AEABI_IDIV = "__aeabi_idiv";
+  private static final String AEABI_IDIVMOD = AEABI_IDIV + "mod";
+
   public static Instruction createLoad(Register dst, final Operand op) {
     //TODO: Check if it can really be any operand
     List<Operand> operands = new ArrayList<>(2);
@@ -134,8 +137,9 @@ public class InstructionFactory {
   }
 
  // TODO: remove
-  public static Instruction createAdd(Register dst, Register src, final Operand
-      op) {
+  public static Instruction createAdd(Register dst,
+                                      Register src,
+                                      final Operand op) {
     List<Operand> operands = new ArrayList<>(3);
     operands.add(dst);
     operands.add(src);
@@ -154,21 +158,26 @@ public class InstructionFactory {
                  + operands.get(1) + ", "
                  + operands.get(2);
         }
-
       }
     };
   }
 
-  public static Instruction createCompare(Register reg, long imm) {
+  public static Instruction createCompare(Register reg, final Operand op) {
     List<Operand> operands = new ArrayList<>(2);
     operands.add(reg);
-    operands.add(new Immediate(imm));
+    operands.add(op);
     return new Instruction(InstructionType.CMP, operands) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " "
-               + operands.get(0) + ", #"
-               + operands.get(1);
+        if (op.isImmediate()) {
+          return type.toString() + " "
+                 + operands.get(0) + ", #"
+                 + operands.get(1);
+        } else {
+          return type.toString() + " "
+                 + operands.get(0) + ", "
+                 + operands.get(1);
+        }
       }
     };
   }
@@ -349,6 +358,157 @@ public class InstructionFactory {
       }
     };
   }
+
+  public static Instruction createAdds(Register dst, Register src,
+                                       final Operand op) {
+    List<Operand> operands = new ArrayList<>(3);
+    operands.add(dst);
+    operands.add(src);
+    operands.add(op);
+    return new Instruction(InstructionType.ADDS, operands) {
+      @Override
+      protected String printInstruction() {
+        if (op.isImmediate()) {
+          return type.toString() + " "
+              + operands.get(0) + ", "
+              + operands.get(1) + ", #"
+              + operands.get(2);
+        } else {
+          return type.toString() + " "
+              + operands.get(0) + ", "
+              + operands.get(1) + ", "
+              + operands.get(2);
+        }
+
+      }
+    };
+  }
+
+  // TODO: make all prints like these
+  public static Instruction createMovEq(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVEQ) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createMovNe(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVNE) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createMovGt(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVGT) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createMovLe(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVLE) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createMovGe(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVGE) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createMovLt(final Register dst, final Operand op) {
+    return new Instruction(InstructionType.MOVLT) {
+      @Override
+      protected String printInstruction() {
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + optionalHash + op;
+      }
+    };
+  }
+
+  public static Instruction createAnd(final Register dst,
+                                      final Register src1,
+                                      final Register src2) {
+    return new Instruction(InstructionType.AND) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + dst + ", " + src1 + ", " + src2;
+      }
+    };
+  }
+
+  public static Instruction createOrr(final Register dst,
+                                      final Register src1,
+                                      final Register src2) {
+    return new Instruction(InstructionType.ORR) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + dst + ", " + src1 + ", " + src2;
+      }
+    };
+  }
+
+  public static Instruction createSubs(final Register dst,
+                                       final Register src1,
+                                       final Register src2) {
+    return new Instruction(InstructionType.SUBS) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + dst + ", " + src1 + ", " + src2;
+      }
+    };
+  }
+
+  public static Instruction createSmull(final Register dstHi,
+                                        final Register dstLo,
+                                        final Register src1,
+                                        final Register src2) {
+    return new Instruction(InstructionType.SMULL) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + dstHi + ", "
+            + dstLo + ", " + src1 + ", " + src2;
+      }
+    };
+  }
+
+  public static Instruction createDiv() {
+    return new Instruction(InstructionType.BL) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + AEABI_IDIV;
+      }
+    };
+  }
+
+  public static Instruction createMod() {
+    return new Instruction(InstructionType.BL) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + AEABI_IDIVMOD;
+      }
+    };
+  }
+
 }
 
 
