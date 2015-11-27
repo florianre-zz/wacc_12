@@ -49,9 +49,9 @@ MOD: '%';
 PLUS: '+'; // Also used for POSITIVE
 MINUS: '-'; // Also used for NEGATIVE & NEGATE
 GT: '>';
-GTE: '>=';
+GE: '>=';
 LT: '<';
-LTE: '<=';
+LE: '<=';
 EQ: '==';
 NE: '!=';
 AND: '&&';

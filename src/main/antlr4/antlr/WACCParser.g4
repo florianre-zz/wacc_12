@@ -45,7 +45,7 @@ logicalOper: first=comparisonOper ((AND | OR) otherExprs+=comparisonOper)*
   List<WACCParser.ComparisonOperContext> otherExprs = new ArrayList();
 };
 comparisonOper: orderingOper | equalityOper;
-orderingOper: first=arithmeticOper ((GT | GTE | LT | LTE) second=arithmeticOper)?
+orderingOper: first=arithmeticOper ((GT | GE | LT | LE) second=arithmeticOper)?
 {
   WACCParser.ArithmeticOperContext first;
   WACCParser.ArithmeticOperContext second;
