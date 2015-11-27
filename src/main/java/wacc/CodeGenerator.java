@@ -212,8 +212,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (Type.isString(returnType)) {
       printHelperFunction = PrintFunctions.printString(data);
-      data.addConstString(ctx.expr().getText());
       printLabel = new Label("p_print_string");
+      data.addConstString(ctx.expr().getText());
       list.add(visitExpr(ctx.expr()));
     } else if (Type.isInt((Type) ctx.expr().returnType)) {
       printHelperFunction = PrintFunctions.printInt(data);

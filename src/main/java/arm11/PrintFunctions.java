@@ -67,10 +67,10 @@ public class PrintFunctions {
     InstructionList list = new InstructionList();
 
     Label printLabel = new Label("p_print_ln");
-    Label LnFormatterLabel = data.addPrintFormatter(IOFormatters.LN_FORMATTER);
+    Label lnFormatterLabel = data.addPrintFormatter(IOFormatters.LN_FORMATTER);
 
     saveLinkRegister(list, printLabel, LR);
-    list.add(InstructionFactory.createLoad(R0, LnFormatterLabel));
+    list.add(InstructionFactory.createLoad(R0, lnFormatterLabel));
     list.add(InstructionFactory.createAdd(R0, R0, new Immediate((long) 4)));
     printAsciiAndFlush(list, R0);
     list.add(InstructionFactory.createPop(PC));

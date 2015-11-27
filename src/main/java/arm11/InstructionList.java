@@ -38,8 +38,12 @@ public class InstructionList  {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     InstructionList that = (InstructionList) o;
     return this.toString().equals(that.toString());
