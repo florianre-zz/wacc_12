@@ -28,10 +28,43 @@ public class InstructionFactory {
     };
   }
 
+  public static Instruction createBranch(final Label label) {
+    List<Operand> operands = new ArrayList<>(1);
+    operands.add(label);
+    return new Instruction(InstructionType.B, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + operands.get(0);
+      }
+    };
+  }
+
   public static Instruction createBranchLink(final Label label) {
     List<Operand> operands = new ArrayList<>(1);
     operands.add(label);
     return new Instruction(InstructionType.BL, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + operands.get(0);
+      }
+    };
+  }
+
+  public static Instruction createBranchEqual(final Label label) {
+    List<Operand> operands = new ArrayList<>(1);
+    operands.add(label);
+    return new Instruction(InstructionType.BEQ, operands) {
+      @Override
+      protected String printInstruction() {
+        return type.toString() + " " + operands.get(0);
+      }
+    };
+  }
+
+  public static Instruction createBranchNotEqual(final Label label) {
+    List<Operand> operands = new ArrayList<>(1);
+    operands.add(label);
+    return new Instruction(InstructionType.BNE, operands) {
       @Override
       protected String printInstruction() {
         return type.toString() + " " + operands.get(0);

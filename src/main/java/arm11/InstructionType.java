@@ -2,7 +2,10 @@ package arm11;
 
 public enum InstructionType {
   LDR("LDR"),
+  B("B"),
   BL("BL"),
+  BEQ("BEQ"),
+  BNE("BNE"),
   LABEL("label"),
   PUSH("PUSH"),
   POP("POP"),

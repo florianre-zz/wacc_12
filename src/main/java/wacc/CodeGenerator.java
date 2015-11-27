@@ -5,6 +5,7 @@ import arm11.*;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -167,6 +168,32 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(InstructionFactory.createLoad(r0, value));
     list.add(InstructionFactory.createBranchLink(label));
+
+    return list;
+  }
+
+  @Override
+  public InstructionList visitIfStat(@NotNull WACCParser.IfStatContext ctx) {
+
+    ++ifCount;
+    InstructionList list = defaultResult();
+
+    Register predicate = freeRegisters.peek();
+    list.add(visitExpr(ctx.expr()));
+    list.add(InstructionFactory.createCompare(predicate,
+                                              new Immediate((long)0)));
+    // No longer required
+    freeRegisters.push(predicate);
+    Label elseLabel = new Label("else_" + ifCount);
+    list.add(InstructionFactory.createBranchEqual(elseLabel));
+    list.add(visitStatList(ctx.thenStat));
+
+    Label continueLabel = new Label("fi_" + ifCount);
+    list.add(InstructionFactory.createBranch(continueLabel));
+
+    list.add(InstructionFactory.createLabel(elseLabel));
+    list.add(visitStatList(ctx.elseStat));
+    list.add(InstructionFactory.createLabel(continueLabel));
 
     return list;
   }
