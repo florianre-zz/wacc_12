@@ -2,6 +2,7 @@ package wacc;
 
 import antlr.WACCParser;
 import arm11.*;
+import bindings.ArrayType;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
@@ -599,8 +600,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitArrayElem(WACCParser.ArrayElemContext ctx) {
-
+  public InstructionList visitArrayLitr(WACCParser.ArrayLitrContext ctx) {
     // TODO: fix magic number 4
 
     InstructionList list = defaultResult();
@@ -612,39 +612,40 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (numberOfElems == 0) {
       // No elements
     } else {
-       typeSize = ((Type) ctx.expr().get(0).returnType).getSize();
-       bytesToAllocate += typeSize * numberOfElems;
+      Type returnType = ((Type) ctx.expr().get(0).returnType);
+      typeSize = returnType.getSize();
+      bytesToAllocate += typeSize * numberOfElems;
     }
 
     list.add(InstructionFactory.createLoad(ARM11Registers.R0,
-                                           new Immediate(bytesToAllocate)));
+            new Immediate(bytesToAllocate)));
     Label malloc = new Label("malloc");
     list.add(InstructionFactory.createBranchLink(malloc));
 
-    Register addressOfArray = freeRegisters.peek();
-    list.add(InstructionFactory.createMov(addressOfArray, ARM11Registers.R0));
+    Register addressOfArray = freeRegisters.pop();
+    list.add(InstructionFactory.createLoad(addressOfArray, ARM11Registers.R0));
 
-    Register lengthOfArray = freeRegisters.peek();
-    list.add(InstructionFactory.createMov(lengthOfArray,
-                                          new Immediate(numberOfElems)))
-      .add(InstructionFactory.createLoad(lengthOfArray,
-                                          new Address(addressOfArray)));
-    freeRegisters.push(lengthOfArray);
-
-    // Load all the exprs into the array
+    // Load all the exprs into the array (if any)
     long offset = 4;
     for (WACCParser.ExprContext elem : ctx.expr()) {
       Register result = freeRegisters.peek();
       list.add(visitExpr(elem))
-          .add(InstructionFactory.createStore(result,
-                  addressOfArray,
-                  new Immediate(offset)));
-      freeRegisters.push(result);
+              .add(InstructionFactory.createStore(result,
+                      addressOfArray,
+                      new Immediate(offset)));
       offset += typeSize;
+      freeRegisters.push(result);
     }
 
+
+    Register lengthOfArray = freeRegisters.peek();
+    list.add(InstructionFactory.createLoad(lengthOfArray,
+                                           new Immediate(numberOfElems)));
+    list.add(InstructionFactory.createStore(lengthOfArray, addressOfArray, new Immediate((long)0)));
+
     freeRegisters.push(addressOfArray);
-    
+
     return list;
   }
+
 }
