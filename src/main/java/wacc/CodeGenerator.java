@@ -598,4 +598,38 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitArrayElem(WACCParser.ArrayElemContext ctx) {
+
+    InstructionList list = defaultResult();
+
+    long bytesToAllocate = 4;
+
+    long numberOfElems = ctx.expr().size();
+    if (numberOfElems == 0) {
+      // No elements
+    } else {
+       int typeSize = ((Type) ctx.expr().get(0).returnType).getSize();
+       bytesToAllocate += typeSize * numberOfElems;
+    }
+
+    list.add(InstructionFactory.createLoad(ARM11Registers.R0,
+                                           new Immediate(bytesToAllocate)));
+    Label malloc = new Label("malloc");
+    list.add(InstructionFactory.createBranchLink(malloc));
+
+    Register addressOfArray = freeRegisters.peek();
+    list.add(InstructionFactory.createMov(addressOfArray, ARM11Registers.R0));
+
+    Register lengthOfArray = freeRegisters.peek();
+    list.add(InstructionFactory.createMov(lengthOfArray,
+                                          new Immediate(numberOfElems)))
+      .add(InstructionFactory.createLoad(lengthOfArray,
+                                          new Address(addressOfArray)));
+    freeRegisters.push(lengthOfArray);
+
+    // Load all the exprs into the array
+
+    return list;
+  }
 }
