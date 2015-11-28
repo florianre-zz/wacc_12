@@ -145,6 +145,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   private InstructionList deallocateSpaceOnStack() {
     InstructionList list = defaultResult();
     List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
+    // TODO: use NewScope.getStackSpaceSize()
     long stackSpaceSize = 0;
     for (Binding b : variables) {
       Variable v = (Variable) b;
