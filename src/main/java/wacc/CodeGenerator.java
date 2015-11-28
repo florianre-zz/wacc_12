@@ -186,13 +186,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     freeRegisters.push(predicate);
     Label elseLabel = new Label("else_" + ifCount);
     list.add(InstructionFactory.createBranchEqual(elseLabel));
+    pushEmptyVariableSet();
     list.add(visitStatList(ctx.thenStat));
+    popCurrentScopeVariableSet();
 
     Label continueLabel = new Label("fi_" + ifCount);
     list.add(InstructionFactory.createBranch(continueLabel));
 
     list.add(InstructionFactory.createLabel(elseLabel));
+    v();
     list.add(visitStatList(ctx.elseStat));
+    popCurrentScopeVariableSet();
     list.add(InstructionFactory.createLabel(continueLabel));
 
     return list;
