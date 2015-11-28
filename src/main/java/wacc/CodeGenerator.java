@@ -48,6 +48,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
+    // TODO: Remove
+    System.err.println(top);
     resetFreeRegisters();
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
@@ -126,6 +128,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     for (Binding b : variables) {
       Variable v = (Variable) b;
+      System.err.println(b);
       stackSpaceSize -= v.getType().getSize();
       long offset = stackSpaceSize;
       v.setOffset(offset);
@@ -186,29 +189,46 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     freeRegisters.push(predicate);
     Label elseLabel = new Label("else_" + ifCount);
     list.add(InstructionFactory.createBranchEqual(elseLabel));
+
+    String thenScope = Scope.THEN.toString() + ifCount;
+    changeWorkingSymbolTableTo(thenScope);
+
     pushEmptyVariableSet();
-    list.add(visitStatList(ctx.thenStat));
+    list.add(allocateSpaceOnStack())
+      .add(visitStatList(ctx.thenStat))
+      .add(deallocateSpaceOnStack());
     popCurrentScopeVariableSet();
+
+    goUpWorkingSymbolTable();
 
     Label continueLabel = new Label("fi_" + ifCount);
     list.add(InstructionFactory.createBranch(continueLabel));
 
     list.add(InstructionFactory.createLabel(elseLabel));
+
+    String elseScope = Scope.ELSE.toString() + ifCount;
+    changeWorkingSymbolTableTo(elseScope);
+
     pushEmptyVariableSet();
-    list.add(visitStatList(ctx.elseStat));
+    list.add(allocateSpaceOnStack())
+      .add(visitStatList(ctx.elseStat))
+      .add(deallocateSpaceOnStack());
     popCurrentScopeVariableSet();
     list.add(InstructionFactory.createLabel(continueLabel));
+
+    goUpWorkingSymbolTable();
 
     return list;
   }
 
   @Override
   public InstructionList visitInitStat(WACCParser.InitStatContext ctx) {
+
     String varName = ctx.ident().getText();
     WACCParser.AssignRHSContext assignRHS = ctx.assignRHS();
+    InstructionList list = storeToVariable(varName, assignRHS);
     addVariableToCurrentScope(varName);
-
-    return storeToVariable(varName, assignRHS);
+    return list;
   }
 
   @Override
@@ -217,7 +237,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       String varName = ctx.assignLHS().ident().getText();
       return storeToVariable(varName, ctx.assignRHS());
     }
-    return super.visitAssignStat(ctx);
+    return visitChildren(ctx);
   }
 
   private InstructionList storeToVariable(String varName,
@@ -226,18 +246,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     // TODO: move the pop to visitAssignRHS
     Register reg = freeRegisters.peek();
 
+    list.add(visitAssignRHS(assignRHS));
+//    addVariableToCurrentScope(varName);
+
     Instruction storeInstr;
     Register sp  = ARM11Registers.SP;
-    Variable var = (Variable) workingSymbolTable.get(varName);
+    Variable var = getMostRecentBindingForVariable(varName);
     Operand offset = new Immediate(var.getOffset());
-
     if (Type.isBool(var.getType()) || Type.isChar(var.getType())){
       storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
     } else {
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
     }
 
-    list.add(visitAssignRHS(assignRHS));
     list.add(storeInstr);
     freeRegisters.push(reg);
     return list;
