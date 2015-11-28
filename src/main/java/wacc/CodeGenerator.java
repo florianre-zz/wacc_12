@@ -601,15 +601,18 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitArrayElem(WACCParser.ArrayElemContext ctx) {
 
+    // TODO: fix magic number 4
+
     InstructionList list = defaultResult();
 
     long bytesToAllocate = 4;
+    long typeSize = 0;
 
     long numberOfElems = ctx.expr().size();
     if (numberOfElems == 0) {
       // No elements
     } else {
-       int typeSize = ((Type) ctx.expr().get(0).returnType).getSize();
+       typeSize = ((Type) ctx.expr().get(0).returnType).getSize();
        bytesToAllocate += typeSize * numberOfElems;
     }
 
@@ -629,7 +632,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     freeRegisters.push(lengthOfArray);
 
     // Load all the exprs into the array
+    long offset = 4;
+    for (WACCParser.ExprContext elem : ctx.expr()) {
+      Register result = freeRegisters.peek();
+      list.add(visitExpr(elem))
+          .add(InstructionFactory.createStore(result,
+                  addressOfArray,
+                  new Immediate(offset)));
+      freeRegisters.push(result);
+      offset += typeSize;
+    }
 
+    freeRegisters.push(addressOfArray);
+    
     return list;
   }
 }
