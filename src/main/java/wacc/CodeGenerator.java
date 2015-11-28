@@ -5,6 +5,7 @@ import arm11.*;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
+import bindings.NewScope;
 import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
@@ -125,6 +126,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register sp = ARM11Registers.SP;
       list.add(InstructionFactory.createSub(sp, sp, imm));
     }
+    String scopeName = workingSymbolTable.getName();
+    Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
+    NewScope scope = (NewScope) scopeB;
+    scope.setStackSpaceSize(stackSpaceSize);
 
     for (Binding b : variables) {
       Variable v = (Variable) b;
@@ -225,8 +230,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitInitStat(WACCParser.InitStatContext ctx) {
 
     String varName = ctx.ident().getText();
-    WACCParser.AssignRHSContext assignRHS = ctx.assignRHS();
-    InstructionList list = storeToVariable(varName, assignRHS);
+    Variable var = (Variable) workingSymbolTable.get(varName);
+    long varOffset = var.getOffset();
+
+    InstructionList list = storeToOffset(varOffset, var.getType(), ctx.assignRHS());
     addVariableToCurrentScope(varName);
     return list;
   }
@@ -235,25 +242,26 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitAssignStat(WACCParser.AssignStatContext ctx) {
     if (ctx.assignLHS().ident() != null){
       String varName = ctx.assignLHS().ident().getText();
-      return storeToVariable(varName, ctx.assignRHS());
+      Variable var = getMostRecentBindingForVariable(varName);
+      long varOffset = var.getOffset();
+      return storeToOffset(varOffset, var.getType(), ctx.assignRHS());
     }
     return visitChildren(ctx);
   }
 
-  private InstructionList storeToVariable(String varName,
+  private InstructionList storeToOffset(long varOffset,
+                                        Type varType,
                                           WACCParser.AssignRHSContext assignRHS) {
     InstructionList list = defaultResult();
     // TODO: move the pop to visitAssignRHS
     Register reg = freeRegisters.peek();
 
     list.add(visitAssignRHS(assignRHS));
-//    addVariableToCurrentScope(varName);
 
     Instruction storeInstr;
     Register sp  = ARM11Registers.SP;
-    Variable var = getMostRecentBindingForVariable(varName);
-    Operand offset = new Immediate(var.getOffset());
-    if (Type.isBool(var.getType()) || Type.isChar(var.getType())){
+    Operand offset = new Immediate(varOffset);
+    if (Type.isBool(varType) || Type.isChar(varType)){
       storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
     } else {
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
