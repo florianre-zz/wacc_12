@@ -194,7 +194,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createBranch(continueLabel));
 
     list.add(InstructionFactory.createLabel(elseLabel));
-    v();
+    pushEmptyVariableSet();
     list.add(visitStatList(ctx.elseStat));
     popCurrentScopeVariableSet();
     list.add(InstructionFactory.createLabel(continueLabel));
