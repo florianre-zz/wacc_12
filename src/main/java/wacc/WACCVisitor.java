@@ -96,6 +96,33 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     return (Variable) b;
   }
 
+  protected long getAccumulativeOffsetForVariable(String varName) {
+    long offset = 0;
+    HashSet<String> declaredVars = variableStack.peek();
+    Binding b = null;
+    if (declaredVars.contains(varName)) {
+      b = workingSymbolTable.get(varName);
+    } else {
+      SymbolTable<String, Binding> currentScope = workingSymbolTable;
+      while (currentScope != null) {
+        String scopeName = workingSymbolTable.getName();
+        SymbolTable<String, Binding> parent = currentScope.getEnclosingST();
+        Binding value = currentScope.get(varName);
+        if (value != null) {
+          b = value;
+          break;
+        }
+        // looking into next highest scope
+        offset += ((NewScope) parent.get(scopeName)).getStackSpaceSize();
+        currentScope = parent;
+      }
+    }
+    if (b != null) {
+      offset += ((Variable) b).getOffset();
+    }
+    return offset;
+  }
+
   protected enum ScopeType {
     FUNCTION_SCOPE("f_"),
     REGULAR_SCOPE("0"),

@@ -49,8 +49,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
-    // TODO: Remove
-    System.err.println(top);
     resetFreeRegisters();
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
@@ -126,6 +124,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register sp = ARM11Registers.SP;
       list.add(InstructionFactory.createSub(sp, sp, imm));
     }
+
     String scopeName = workingSymbolTable.getName();
     Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
     NewScope scope = (NewScope) scopeB;
@@ -133,7 +132,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     for (Binding b : variables) {
       Variable v = (Variable) b;
-      System.err.println(b);
       stackSpaceSize -= v.getType().getSize();
       long offset = stackSpaceSize;
       v.setOffset(offset);
@@ -244,7 +242,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (ctx.assignLHS().ident() != null){
       String varName = ctx.assignLHS().ident().getText();
       Variable var = getMostRecentBindingForVariable(varName);
-      long varOffset = var.getOffset();
+      long varOffset = getAccumulativeOffsetForVariable(varName);
       return storeToOffset(varOffset, var.getType(), ctx.assignRHS());
     }
     return visitChildren(ctx);
@@ -589,7 +587,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Variable variable = getMostRecentBindingForVariable(ctx.getText());
-    long offset = variable.getOffset();
+    long offset = getAccumulativeOffsetForVariable(ctx.getText());
     Register reg = freeRegisters.pop();
     Register sp = ARM11Registers.SP;
 
