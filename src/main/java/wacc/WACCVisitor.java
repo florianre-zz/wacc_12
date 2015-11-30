@@ -105,13 +105,13 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     } else {
       SymbolTable<String, Binding> currentScope = workingSymbolTable;
       while (currentScope != null) {
-        String scopeName = workingSymbolTable.getName();
-        SymbolTable<String, Binding> parent = currentScope.getEnclosingST();
         Binding value = currentScope.get(varName);
         if (value != null) {
           b = value;
           break;
         }
+        String scopeName = currentScope.getName();
+        SymbolTable<String, Binding> parent = currentScope.getEnclosingST();
         // looking into next highest scope
         offset += ((NewScope) parent.get(scopeName)).getStackSpaceSize();
         currentScope = parent;
