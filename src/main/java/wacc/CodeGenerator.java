@@ -12,7 +12,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
-// TODO: Do we need top for labels?
+// TODO: make @NotNulls consistent
 
 public class CodeGenerator extends WACCVisitor<InstructionList> {
 
@@ -177,6 +177,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createBranchLink(label));
 
     return list;
+  }
+
+  @Override
+  public InstructionList visitWhileStat(WACCParser.WhileStatContext ctx) {
+    return super.visitWhileStat(ctx);
   }
 
   @Override
