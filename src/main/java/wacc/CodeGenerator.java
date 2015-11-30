@@ -255,7 +255,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitInitStat(WACCParser.InitStatContext ctx) {
-
     String varName = ctx.ident().getText();
     Variable var = (Variable) workingSymbolTable.get(varName);
     long varOffset = var.getOffset();

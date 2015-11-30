@@ -17,7 +17,7 @@ begin
       println x;
       println y;
       char y = 'y'
-    end ;
+    end
   end;
   println x
 end
