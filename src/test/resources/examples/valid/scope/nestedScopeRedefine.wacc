@@ -1,0 +1,23 @@
+# more complex variable scoping test that redefines a variable
+
+# Output:
+# true
+# 2
+
+# Program:
+
+begin
+  int x = 1 ;
+  begin
+    int y = 4 ;
+    int z = 0 ;
+    begin
+      x = 2 ;
+      bool x = true ;
+      println x;
+      println y;
+      char y = 'y'
+    end ;
+  end;
+  println x
+end
