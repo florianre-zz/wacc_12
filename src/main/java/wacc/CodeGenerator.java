@@ -181,7 +181,23 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitWhileStat(WACCParser.WhileStatContext ctx) {
-    return super.visitWhileStat(ctx);
+    ++whileCount;
+    InstructionList list = defaultResult();
+    Label predicate = new Label("predicate_" + whileCount);
+    Label body = new Label("while_body_" + whileCount);
+    Operand trueOp = new Immediate((long) 1);
+
+    list.add(InstructionFactory.createBranchLink(predicate))
+        .add(InstructionFactory.createLabel(body))
+        .add(visitStatList(ctx.statList()))
+        .add(InstructionFactory.createLabel(predicate));
+
+    Register result = freeRegisters.peek();
+    list.add(visitExpr(ctx.expr()))
+        .add(InstructionFactory.createCompare(result, trueOp))
+        .add(InstructionFactory.createBranchEqual(body));
+    freeRegisters.push(result);
+    return list;
   }
 
   @Override
@@ -453,10 +469,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
         if (op.equals(getToken(WACCParser.MUL))){
           // TODO: check this is right for all cases
+          // TODO: if always dst1, dst2,dst1,dst2 that is thee MOST pointless argument list since the 1940's
           arithmeticInstr.add(InstructionFactory.createSmull(dst1,
-                                                             dst2,
-                                                             dst1,
-                                                             dst2));
+              dst2,
+              dst1,
+              dst2));
         } else if (op.equals(getToken(WACCParser.DIV))){
           arithmeticInstr.add(divMoves(dst1, dst2))
               .add(InstructionFactory.createDiv())
