@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Stack;
 
+import static arm11.HeapFunctions.freePair;
+
 // TODO: make @NotNulls consistent
 
 public class CodeGenerator extends WACCVisitor<InstructionList> {
@@ -627,6 +629,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createLoad(reg, sp, offset));
     }
 
+    return list;
+  }
+
+
+  @Override
+  public InstructionList visitFreeStat(@NotNull WACCParser.FreeStatContext ctx) {
+    InstructionList list = defaultResult();
+    list.add(visitExpr(ctx.expr()));
+    list.add(InstructionFactory.createBranchLink(new Label("p_free_pair")));
+
+    helperFunctions.add(freePair(data));
     return list;
   }
 
