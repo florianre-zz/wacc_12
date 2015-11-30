@@ -600,6 +600,26 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitBeginStat(WACCParser.BeginStatContext ctx) {
+    ++beginCount;
+    InstructionList list = defaultResult();
+
+    String beginScope = Scope.BEGIN.toString() + beginCount;
+    changeWorkingSymbolTableTo(beginScope);
+
+    pushEmptyVariableSet();
+    list.add(allocateSpaceOnStack())
+            .add(visitStatList(ctx.statList()))
+            .add(deallocateSpaceOnStack());
+    popCurrentScopeVariableSet();
+
+    goUpWorkingSymbolTable();
+
+    return list;
+  }
+
+  @Override
   public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
     InstructionList list = defaultResult();
     Register reg = freeRegisters.pop();
