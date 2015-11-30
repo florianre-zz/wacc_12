@@ -65,6 +65,13 @@
                     </execution>
                 </executions>
                 <configuration>
+                  <archive>
+                    <manifest>
+                      <addClasspath>true</addClasspath>
+                      <classpathPrefix>target/classes</classpathPrefix>
+                      <mainClass>wacc.WACCCompile</mainClass>
+                    </manifest>
+                  </archive>
                     <descriptorRefs>
                         <descriptorRef>jar-with-dependencies</descriptorRef>
                     </descriptorRefs>

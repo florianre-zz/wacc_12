@@ -15,7 +15,7 @@ else
 end
 
 def compile()
-  `java -cp target/WACC-Compiler-0.2-BETA-jar-with-dependencies.jar wacc.WACCCompile #{@file}`
+  `java -jar target/WACC-Compiler-0.2-BETA-jar-with-dependencies.jar #{@file}`
   exitcode = $?.exitstatus
   if (exitcode != 0) then
     exit(exitcode)
