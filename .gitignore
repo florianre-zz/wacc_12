@@ -37,3 +37,6 @@ target
 .settings
 .project
 .DS_Store
+
+#ignore windows specific files
+compileWindows
