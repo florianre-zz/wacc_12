@@ -2,7 +2,6 @@ package wacc;
 
 import antlr.WACCParser;
 import arm11.*;
-import bindings.ArrayType;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
@@ -17,6 +16,8 @@ import java.util.Stack;
 
 public class CodeGenerator extends WACCVisitor<InstructionList> {
 
+  private static final long ADDRESS_SIZE = 4L;
+  private static final long PAIR_SIZE = 2 * ADDRESS_SIZE;
   private DataInstructions data;
   private HashSet<InstructionList> helperFunctions;
   private Stack<Register> freeRegisters;
@@ -630,6 +631,35 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
+  public InstructionList visitNewPair(@NotNull WACCParser.NewPairContext ctx) {
+    InstructionList list = defaultResult();
+    Label malloc = new Label("malloc");
+    Register result = freeRegisters.pop();
+    Operand sizeOfObject = new Immediate(PAIR_SIZE);
+
+    list.add(InstructionFactory.createLoad(ARM11Registers.R0, sizeOfObject));
+    list.add(InstructionFactory.createBranchLink(malloc));
+    list.add(InstructionFactory.createMov(result, ARM11Registers.R0));
+
+    Long accSize = 0L;
+    for (WACCParser.ExprContext exprCtx : ctx.expr()) {
+      Long size = 4L;
+      Register next = freeRegisters.peek();
+      list.add(visitExpr(exprCtx));
+
+      list.add(InstructionFactory.createLoad(ARM11Registers.R0, new Immediate(size)));
+      list.add(InstructionFactory.createBranchLink(malloc));
+      list.add(InstructionFactory.createStore(next, ARM11Registers.R0, new Immediate(0L)));
+      freeRegisters.push(next);
+      list.add(InstructionFactory.createStore(ARM11Registers.R0, result, new Immediate(accSize)));
+
+      accSize += size;
+    }
+
+    return list;
+  }
+
+  @Override
   public InstructionList visitBeginStat(WACCParser.BeginStatContext ctx) {
     ++beginCount;
     InstructionList list = defaultResult();
@@ -676,21 +706,27 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
+  public InstructionList visitPairLitr(@NotNull WACCParser.PairLitrContext ctx) {
+    Register result = freeRegisters.pop();
+    Operand nullOp = new Immediate(0L);
+    return defaultResult().add(InstructionFactory.createLoad(result, nullOp));
+  }
+
+  @Override
   public InstructionList visitArrayLitr(WACCParser.ArrayLitrContext ctx) {
-    // TODO: fix magic number 4
 
     InstructionList list = defaultResult();
 
-    long bytesToAllocate = 4;
+    long bytesToAllocate = ADDRESS_SIZE;
     long typeSize = 0;
 
     long numberOfElems = ctx.expr().size();
-    if (numberOfElems == 0) {
-      // No elements
-    } else {
+    if (numberOfElems != 0) {
       Type returnType = ((Type) ctx.expr().get(0).returnType);
       typeSize = returnType.getSize();
       bytesToAllocate += typeSize * numberOfElems;
+    } else {
+      // No elements
     }
 
     list.add(InstructionFactory.createLoad(ARM11Registers.R0,
