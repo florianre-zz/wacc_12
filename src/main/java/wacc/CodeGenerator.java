@@ -183,6 +183,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitWhileStat(WACCParser.WhileStatContext ctx) {
     ++whileCount;
     InstructionList list = defaultResult();
+
+    String beginScope = Scope.WHILE.toString() + whileCount;
+    changeWorkingSymbolTableTo(beginScope);
+    pushEmptyVariableSet();
+
     Label predicate = new Label("predicate_" + whileCount);
     Label body = new Label("while_body_" + whileCount);
     Operand trueOp = new Immediate((long) 1);
@@ -191,12 +196,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createLabel(body))
         .add(visitStatList(ctx.statList()))
         .add(InstructionFactory.createLabel(predicate));
-
     Register result = freeRegisters.peek();
     list.add(visitExpr(ctx.expr()))
         .add(InstructionFactory.createCompare(result, trueOp))
         .add(InstructionFactory.createBranchEqual(body));
+
     freeRegisters.push(result);
+    popCurrentScopeVariableSet();
+    goUpWorkingSymbolTable();
     return list;
   }
 
