@@ -3,10 +3,9 @@ package wacc;
 import antlr.WACCParser;
 import arm11.*;
 import bindings.Binding;
+import bindings.NewScope;
 import bindings.Type;
 import bindings.Variable;
-import bindings.NewScope;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -212,7 +211,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitIfStat(@NotNull WACCParser.IfStatContext ctx) {
+  public InstructionList visitIfStat(WACCParser.IfStatContext ctx) {
 
     ++ifCount;
     InstructionList list = defaultResult();
@@ -220,7 +219,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register predicate = freeRegisters.peek();
     list.add(visitExpr(ctx.expr()));
     list.add(InstructionFactory.createCompare(predicate,
-                                              new Immediate((long)0)));
+                                              new Immediate((long) 0)));
     // No longer required
     freeRegisters.push(predicate);
     Label elseLabel = new Label("else_" + ifCount);
@@ -263,7 +262,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Variable var = (Variable) workingSymbolTable.get(varName);
     long varOffset = var.getOffset();
 
-    InstructionList list = storeToOffset(varOffset, var.getType(), ctx.assignRHS());
+    InstructionList list = storeToOffset(varOffset,
+                                         var.getType(),
+                                         ctx.assignRHS());
     addVariableToCurrentScope(varName);
     return list;
   }
@@ -281,7 +282,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private InstructionList storeToOffset(long varOffset,
                                         Type varType,
-                                          WACCParser.AssignRHSContext assignRHS) {
+                                        WACCParser.AssignRHSContext assignRHS) {
     InstructionList list = defaultResult();
     // TODO: move the pop to visitAssignRHS
     Register reg = freeRegisters.peek();
@@ -479,7 +480,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
         if (op.equals(getToken(WACCParser.MUL))){
           // TODO: check this is right for all cases
-          // TODO: if always dst1, dst2,dst1,dst2 that is thee MOST pointless argument list since the 1940's
+          // TODO: if always dst1, dst2,dst1,dst2 that is thee MOST pointless
+          // argument list since the 1940's
           arithmeticInstr.add(InstructionFactory.createSmull(dst1,
               dst2,
               dst1,
@@ -634,7 +636,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
 
   @Override
-  public InstructionList visitFreeStat(@NotNull WACCParser.FreeStatContext ctx) {
+  public InstructionList visitFreeStat(WACCParser.FreeStatContext ctx) {
     InstructionList list = defaultResult();
     list.add(visitExpr(ctx.expr()));
     list.add(InstructionFactory.createBranchLink(new Label("p_free_pair")));
@@ -644,7 +646,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitNewPair(@NotNull WACCParser.NewPairContext ctx) {
+  public InstructionList visitNewPair(WACCParser.NewPairContext ctx) {
     InstructionList list = defaultResult();
     Label malloc = new Label("malloc");
     Register result = freeRegisters.pop();
@@ -660,11 +662,15 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register next = freeRegisters.peek();
       list.add(visitExpr(exprCtx));
 
-      list.add(InstructionFactory.createLoad(ARM11Registers.R0, new Immediate(size)));
+      list.add(InstructionFactory.createLoad(ARM11Registers.R0,
+                                             new Immediate(size)));
       list.add(InstructionFactory.createBranchLink(malloc));
-      list.add(InstructionFactory.createStore(next, ARM11Registers.R0, new Immediate(0L)));
+      list.add(InstructionFactory.createStore(next, ARM11Registers.R0,
+                                              new Immediate(0L)));
       freeRegisters.push(next);
-      list.add(InstructionFactory.createStore(ARM11Registers.R0, result, new Immediate(accSize)));
+      list.add(InstructionFactory.createStore(ARM11Registers.R0,
+                                              result,
+                                              new Immediate(accSize)));
 
       accSize += size;
     }
@@ -719,7 +725,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitPairLitr(@NotNull WACCParser.PairLitrContext ctx) {
+  public InstructionList visitPairLitr(WACCParser.PairLitrContext ctx) {
     Register result = freeRegisters.pop();
     Operand nullOp = new Immediate(0L);
     return defaultResult().add(InstructionFactory.createLoad(result, nullOp));
@@ -766,7 +772,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register lengthOfArray = freeRegisters.peek();
     list.add(InstructionFactory.createLoad(lengthOfArray,
                                            new Immediate(numberOfElems)));
-    list.add(InstructionFactory.createStore(lengthOfArray, addressOfArray, new Immediate((long)0)));
+    list.add(InstructionFactory.createStore(lengthOfArray,
+                                            addressOfArray,
+                                            new Immediate((long) 0)));
 
     freeRegisters.push(addressOfArray);
 
