@@ -1,5 +1,9 @@
 parser grammar WACCParser;
 
+@header {
+  import bindings.Type;
+}
+
 options {
   tokenVocab=WACCLexer;
 }
@@ -36,7 +40,7 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr returns [Object returnType]: binaryOper {Object returnType = null;};
+expr returns [Type returnType]: binaryOper {Type returnType = null;};
 sign: MINUS | PLUS;
 binaryOper: logicalOper;
 logicalOper: first=comparisonOper (ops+=(AND | OR) otherExprs+=comparisonOper)*
