@@ -29,9 +29,12 @@ public class PrintFunctions {
                                            intFormatterLabel))
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
-                                          new Immediate((long) 4)));
-    printAsciiAndFlush(list);
-    list.add(InstructionFactory.createPop(ARM11Registers.PC));
+                                          new Immediate((long) 4)))
+        .add(InstructionFactory.createBranchLink(new Label("printf")))
+        .add(InstructionFactory.createMov(ARM11Registers.R0,
+            new Immediate((long) 0)))
+        .add(InstructionFactory.createBranchLink(new Label("fflush")))
+        .add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
   }
@@ -53,9 +56,12 @@ public class PrintFunctions {
                                            stringFormatterLabel))
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
-                                          new Immediate((long) 4)));
-    printAsciiAndFlush(list);
-    list.add(InstructionFactory.createPop(ARM11Registers.PC));
+                                          new Immediate((long) 4)))
+        .add(InstructionFactory.createBranchLink(new Label("printf")))
+        .add(InstructionFactory.createMov(ARM11Registers.R0,
+            new Immediate((long) 0)))
+        .add(InstructionFactory.createBranchLink(new Label("fflush")))
+        .add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
   }
