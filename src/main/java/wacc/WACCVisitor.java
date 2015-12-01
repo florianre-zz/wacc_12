@@ -39,6 +39,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     if (function instanceof Function) {
       return (Function) function;
     }
+    System.err.println(funcName + ": " + function.getClass());
     return null;
   }
 
