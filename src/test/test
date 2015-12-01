@@ -7,36 +7,37 @@ require 'shellwords'
 
 open(@errFile, 'w') { |f| f.print "" }
 
-def runCompile(testPath, isValid)
-  teerrFiles = []
-  Find.find(testPath) do |path|
-    teerrFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
-  end
-  numTests = teerrFiles.length
+def runCompile(testPath, expectedExitCode)
+  testFiles = []
+  Find.find(testPath) {|path| testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/}
+  numTests = testFiles.length
   i = 1
   hasErrored = 0
-  teerrFiles.each do |test|
+  isValid = expectedExitCode == 0;
+  testFiles.each do |test|
     print "Running Test: #{i}/#{numTests}\r"
     testRun = `./compile #{test[/src.*/]} 2>#{@tmp}`
+
     tmp = File.open("#{@tmp}", "r")
     tmpContents = tmp.read
     output = "Running Test: #{File.basename test} \n"
     output += "Output: \n\t#{testRun} \n"
+
     if isValid && !(File.zero?("#{@tmp}") || tmpContents.strip.empty?)
       hasErrored += 1
       output += "Error(s): \n\t#{tmpContents}\n"
       output += "Finished Test."
       open(@errFile, 'a') { |f| f.puts output}
-    elsif !isValid && (File.zero?("tmp") || tmpContents.strip.empty?)
+    elsif !isValid && (File.zero?("#{@tmp}") || tmpContents.strip.empty?)
       hasErrored += 1
       output += "Error(s): \n\t No Errors!\n"
       output += "Finished Test."
       open(@errFile, 'a') { |f| f.puts output}
     end
 
-    exit_code = $?.exitstatus
-    if (!isValid && exit_code == 0) || (isValid && (exit_code == 100 || exit_code == 200 || exit_code == 1))
-      exit_code_error = "Wrong exit code: #{exit_code}"
+    actualExitCode = $?.exitstatus
+    if (expectedExitCode != actualExitCode)
+      exit_code_error = "Wrong exit code: #{actualExitCode}, was expecting: #{expectedExitCode}"
       open(@errFile, 'a') { |f| f.puts exit_code_error}
     end
     `rm #{@tmp}`
@@ -47,15 +48,15 @@ def runCompile(testPath, isValid)
 end
 
 testFolder = "#{Dir.pwd}/src/test/resources/examples/"
-teerrFiles = []
-Find.find(testFolder) do |path|
-  teerrFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
-end
 
 puts "Starting Valid Compile tests..."
-runCompile(testFolder+"valid", true)
+runCompile(testFolder+"valid", 0)
 puts "Finished tests."
 
-puts "Starting Invalid Compile tests..."
-runCompile(testFolder+"invalid", false)
+puts "Starting Syntax Errors Compile tests..."
+runCompile(testFolder+"invalid/syntaxErr", 100)
+puts "Finished tests."
+
+puts "Starting Semantic Errors Compile tests..."
+runCompile(testFolder+"invalid/semanticErr", 200)
 puts "Finished tests."
