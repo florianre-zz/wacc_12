@@ -739,7 +739,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     long numberOfElems = ctx.expr().size();
     if (numberOfElems != 0) {
-      Type returnType = ((Type) ctx.expr().get(0).returnType);
+      Type returnType = ctx.expr().get(0).returnType;
       typeSize = returnType.getSize();
       System.err.println("here");
       bytesToAllocate += typeSize * numberOfElems;
