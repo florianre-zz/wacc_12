@@ -37,7 +37,7 @@ def runCompile(testPath, expectedExitCode)
 
     actualExitCode = $?.exitstatus
     if (expectedExitCode != actualExitCode)
-      exit_code_error = "Wrong exit code: #{actualExitCode}"
+      exit_code_error = "Wrong exit code: #{actualExitCode}, was expecting: #{expectedExitCode}"
       open(@errFile, 'a') { |f| f.puts exit_code_error}
     end
     `rm #{@tmp}`
