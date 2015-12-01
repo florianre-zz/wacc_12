@@ -634,7 +634,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-
   @Override
   public InstructionList visitFreeStat(WACCParser.FreeStatContext ctx) {
     InstructionList list = defaultResult();
@@ -671,7 +670,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createStore(ARM11Registers.R0,
                                               result,
                                               new Immediate(accSize)));
-
       accSize += size;
     }
 
@@ -743,9 +741,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (numberOfElems != 0) {
       Type returnType = ((Type) ctx.expr().get(0).returnType);
       typeSize = returnType.getSize();
+      System.err.println("here");
       bytesToAllocate += typeSize * numberOfElems;
-    } else {
-      // No elements
     }
 
     list.add(InstructionFactory.createLoad(ARM11Registers.R0,
@@ -754,7 +751,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createBranchLink(malloc));
 
     Register addressOfArray = freeRegisters.pop();
-    list.add(InstructionFactory.createLoad(addressOfArray, ARM11Registers.R0));
+    list.add(InstructionFactory.createMov(addressOfArray, ARM11Registers.R0));
 
     // Load all the exprs into the array (if any)
     long offset = 4;
@@ -768,11 +765,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       freeRegisters.push(result);
     }
 
-
     Register lengthOfArray = freeRegisters.peek();
     list.add(InstructionFactory.createLoad(lengthOfArray,
-                                           new Immediate(numberOfElems)));
-    list.add(InstructionFactory.createStore(lengthOfArray,
+                                           new Immediate(numberOfElems)))
+        .add(InstructionFactory.createStore(lengthOfArray,
                                             addressOfArray,
                                             new Immediate((long) 0)));
 
