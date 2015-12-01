@@ -2,8 +2,8 @@ package arm11;
 
 public class PrintFunctions {
 
-  private static void printAsciiAndFlush(InstructionList list) {
-    list.add(InstructionFactory.createBranchLink(new Label("puts")))
+  private static void printAsciiAndFlush(InstructionList list, String print) {
+    list.add(InstructionFactory.createBranchLink(new Label(print)))
         .add(InstructionFactory.createMov(ARM11Registers.R0,
                                           new Immediate((long) 0)))
         .add(InstructionFactory.createBranchLink(new Label("fflush")));
@@ -29,12 +29,9 @@ public class PrintFunctions {
                                            intFormatterLabel))
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
-                                          new Immediate((long) 4)))
-        .add(InstructionFactory.createBranchLink(new Label("printf")))
-        .add(InstructionFactory.createMov(ARM11Registers.R0,
-            new Immediate((long) 0)))
-        .add(InstructionFactory.createBranchLink(new Label("fflush")))
-        .add(InstructionFactory.createPop(ARM11Registers.PC));
+                                          new Immediate((long) 4)));
+    printAsciiAndFlush(list, "printf");
+    list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
   }
@@ -56,12 +53,9 @@ public class PrintFunctions {
                                            stringFormatterLabel))
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
-                                          new Immediate((long) 4)))
-        .add(InstructionFactory.createBranchLink(new Label("printf")))
-        .add(InstructionFactory.createMov(ARM11Registers.R0,
-            new Immediate((long) 0)))
-        .add(InstructionFactory.createBranchLink(new Label("fflush")))
-        .add(InstructionFactory.createPop(ARM11Registers.PC));
+                                          new Immediate((long) 4)));
+    printAsciiAndFlush(list, "printf");
+    list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
   }
@@ -77,7 +71,7 @@ public class PrintFunctions {
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
                                           new Immediate((long) 4)));
-    printAsciiAndFlush(list);
+    printAsciiAndFlush(list, "puts");
     list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
@@ -102,7 +96,7 @@ public class PrintFunctions {
     list.add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
                                           new Immediate((long) 4)));
-    printAsciiAndFlush(list);
+    printAsciiAndFlush(list, "printf");
     list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
@@ -123,7 +117,7 @@ public class PrintFunctions {
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
                                           new Immediate((long) 4)));
-    printAsciiAndFlush(list);
+    printAsciiAndFlush(list, "printf");
     list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
