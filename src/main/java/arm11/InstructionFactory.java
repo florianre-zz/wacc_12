@@ -284,7 +284,7 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createStoreBool(Register src,
+  public static Instruction createStoreByte(Register src,
                                             Register base,
                                             Operand offset) {
     List<Operand> operands = new ArrayList<>();
@@ -337,7 +337,7 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createLoadStoredBool(Register dst,
+  public static Instruction createLoadStoredByte(Register dst,
                                                  Register base,
                                                  long offset) {
     List<Operand> operands = new ArrayList<>(2);

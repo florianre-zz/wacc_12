@@ -2,16 +2,13 @@ package wacc;
 
 import antlr.WACCParser;
 import arm11.*;
-import bindings.ArrayType;
 import bindings.Binding;
 import bindings.Type;
 import bindings.Variable;
 import bindings.NewScope;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Stack;
 
 // TODO: make @NotNulls consistent
 
@@ -276,7 +273,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register sp  = ARM11Registers.SP;
     Operand offset = new Immediate(varOffset);
     if (Type.isBool(varType) || Type.isChar(varType)){
-      storeInstr = InstructionFactory.createStoreBool(reg, sp, offset);
+      storeInstr = InstructionFactory.createStoreByte(reg, sp, offset);
     } else {
       storeInstr = InstructionFactory.createStore(reg, sp, offset);
     }
@@ -608,7 +605,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register sp = ARM11Registers.SP;
 
     if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
-      list.add(InstructionFactory.createLoadStoredBool(reg, sp, offset));
+      list.add(InstructionFactory.createLoadStoredByte(reg, sp, offset));
     } else {
       list.add(InstructionFactory.createLoad(reg, sp, offset));
     }
