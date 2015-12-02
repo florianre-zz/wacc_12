@@ -314,6 +314,16 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
+  public InstructionList visitReturnStat(WACCParser.ReturnStatContext ctx) {
+    InstructionList list = defaultResult();
+    Register resultReg = freeRegisters.peek();
+    list.add(visitExpr(ctx.expr()))
+        .add(InstructionFactory.createMov(ARM11Registers.R0, resultReg));
+    freeRegisters.push(resultReg);
+    return list;
+  }
+
+  @Override
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
     Label printLabel;
@@ -566,7 +576,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitCall(@NotNull WACCParser.CallContext ctx) {
+  public InstructionList visitCall(WACCParser.CallContext ctx) {
     return defaultResult();
   }
 
@@ -791,7 +801,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitFunc(WACCParser.FuncContext ctx) {
-    InstructionList functionInstructions = new InstructionList();
+    InstructionList list = defaultResult();
 
     changeWorkingSymbolTableTo(ctx.funcName.getText());
     pushEmptyVariableSet();
@@ -800,14 +810,18 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label functionLabel = new Label(functionPrefix + ctx.funcName.getText());
 
     allocateSpaceOnStack();
-    functionInstructions.add(InstructionFactory.createLabel(functionLabel));
-    functionInstructions.add(allocateSpaceOnStack())
+    list.add(InstructionFactory.createLabel(functionLabel));
+    list.add(allocateSpaceOnStack())
+                        .add(InstructionFactory.createPush(ARM11Registers.LR))
                         .add(visitStatList(ctx.statList()))
-                        .add(deallocateSpaceOnStack());
+                        .add(deallocateSpaceOnStack())
+                        .add(InstructionFactory.createPop(ARM11Registers.PC))
+                        .add(InstructionFactory.createPop(ARM11Registers.PC))
+                        .add(InstructionFactory.createLTORG());
 
     popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
 
-    return functionInstructions;
+    return list;
   }
 }
