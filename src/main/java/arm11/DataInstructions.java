@@ -71,7 +71,7 @@ public class DataInstructions {
     return list;
   }
 
-  public void addFunctionInstrunctions(InstructionList functionInstructions) {
+  public void addFunctionInstructions(InstructionList functionInstructions) {
     functionList.add(functionInstructions);
   }
 }

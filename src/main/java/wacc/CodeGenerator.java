@@ -6,7 +6,6 @@ import bindings.Binding;
 import bindings.NewScope;
 import bindings.Type;
 import bindings.Variable;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -62,6 +61,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     program.add(InstructionFactory.createText());
     Label mainLabel = new Label(WACCVisitor.Scope.MAIN.toString());
     program.add(InstructionFactory.createGlobal(mainLabel));
+
+    // visit all the functions and add their instructions
+    for (WACCParser.FuncContext function : ctx.func()) {
+      data.addFunctionInstructions(visitFunc(function));
+    }
+
     program.add(data.getFunctionList());
     program.add(main);
 
@@ -779,8 +784,24 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitFunc(@NotNull WACCParser.FuncContext ctx) {
+  public InstructionList visitFunc(WACCParser.FuncContext ctx) {
+    InstructionList functionInstructions = new InstructionList();
 
-    return super.visitFunc(ctx);
+    changeWorkingSymbolTableTo(ctx.funcName.getText());
+    pushEmptyVariableSet();
+
+    String functionPrefix = "f_";
+    Label functionLabel = new Label(functionPrefix + ctx.funcName.getText());
+
+    allocateSpaceOnStack();
+    functionInstructions.add(InstructionFactory.createLabel(functionLabel));
+    functionInstructions.add(allocateSpaceOnStack())
+                        .add(visitStatList(ctx.statList()))
+                        .add(deallocateSpaceOnStack());
+
+    popCurrentScopeVariableSet();
+    goUpWorkingSymbolTable();
+
+    return functionInstructions;
   }
 }
