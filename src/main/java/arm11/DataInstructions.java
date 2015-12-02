@@ -36,18 +36,15 @@ public class DataInstructions {
   }
 
   public Label addConstString(String string) {
+    labelCounter++;
+    Label label = new Label("msg_" + labelCounter);
+    constStringMap.put(string, label);
 
-    if (!constStringMap.containsKey(string)) {
-      labelCounter++;
-      Label label = new Label("msg_" + labelCounter);
-      constStringMap.put(string, label);
-
-      instructionList.add(InstructionFactory.createLabel(label));
-      int length = string.length() - QUOTE_LENGTH;
-      instructionList.add(InstructionFactory.createWord(length));
-      instructionList.add(InstructionFactory.createAscii(string));
-    }
-    return constStringMap.get(string);
+    instructionList.add(InstructionFactory.createLabel(label));
+    int length = string.length() - QUOTE_LENGTH;
+    instructionList.add(InstructionFactory.createWord(length));
+    instructionList.add(InstructionFactory.createAscii(string));
+    return label;
   }
 
   @Override
