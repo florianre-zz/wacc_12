@@ -262,23 +262,21 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createStore(Register src,
-                                        Register base,
-                                        Operand offset) {
-    List<Operand> operands = new ArrayList<>();
-    operands.add(src);
-    operands.add(base);
-    operands.add(offset);
-    return new Instruction(InstructionType.STR, operands) {
+  public static Instruction createStore(final Register src,
+                                        final Register base,
+                                        final Operand offset) {
+    return new Instruction(InstructionType.STR) {
       @Override
       protected String printInstruction() {
         StringBuilder sb = new StringBuilder(type.toString());
-        sb.append(" ").append(operands.get(0));
-        sb.append(", [").append(operands.get(1));
-        if (!operands.get(2).toString().equals("0")) {
-          sb.append(", #").append(operands.get(2));
+        sb.append(" ").append(src);
+        sb.append(", [").append(base);
+        int offsetValue = Integer.parseInt(offset.toString());
+        String forceIncrement = offsetValue < 0? "!" : "";
+        if (offsetValue != 0) {
+          sb.append(", #").append(offset);
         }
-        sb.append("]");
+        sb.append("]").append(forceIncrement);
         return sb.toString();
       }
     };

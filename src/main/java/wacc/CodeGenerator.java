@@ -6,10 +6,9 @@ import bindings.Binding;
 import bindings.NewScope;
 import bindings.Type;
 import bindings.Variable;
+import org.antlr.v4.runtime.misc.NotNull;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 import static arm11.HeapFunctions.freePair;
 
@@ -577,7 +576,30 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitCall(WACCParser.CallContext ctx) {
-    return defaultResult();
+    InstructionList list = defaultResult();
+    String functionName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
+    Label functionLabel = new Label(functionName);
+
+    list.add(InstructionFactory.createBranchLink(functionLabel));
+    return list;
+  }
+
+  @Override
+  public InstructionList visitArgList(@NotNull WACCParser.ArgListContext ctx) {
+    InstructionList list = defaultResult();
+    Collections.reverse(ctx.expr());
+
+    for (WACCParser.ExprContext exprCtx : ctx.expr()) {
+      Register result = freeRegisters.peek();
+      // TODO: change size!
+      Operand size = new Immediate(-4L);
+      list.add(visitExpr(exprCtx))
+          .add(InstructionFactory.createStore(result, ARM11Registers.SP, size));
+      freeRegisters.push(result);
+    }
+    // Put back in the correct order!!
+    Collections.reverse(ctx.expr());
+    return list;
   }
 
   @Override
