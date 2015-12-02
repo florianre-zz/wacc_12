@@ -12,6 +12,12 @@ require 'shellwords'
 
 open(@emulationsFile, 'w') { |f| f.print "" }
 
+@testFolder = "src/test/resources/examples/valid"
+@testFiles = []
+Find.find(@testFolder) do |path|
+  @testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+end
+
 def getAssembly(input)
   equals = "==========================================================="
   final = []
@@ -41,8 +47,12 @@ def check()
 
     # emulate
     stdin = ""
-    if @inputFiles.find { |e| /#{filename}/ =~ e }
-      stdin = File.open("#{file[/(.*)\.wacc$/, 1]}.in").read
+    inputFiles = []
+    Find.find(@testFolder) do |path|
+      inputFiles << (Shellwords.shellescape path) if path =~ /.*#{filename}\.in$/
+    end
+    if !inputFiles.empty?
+      stdin = File.open("#{inputFiles[0]}").read
     end
     RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
                       :stdin => stdin,
@@ -66,7 +76,7 @@ def check()
     diff = `diff --suppress-common-lines out1.txt out2.txt`
     if diff != ""
       open("#{@emulationsFile}", 'a') do |f|
-        output = `diff -Eby out1.txt out2.txt`
+        output = `diff -Eby --suppress-common-lines out1.txt out2.txt`
         f.puts "#{filename}:\n#{output}"
       end
       @incorrect += 1
@@ -74,15 +84,10 @@ def check()
       @correct += 1
     end
     `rm out1.txt; rm out2.txt; rm *.s`
-    break if @incorrect >= 3
+    break if @incorrect >= 5
   end
 end
 
-testFolder = "src/test/resources/examples/valid"
-@testFiles = []
-@inputFiles = []
-Find.find(testFolder) {|path| @testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/}
-Find.find(testFolder) {|path| @inputFiles << (Shellwords.shellescape path) if path =~ /.*\.in$/}
 puts "Starting Valid Emulate tests..."
 check()
 puts "Finished tests."

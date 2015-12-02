@@ -194,8 +194,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     ++whileCount;
     InstructionList list = defaultResult();
 
-    String beginScope = Scope.WHILE.toString() + whileCount;
-    changeWorkingSymbolTableTo(beginScope);
+    String whileScope = Scope.WHILE.toString() + whileCount;
+    changeWorkingSymbolTableTo(whileScope);
     pushEmptyVariableSet();
 
     Label predicate = new Label("predicate_" + whileCount);
@@ -204,17 +204,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(InstructionFactory.createBranchLink(predicate))
         .add(InstructionFactory.createLabel(body))
+        .add(allocateSpaceOnStack())
         .add(visitStatList(ctx.statList()))
+        .add(deallocateSpaceOnStack())
         .add(InstructionFactory.createLabel(predicate));
-    Register result = freeRegisters.peek();
     popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
-    
+
+    Register result = freeRegisters.peek();
     list.add(visitExpr(ctx.expr()))
         .add(InstructionFactory.createCompare(result, trueOp))
         .add(InstructionFactory.createBranchEqual(body));
-
     freeRegisters.push(result);
+
     return list;
   }
 
@@ -316,18 +318,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
     Label printLabel;
     InstructionList printFunction = null;
-    Type returnType = (Type) ctx.expr().returnType;
+    Type returnType = ctx.expr().returnType;
 
     if (Type.isString(returnType)) {
       printFunction = PrintFunctions.printString(data);
       printLabel = new Label("p_print_string");
-      // data.addConstString(ctx.expr().getText());
-    } else if (Type.isInt((Type) ctx.expr().returnType)) {
+    } else if (Type.isInt(returnType)) {
       printFunction = PrintFunctions.printInt(data);
       printLabel = new Label("p_print_int");
-    } else if (Type.isChar((Type) ctx.expr().returnType)){
+    } else if (Type.isChar(returnType)){
       printLabel = new Label("putchar");
-    } else if (Type.isBool((Type) ctx.expr().returnType)) {
+    } else if (Type.isBool(returnType)) {
       printFunction = PrintFunctions.printBool(data);
       printLabel = new Label("p_print_bool");
     } else {
@@ -565,6 +566,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
+  public InstructionList visitCall(@NotNull WACCParser.CallContext ctx) {
+    return defaultResult();
+  }
+
+  @Override
   public InstructionList visitBool(WACCParser.BoolContext ctx) {
     InstructionList list = defaultResult();
 
@@ -691,13 +697,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     String beginScope = Scope.BEGIN.toString() + beginCount;
     changeWorkingSymbolTableTo(beginScope);
-
     pushEmptyVariableSet();
+
     list.add(allocateSpaceOnStack())
             .add(visitStatList(ctx.statList()))
             .add(deallocateSpaceOnStack());
-    popCurrentScopeVariableSet();
 
+    popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
 
     return list;
@@ -775,8 +781,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createLoad(lengthOfArray,
                                            new Immediate(numberOfElems)))
         .add(InstructionFactory.createStore(lengthOfArray,
-                                            addressOfArray,
-                                            new Immediate((long) 0)));
+            addressOfArray,
+            new Immediate((long) 0)));
 
     freeRegisters.push(addressOfArray);
 
