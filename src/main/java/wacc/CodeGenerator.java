@@ -313,7 +313,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (Type.isString(returnType)) {
       printFunction = PrintFunctions.printString(data);
       printLabel = new Label("p_print_string");
-      data.addConstString(ctx.expr().getText());
+      // data.addConstString(ctx.expr().getText());
     } else if (Type.isInt((Type) ctx.expr().returnType)) {
       printFunction = PrintFunctions.printInt(data);
       printLabel = new Label("p_print_int");
@@ -329,8 +329,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     Register result = freeRegisters.peek();
     list.add(visitExpr(ctx.expr()))
-       .add(InstructionFactory.createMov(ARM11Registers.R0, result))
-       .add(InstructionFactory.createBranchLink(printLabel));
+        .add(InstructionFactory.createMov(ARM11Registers.R0, result))
+        .add(InstructionFactory.createBranchLink(printLabel));
     addPrintFunctionToHelpers(printFunction);
     if (ctx.PRINTLN() != null) {
       printNewLine(list);
