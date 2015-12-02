@@ -10,6 +10,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.*;
 
+
 import static arm11.HeapFunctions.freePair;
 
 // TODO: make @NotNulls consistent
@@ -123,10 +124,21 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
     List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
     long stackSpaceSize = 0;
+    long stackSpaceOffset = 0; // Occupied by params
+
+    System.err.println("Allocating for " + workingSymbolTable.getName());
     for (Binding b : variables) {
+      System.err.println(workingSymbolTable.getName() + ": " + b.getName());
       Variable v = (Variable) b;
-      stackSpaceSize += v.getType().getSize();
+      if (!v.isParam()) {
+        stackSpaceSize += v.getType().getSize();
+      } else {
+        stackSpaceOffset += v.getType().getSize();
+      }
     }
+    System.err.println("Stack space size: " + stackSpaceSize);
+    System.err.println("Stack space offset: " + stackSpaceOffset);
+
     // TODO: deal with '4095', the max size... of something
     if (stackSpaceSize > 0) {
       Operand imm = new Immediate(stackSpaceSize);
@@ -139,11 +151,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     NewScope scope = (NewScope) scopeB;
     scope.setStackSpaceSize(stackSpaceSize);
 
+    long overallSize = stackSpaceSize + stackSpaceOffset;
     for (Binding b : variables) {
       Variable v = (Variable) b;
-      stackSpaceSize -= v.getType().getSize();
-      long offset = stackSpaceSize;
-      v.setOffset(offset);
+      overallSize -= v.getType().getSize();
+      v.setOffset(overallSize);
     }
 
     return list;
@@ -156,7 +168,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     long stackSpaceSize = 0;
     for (Binding b : variables) {
       Variable v = (Variable) b;
-      stackSpaceSize += v.getType().getSize();
+      if (!v.isParam()) {
+        stackSpaceSize += v.getType().getSize();
+      }
     }
 
     if (stackSpaceSize > 0) {
@@ -811,10 +825,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     Register lengthOfArray = freeRegisters.peek();
     list.add(InstructionFactory.createLoad(lengthOfArray,
-                                           new Immediate(numberOfElems)))
+            new Immediate(numberOfElems)))
         .add(InstructionFactory.createStore(lengthOfArray,
-            addressOfArray,
-            new Immediate((long) 0)));
+                addressOfArray,
+                new Immediate((long) 0)));
 
     freeRegisters.push(addressOfArray);
 
@@ -822,25 +836,35 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
+  public InstructionList visitParam(@NotNull WACCParser.ParamContext ctx) {
+    String name = ctx.name.getText();
+    addVariableToCurrentScope(name);
+    // set the variable as a param
+    Variable var = (Variable) workingSymbolTable.lookupAll(name);
+    var.setAsParam();
+    return null;
+  }
+
+  @Override
   public InstructionList visitFunc(WACCParser.FuncContext ctx) {
     InstructionList list = defaultResult();
-
-    changeWorkingSymbolTableTo(ctx.funcName.getText());
+    changeWorkingSymbolTableTo(ScopeType.FUNCTION_SCOPE
+            + ctx.funcName.getText());
     pushEmptyVariableSet();
 
-    String functionPrefix = "f_";
-    Label functionLabel = new Label(functionPrefix + ctx.funcName.getText());
+    Label functionLabel = new Label(ScopeType.FUNCTION_SCOPE
+            + ctx.funcName.getText());
 
-    allocateSpaceOnStack();
+    visitParamList(ctx.paramList());
+
     list.add(InstructionFactory.createLabel(functionLabel));
-    list.add(allocateSpaceOnStack())
-                        .add(InstructionFactory.createPush(ARM11Registers.LR))
-                        .add(visitStatList(ctx.statList()))
-                        .add(deallocateSpaceOnStack())
-                        .add(InstructionFactory.createPop(ARM11Registers.PC))
-                        .add(InstructionFactory.createPop(ARM11Registers.PC))
-                        .add(InstructionFactory.createLTORG());
-
+    list.add(InstructionFactory.createPush(ARM11Registers.LR))
+            .add(allocateSpaceOnStack())
+            .add(visitStatList(ctx.statList()))
+            .add(deallocateSpaceOnStack())
+            .add(InstructionFactory.createPop(ARM11Registers.PC))
+            .add(InstructionFactory.createPop(ARM11Registers.PC))
+            .add(InstructionFactory.createLTORG());
     popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
 

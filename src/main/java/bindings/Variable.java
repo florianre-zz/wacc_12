@@ -3,6 +3,7 @@ package bindings;
 public class Variable extends Binding {
 
   private Type type;
+  private boolean isParam;
 
   // TODO: finalise?
   private long offset;
@@ -10,6 +11,7 @@ public class Variable extends Binding {
   public Variable(String name, Type type) {
     super(name);
     this.type = type;
+    this.isParam = false;
   }
 
   public Type getType() {
@@ -27,5 +29,13 @@ public class Variable extends Binding {
 
   public void setOffset(long offset) {
     this.offset = offset;
+  }
+
+  public void setAsParam() {
+    isParam = true;
+  }
+
+  public boolean isParam(){
+    return isParam;
   }
 }
