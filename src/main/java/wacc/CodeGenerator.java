@@ -126,9 +126,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     long stackSpaceSize = 0;
     long stackSpaceOffset = 0; // Occupied by params
 
-    System.err.println("Allocating for " + workingSymbolTable.getName());
     for (Binding b : variables) {
-      System.err.println(workingSymbolTable.getName() + ": " + b.getName());
       Variable v = (Variable) b;
       if (!v.isParam()) {
         stackSpaceSize += v.getType().getSize();
@@ -136,8 +134,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         stackSpaceOffset += v.getType().getSize();
       }
     }
-    System.err.println("Stack space size: " + stackSpaceSize);
-    System.err.println("Stack space offset: " + stackSpaceOffset);
 
     // TODO: deal with '4095', the max size... of something
     if (stackSpaceSize > 0) {
@@ -284,6 +280,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     String varName = ctx.ident().getText();
     Variable var = (Variable) workingSymbolTable.get(varName);
     long varOffset = var.getOffset();
+
 
     InstructionList list = storeToOffset(varOffset,
                                          var.getType(),
@@ -594,6 +591,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     String functionName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
     Label functionLabel = new Label(functionName);
 
+    if (ctx.argList() != null) {
+      list.add(visitArgList(ctx.argList()));
+    }
     list.add(InstructionFactory.createBranchLink(functionLabel));
     return list;
   }
@@ -601,12 +601,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitArgList(@NotNull WACCParser.ArgListContext ctx) {
     InstructionList list = defaultResult();
+
     Collections.reverse(ctx.expr());
 
     for (WACCParser.ExprContext exprCtx : ctx.expr()) {
       Register result = freeRegisters.peek();
-      // TODO: change size!
-      Operand size = new Immediate(-4L);
+      Long varSize = (long) -exprCtx.returnType.getSize();
+      Operand size = new Immediate(varSize);
       list.add(visitExpr(exprCtx))
           .add(InstructionFactory.createStore(result, ARM11Registers.SP, size));
       freeRegisters.push(result);
@@ -717,7 +718,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     Long accSize = 0L;
     for (WACCParser.ExprContext exprCtx : ctx.expr()) {
-      Long size = 4L;
+      Long size = (long) exprCtx.returnType.getSize();
       Register next = freeRegisters.peek();
       list.add(visitExpr(exprCtx));
 
