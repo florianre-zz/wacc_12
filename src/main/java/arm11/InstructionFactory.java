@@ -503,11 +503,13 @@ public class InstructionFactory {
 
   public static Instruction createSubs(final Register dst,
                                        final Register src1,
-                                       final Register src2) {
+                                       final Operand op) {
     return new Instruction(InstructionType.SUBS) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + dst + ", " + src1 + ", " + src2;
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + src1 + ", "
+            + optionalHash + op;
       }
     };
   }

@@ -200,13 +200,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(visitStatList(ctx.statList()))
         .add(InstructionFactory.createLabel(predicate));
     Register result = freeRegisters.peek();
+    popCurrentScopeVariableSet();
+    goUpWorkingSymbolTable();
+    
     list.add(visitExpr(ctx.expr()))
         .add(InstructionFactory.createCompare(result, trueOp))
         .add(InstructionFactory.createBranchEqual(body));
 
     freeRegisters.push(result);
-    popCurrentScopeVariableSet();
-    goUpWorkingSymbolTable();
     return list;
   }
 
