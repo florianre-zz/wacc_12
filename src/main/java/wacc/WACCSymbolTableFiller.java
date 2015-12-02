@@ -9,6 +9,7 @@ import wacc.error.SemanticError;
 import wacc.error.SyntaxError;
 import wacc.error.WACCErrorHandler;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class WACCSymbolTableFiller extends WACCVisitor<Void> {
@@ -112,9 +113,9 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
       List<? extends WACCParser.ParamContext> paramContexts =
           funcContext.paramList().param();
 
-      for (WACCParser.ParamContext paramContext : paramContexts) {
-        String name = paramContext.name.getText();
-        Type type = typeCreator.visitParam(paramContext);
+      for (int i = paramContexts.size() - 1; i >= 0; i--) {
+        String name = paramContexts.get(i).name.getText();
+        Type type = typeCreator.visitParam(paramContexts.get(i));
 
       /* Create param as a variable
        * Store it in the function's list of params and in its symbolTable

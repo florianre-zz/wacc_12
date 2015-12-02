@@ -123,21 +123,21 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     // TODO: account for newScopes within...
     InstructionList list = defaultResult();
     List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
-    long stackSpaceSize = 0;
-    long stackSpaceOffset = 0; // Occupied by params
+    long stackSpaceVarSize = 0;
+    long stackSpaceParamSize = 0; // Occupied by params
 
     for (Binding b : variables) {
       Variable v = (Variable) b;
-      if (!v.isParam()) {
-        stackSpaceSize += v.getType().getSize();
+      if (v.isParam()) {
+        stackSpaceParamSize += v.getType().getSize();
       } else {
-        stackSpaceOffset += v.getType().getSize();
+        stackSpaceVarSize += v.getType().getSize();
       }
     }
 
     // TODO: deal with '4095', the max size... of something
-    if (stackSpaceSize > 0) {
-      Operand imm = new Immediate(stackSpaceSize);
+    if (stackSpaceVarSize > 0) {
+      Operand imm = new Immediate(stackSpaceVarSize);
       Register sp = ARM11Registers.SP;
       list.add(InstructionFactory.createSub(sp, sp, imm));
     }
@@ -145,13 +145,26 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     String scopeName = workingSymbolTable.getName();
     Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
     NewScope scope = (NewScope) scopeB;
-    scope.setStackSpaceSize(stackSpaceSize);
+    scope.setStackSpaceSize(stackSpaceParamSize + stackSpaceVarSize);
 
-    long overallSize = stackSpaceSize + stackSpaceOffset;
-    for (Binding b : variables) {
-      Variable v = (Variable) b;
-      overallSize -= v.getType().getSize();
-      v.setOffset(overallSize);
+
+    // First pass to add offsets to variables
+    long offset = 0;
+    for (int i = variables.size() - 1; i >= 0; i--) {
+      Variable v = (Variable) variables.get(i);
+      if (!v.isParam()) {
+        v.setOffset(offset);
+        offset += v.getType().getSize();
+      }
+    }
+
+    // Second pass to add offsets to params
+    for (Binding variable : variables) {
+      Variable v = (Variable) variable;
+      if (v.isParam()) {
+        v.setOffset(stackSpaceParamSize + stackSpaceVarSize);
+        stackSpaceParamSize -= v.getType().getSize();
+      }
     }
 
     return list;
