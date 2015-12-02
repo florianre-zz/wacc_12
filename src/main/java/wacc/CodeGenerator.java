@@ -707,7 +707,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (Type.isInt((Type) ctx.assignLHS().returnType)) {
       readLabel = new Label("p_read_int");
-      dst = ARM11Registers.SP;
+      dst = ARM11Registers.R0;
       printHelperFunction = ReadFunctions.readInt(data);
     } else {
       readLabel = new Label("p_read_char");
@@ -718,6 +718,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createAdd(reg, ARM11Registers.SP, imm))
         .add(InstructionFactory.createMov(dst, reg))
         .add(InstructionFactory.createBranchLink(readLabel));
+    freeRegisters.push(reg);
     helperFunctions.add(printHelperFunction);
 
     return list;
