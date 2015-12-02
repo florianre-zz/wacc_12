@@ -164,9 +164,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       }
     }
 
-    // Second pass to add offsets to params
-    for (Binding variable : variables) {
-      Variable v = (Variable) variable;
+    // Variables are stored in reverse order in the symbol table
+    for (int i = variables.size() - 1; i >= 0; i--) {
+      Variable v = (Variable) variables.get(i);
       if (v.isParam()) {
         v.setOffset(stackSpaceParamSize + stackSpaceVarSize);
         stackSpaceParamSize -= v.getType().getSize();
