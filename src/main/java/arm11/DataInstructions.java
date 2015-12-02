@@ -1,5 +1,6 @@
 package arm11;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 public class DataInstructions {
@@ -10,6 +11,7 @@ public class DataInstructions {
   private Map<IOFormatters, Label> printFormattersMap;
   private Map<String, Label> constStringMap;
   private int labelCounter;
+  private ArrayList<InstructionList> functionList;
 
   public DataInstructions() {
     this.instructionList = new InstructionList();
@@ -17,6 +19,7 @@ public class DataInstructions {
     this.printFormattersMap = new HashMap<>();
     this.constStringMap = new HashMap<>();
     this.labelCounter = EMPTY;
+    this.functionList = new ArrayList<>();
   }
 
   public Map<String, Label> getConstStringMap() {
@@ -58,5 +61,17 @@ public class DataInstructions {
 
   public InstructionList getInstructionList() {
     return hasData() ? instructionList : new InstructionList();
+  }
+
+  public InstructionList getFunctionList() {
+    InstructionList list = new InstructionList();
+    for (InstructionList functionInstrunctions : functionList) {
+      list.add(functionInstrunctions);
+    }
+    return list;
+  }
+
+  public void addFunctionInstrunctions(InstructionList functionInstructions) {
+    functionList.add(functionInstructions);
   }
 }

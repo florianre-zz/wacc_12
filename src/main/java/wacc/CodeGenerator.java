@@ -6,6 +6,7 @@ import bindings.Binding;
 import bindings.NewScope;
 import bindings.Type;
 import bindings.Variable;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -61,6 +62,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     program.add(InstructionFactory.createText());
     Label mainLabel = new Label(WACCVisitor.Scope.MAIN.toString());
     program.add(InstructionFactory.createGlobal(mainLabel));
+    program.add(data.getFunctionList());
     program.add(main);
 
     // Add the helper functions
@@ -776,4 +778,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitFunc(@NotNull WACCParser.FuncContext ctx) {
+
+    return super.visitFunc(ctx);
+  }
 }
