@@ -700,18 +700,16 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
     InstructionList list = defaultResult();
     Register reg = freeRegisters.pop();
-    Register dst;
+    Register dst = ARM11Registers.R0;
     Immediate imm = new Immediate((long) 0);
     InstructionList printHelperFunction;
     Label readLabel;
 
     if (Type.isInt((Type) ctx.assignLHS().returnType)) {
       readLabel = new Label("p_read_int");
-      dst = ARM11Registers.R0;
       printHelperFunction = ReadFunctions.readInt(data);
     } else {
       readLabel = new Label("p_read_char");
-      dst = ARM11Registers.R0;
       printHelperFunction = ReadFunctions.readChar(data);
     }
 
