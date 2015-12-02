@@ -26,7 +26,7 @@ public class WACCCompile {
 
     checkForErrors(errorHandler);
 
-//    performCodeGeneration(tree, top);
+    performCodeGeneration(tree, top);
 
   }
 
