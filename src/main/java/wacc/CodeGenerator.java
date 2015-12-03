@@ -23,7 +23,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   private HashSet<InstructionList> helperFunctions;
   private Stack<Register> freeRegisters;
 
-  public CodeGenerator(SymbolTable top) {
+  public CodeGenerator(SymbolTable<String, Binding> top) {
     super(top);
     this.data = new DataInstructions();
     this.helperFunctions = new HashSet<>();
@@ -245,6 +245,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(visitExpr(ctx.expr()))
         .add(InstructionFactory.createCompare(result, trueOp))
         .add(InstructionFactory.createBranchEqual(body));
+
     freeRegisters.push(result);
 
     return list;
@@ -260,8 +261,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(visitExpr(ctx.expr()));
     list.add(InstructionFactory.createCompare(predicate,
                                               new Immediate((long) 0)));
-    // No longer required
+    // predicate no longer required
     freeRegisters.push(predicate);
+
+
     Label elseLabel = new Label("else_" + ifCount);
     list.add(InstructionFactory.createBranchEqual(elseLabel));
 
@@ -325,7 +328,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
                                         Type varType,
                                         WACCParser.AssignRHSContext assignRHS) {
     InstructionList list = defaultResult();
-    // TODO: move the pop to visitAssignRHS
+
     Register reg = freeRegisters.peek();
 
     list.add(visitAssignRHS(assignRHS));
@@ -618,14 +621,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(visitArgList(ctx.argList()));
     }
     list.add(InstructionFactory.createBranchLink(functionLabel));
-    Register result = freeRegisters.peek();
+    Register result = freeRegisters.pop();
     if (ctx.argList() != null) {
       Operand size = new Immediate(totalListSize(ctx.argList().expr()));
       list.add(InstructionFactory.createAdd(ARM11Registers.SP,
           ARM11Registers.SP, size));
     }
     list.add(InstructionFactory.createMov(result, ARM11Registers.R0));
-//    freeRegisters.push(result);
+
     return list;
   }
 
@@ -834,6 +837,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register result = freeRegisters.pop();
     Operand nullOp = new Immediate(0L);
     return defaultResult().add(InstructionFactory.createLoad(result, nullOp));
+  }
+
+  @Override
+  public InstructionList visitPairElem(@NotNull WACCParser.PairElemContext ctx) {
+    InstructionList list = defaultResult();
+
+    return list;
   }
 
   @Override
