@@ -2,10 +2,7 @@ package wacc;
 
 import antlr.WACCParser;
 import arm11.*;
-import bindings.Binding;
-import bindings.NewScope;
-import bindings.Type;
-import bindings.Variable;
+import bindings.*;
 
 import java.util.*;
 
@@ -123,13 +120,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
     List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
     long stackSpaceVarSize = 0;
-    long stackSpaceParamSize = 0; // Occupied by params
 
     for (Binding b : variables) {
       Variable v = (Variable) b;
-      if (v.isParam()) {
-        stackSpaceParamSize += ADDRESS_SIZE;
-      } else {
+      if (!v.isParam()) {
         stackSpaceVarSize += v.getType().getSize();
       }
     }
@@ -144,7 +138,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     String scopeName = workingSymbolTable.getName();
     Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
     NewScope scope = (NewScope) scopeB;
-    scope.setStackSpaceSize(stackSpaceParamSize + stackSpaceVarSize);
+    scope.setStackSpaceSize(stackSpaceVarSize);
 
 
     // First pass to add offsets to variables
@@ -170,17 +164,46 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  private long getAccumulativeStackSizeFromReturn() {
+    long accumulativeStackSize = 0;
+
+    SymbolTable<String, Binding> currentSymbolTable = workingSymbolTable;
+    while (currentSymbolTable != null) {
+      String scopeName = currentSymbolTable.getName();
+      SymbolTable<String, Binding> parent = currentSymbolTable.getEnclosingST();
+      NewScope currentScope = (NewScope) parent.get(scopeName);
+//      System.err.println((currentScope).getStackSpaceSize());
+      accumulativeStackSize += (currentScope).getStackSpaceSize();
+      if (currentScope instanceof Function) {
+        break;
+      }
+      currentSymbolTable = parent;
+    }
+
+    return accumulativeStackSize;
+  }
+
+  private InstructionList deallocateSpaceOnStackFromReturn() {
+    InstructionList list = defaultResult();
+
+    long stackSpaceSize = getAccumulativeStackSizeFromReturn();
+
+    if (stackSpaceSize > 0) {
+      Operand imm = new Immediate(stackSpaceSize);
+      Register sp = ARM11Registers.SP;
+      list.add(InstructionFactory.createAdd(sp, sp, imm));
+    }
+
+    return list;
+  }
+
   private InstructionList deallocateSpaceOnStack() {
     InstructionList list = defaultResult();
-    List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
-    // TODO: use NewScope.getStackSpaceSize()
-    long stackSpaceSize = 0;
-    for (Binding b : variables) {
-      Variable v = (Variable) b;
-      if (!v.isParam()) {
-        stackSpaceSize += v.getType().getSize();
-      }
-    }
+    String scopeName = workingSymbolTable.getName();
+    Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
+    NewScope scope = (NewScope) scopeB;
+
+    long stackSpaceSize = scope.getStackSpaceSize();
 
     if (stackSpaceSize > 0) {
       Operand imm = new Immediate(stackSpaceSize);
@@ -344,7 +367,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
     Register resultReg = freeRegisters.peek();
     list.add(visitExpr(ctx.expr()))
-        .add(InstructionFactory.createMov(ARM11Registers.R0, resultReg));
+        .add(InstructionFactory.createMov(ARM11Registers.R0, resultReg))
+        .add(deallocateSpaceOnStackFromReturn())
+        .add(InstructionFactory.createPop(ARM11Registers.PC));
     freeRegisters.push(resultReg);
     return list;
   }
@@ -929,8 +954,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createPush(ARM11Registers.LR))
             .add(allocateSpaceOnStack())
             .add(visitStatList(ctx.statList()))
-            .add(deallocateSpaceOnStack())
-            .add(InstructionFactory.createPop(ARM11Registers.PC))
             .add(InstructionFactory.createPop(ARM11Registers.PC))
             .add(InstructionFactory.createLTORG());
     popCurrentScopeVariableSet();
