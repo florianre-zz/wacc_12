@@ -39,6 +39,7 @@ public enum InstructionType {
   SUBS("SUBS"),
   RSBS("RSBS"),
   SMULL("SMULL"),
+  DIVMOD(""),
 
   AND("AND"),
   ORR("ORR"),
@@ -63,7 +64,8 @@ public enum InstructionType {
       case SUB:
       case SUBS:
       case RSBS:
-      case SMULL: return true;
+      case SMULL:
+      case DIVMOD: return true;
       default: return false;
     }
   }
