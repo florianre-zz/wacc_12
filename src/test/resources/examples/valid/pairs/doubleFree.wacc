@@ -1,0 +1,6 @@
+begin
+  pair(int, int) p = newpair(10, 4);
+  println p;
+  free p;
+  free p
+end

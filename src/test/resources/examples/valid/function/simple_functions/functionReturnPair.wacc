@@ -14,5 +14,6 @@ begin
 
   pair(int, int) p = call getPair();
   int x = fst p;
-  println x
+  println x;
+  free p
 end

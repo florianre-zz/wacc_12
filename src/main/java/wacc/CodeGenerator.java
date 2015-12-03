@@ -6,7 +6,6 @@ import bindings.Binding;
 import bindings.NewScope;
 import bindings.Type;
 import bindings.Variable;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.*;
 
@@ -739,8 +738,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitFreeStat(WACCParser.FreeStatContext ctx) {
     InstructionList list = defaultResult();
-    list.add(visitExpr(ctx.expr()));
-    list.add(InstructionFactory.createBranchLink(new Label("p_free_pair")));
+    Register result = freeRegisters.peek();
+    list.add(visitExpr(ctx.expr()))
+        .add(InstructionFactory.createMov(ARM11Registers.R0, result))
+        .add(InstructionFactory.createBranchLink(new Label("p_free_pair")));
 
     helperFunctions.add(freePair(data));
     return list;
@@ -802,7 +803,15 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
     Register reg = freeRegisters.pop();
     Register dst = ARM11Registers.R0;
-    Immediate imm = new Immediate((long) 0);
+    Long offset = 0L;
+
+    // TODO: 
+    if (ctx.assignLHS().ident() != null) {
+      String name = ctx.assignLHS().ident().getText();
+      offset = getAccumulativeOffsetForVariable(name);
+    }
+
+    Immediate imm = new Immediate(offset);
     InstructionList printHelperFunction;
     Label readLabel;
 
@@ -831,8 +840,18 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitPairElem(@NotNull WACCParser.PairElemContext ctx) {
+  public InstructionList visitPairElem(WACCParser.PairElemContext ctx) {
     InstructionList list = defaultResult();
+    Register result = freeRegisters.peek();
+    list.add(visitChildren(ctx));
+
+    if (ctx.FST() != null) {
+      list.add(InstructionFactory.createLoad(result, result, 0L));
+    } else {
+      list.add(InstructionFactory.createLoad(result, result, ADDRESS_SIZE));
+    }
+
+    list.add(InstructionFactory.createLoad(result, result, 0L));
 
     return list;
   }
@@ -876,14 +895,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createLoad(lengthOfArray,
             new Immediate(numberOfElems)))
         .add(InstructionFactory.createStore(lengthOfArray,
-                addressOfArray,
-                new Immediate((long) 0)));
+            addressOfArray,
+            new Immediate((long) 0)));
 
     return list;
   }
 
   @Override
-  public InstructionList visitParam(@NotNull WACCParser.ParamContext ctx) {
+  public InstructionList visitParam(WACCParser.ParamContext ctx) {
     String name = ctx.name.getText();
     addVariableToCurrentScope(name);
     // set the variable as a param
