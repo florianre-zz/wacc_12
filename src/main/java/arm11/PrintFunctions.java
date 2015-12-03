@@ -110,7 +110,7 @@ public class PrintFunctions {
         = data.addPrintFormatter(IOFormatters.REFERENCE_FORMATTER);
 
     saveLinkRegister(list, printLabel);
-    list.add(InstructionFactory.createLoad(ARM11Registers.R1,
+    list.add(InstructionFactory.createMov(ARM11Registers.R1,
                                            ARM11Registers.R0))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            referenceFormatterLabel))
