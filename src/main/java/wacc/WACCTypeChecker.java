@@ -803,6 +803,13 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return null;
   }
 
+  @Override
+  public Type visitExpr(WACCParser.ExprContext ctx) {
+    Type type = super.visitExpr(ctx);
+    ctx.returnType = type;
+    return type;
+  }
+
   /************************** Other ****************************/
 
   /**

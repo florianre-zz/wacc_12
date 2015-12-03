@@ -9,6 +9,7 @@ import wacc.error.SemanticError;
 import wacc.error.SyntaxError;
 import wacc.error.WACCErrorHandler;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class WACCSymbolTableFiller extends WACCVisitor<Void> {
@@ -82,10 +83,12 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
     String funcName;
 
     // Allows mutual recursion but does not allow overloading
+    // TODO: make only 1 dummy
     Function dummy = new Function();
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
       funcName = progFuncContext.funcName.getText();
-      Binding checker = progSymbolTable.put(funcName, dummy);
+      Binding checker = progSymbolTable.put(ScopeType.FUNCTION_SCOPE + funcName,
+                                            dummy);
 
       if (checker != null){
         String errorMsg = "Function name " + funcName + " is already used";

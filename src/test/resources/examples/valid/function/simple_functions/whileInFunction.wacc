@@ -1,0 +1,11 @@
+begin
+  int f() is
+    while false do
+      skip
+    done ;
+    return 1 
+  end
+
+  int f = call f();
+  println f
+end

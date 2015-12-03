@@ -216,26 +216,22 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createLoadNotEqual(Register register, Label label) {
-    List<Operand> operands = new ArrayList<>(2);
-    operands.add(register);
-    operands.add(label);
-    return new Instruction(InstructionType.LDRNE, operands) {
+  public static Instruction createLoadNotEqual(final Register register,
+                                               final Label label) {
+    return new Instruction(InstructionType.LDRNE) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + operands.get(0) + ", " + operands.get(1);
+        return type.toString() + " " + register + ", =" + label;
       }
     };
   }
 
-  public static Instruction createLoadEqual(Register register, Label label) {
-    List<Operand> operands = new ArrayList<>(2);
-    operands.add(register);
-    operands.add(label);
-    return new Instruction(InstructionType.LDREQ, operands) {
+  public static Instruction createLoadEqual(final Register register,
+                                            final Label label) {
+    return new Instruction(InstructionType.LDREQ) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + operands.get(0) + ", " + operands.get(1);
+        return type.toString() + " " + register + ", =" + label;
       }
     };
   }
@@ -262,45 +258,41 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createStore(Register src,
-                                        Register base,
-                                        Operand offset) {
-    List<Operand> operands = new ArrayList<>();
-    operands.add(src);
-    operands.add(base);
-    operands.add(offset);
-    return new Instruction(InstructionType.STR, operands) {
+  public static Instruction createStore(final Register src,
+                                        final Register base,
+                                        final Operand offset) {
+    return new Instruction(InstructionType.STR) {
       @Override
       protected String printInstruction() {
         StringBuilder sb = new StringBuilder(type.toString());
-        sb.append(" ").append(operands.get(0));
-        sb.append(", [").append(operands.get(1));
-        if (!operands.get(2).toString().equals("0")) {
-          sb.append(", #").append(operands.get(2));
+        sb.append(" ").append(src);
+        sb.append(", [").append(base);
+        int offsetValue = Integer.parseInt(offset.toString());
+        String forceIncrement = offsetValue < 0? "!" : "";
+        if (offsetValue != 0) {
+          sb.append(", #").append(offset);
         }
-        sb.append("]");
+        sb.append("]").append(forceIncrement);
         return sb.toString();
       }
     };
   }
 
-  public static Instruction createStoreByte(Register src,
-                                            Register base,
-                                            Operand offset) {
-    List<Operand> operands = new ArrayList<>();
-    operands.add(src);
-    operands.add(base);
-    operands.add(offset);
-    return new Instruction(InstructionType.STRB, operands) {
+  public static Instruction createStoreByte(final Register src,
+                                            final Register base,
+                                            final Operand offset) {
+    return new Instruction(InstructionType.STRB) {
       @Override
       protected String printInstruction() {
         StringBuilder sb = new StringBuilder(type.toString());
-        sb.append(" ").append(operands.get(0));
-        sb.append(", [").append(operands.get(1));
-        if (!operands.get(2).toString().equals("0")) {
-          sb.append(", #").append(operands.get(2));
+        sb.append(" ").append(src);
+        sb.append(", [").append(base);
+        int offsetValue = Integer.parseInt(offset.toString());
+        String forceIncrement = offsetValue < 0? "!" : "";
+        if (offsetValue != 0) {
+          sb.append(", #").append(offset);
         }
-        sb.append("]");
+        sb.append("]").append(forceIncrement);
         return sb.toString();
       }
     };

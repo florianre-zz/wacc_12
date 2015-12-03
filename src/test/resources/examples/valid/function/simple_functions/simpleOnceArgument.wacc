@@ -1,0 +1,20 @@
+# a simple function is declared, but not called
+
+# Output:
+# #empty#
+
+# Program:
+
+begin
+  int f(int x, int y, int z) is
+   int a = 0;
+   int b = 0;
+   int c = 0;
+   int d = 0;
+   int e = y;
+   int f = z;
+   return x
+  end
+  int n = call f(420, 666, 999);
+  skip
+end

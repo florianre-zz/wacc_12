@@ -20,7 +20,6 @@ def compile()
   if (exitcode != 0) then
     exit(exitcode)
   end
-
 end
 
 compile()

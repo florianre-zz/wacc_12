@@ -93,13 +93,13 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
 
   public void printSyntaxErrors() {
     if (hasSyntaxErrors()) {
-      System.out.println(printErrors(syntacticErrors));
+      System.err.println(printErrors(syntacticErrors));
     }
   }
 
   public void printSemanticErrors() {
     if (hasSemanticErrors()) {
-      System.out.println(printErrors(semanticErrors));
+      System.err.println(printErrors(semanticErrors));
     }
   }
 

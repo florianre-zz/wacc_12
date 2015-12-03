@@ -28,8 +28,8 @@ begin
     return 'g'
   end
   bool[] bools = [ false, true ] ;
-  int[] ints = [ 1, 2 ] ;
+  int[] ints = [ 1, 2 ];
   char answer = call doSomething(42, true, 'u', "hello", bools, ints) ;
-  print "answer is " ;
+  print "answer is ";
   println answer
 end

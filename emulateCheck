@@ -1,0 +1,96 @@
+#!/usr/bin/ruby
+
+require "rest-client"
+require "json"
+require 'find'
+require 'shellwords'
+
+@emulationsFile = "emulations.log"
+@outputFolder = "src/test/output"
+@correct = 0
+@incorrect = 0
+
+open(@emulationsFile, 'w') { |f| f.print "" }
+
+@testFolder = "src/test/resources/examples/valid/function/simple_functions"
+@testFiles = []
+Find.find(@testFolder) do |path|
+  @testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+end
+
+def getAssembly(input)
+  equals = "==========================================================="
+  final = []
+  assembly = input.split(equals)[1].split("\n").each { |line| final << line[/[0-9]+\t(.*)/, 1]}
+  return final.join("\n")
+end
+
+def check()
+  @testFiles.each do |file|
+    # compile
+    filename = File.basename(file, ".wacc")
+    $ourAsm = `./compile #{file} && cat #{@outputFolder}/#{filename}.s`
+    $theirAsm = ""
+    $ourOutput = ""
+    $theirOutput = ""
+    RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/run.cgi",
+                      :stdin => "",
+                      :options => ['-a'],
+                      :testfile => File.new(file)
+                     ) do |response|
+      json = JSON.load(response)
+      $theirAsm = getAssembly(json['compiler_out'])
+    end
+
+    File.open("#{filename}_ours.s", "w") {|f| f.write($ourAsm)}
+    File.open("#{filename}_theirs.s", "w") {|f| f.write($theirAsm)}
+
+    # emulate
+    stdin = ""
+    inputFiles = []
+    Find.find(@testFolder) do |path|
+      inputFiles << (Shellwords.shellescape path) if path =~ /.*#{filename}\.in$/
+    end
+    if !inputFiles.empty?
+      stdin = File.open("#{inputFiles[0]}").read
+    end
+    RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
+                      :stdin => stdin,
+                      :options => [],
+                      :testfile => File.new("#{filename}_ours.s")
+                     ) do |response|
+      json = JSON.load(response)
+      $ourOutput = json['emulator_out']
+    end
+    # emulate theirs
+    RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
+                      :stdin => stdin,
+                      :testfile => File.new("#{filename}_theirs.s")
+                     ) do |response|
+      json = JSON.load(response)
+      $theirOutput = json['emulator_out']
+    end
+    # git diff
+    File.open("out1.txt", 'w') {|f| f.write($ourOutput) }
+    File.open("out2.txt", 'w') {|f| f.write($theirOutput) }
+    diff = `diff --suppress-common-lines out1.txt out2.txt`
+    if diff != ""
+      open("#{@emulationsFile}", 'a') do |f|
+        output = `diff -Eby --suppress-common-lines out1.txt out2.txt`
+        f.puts "#{filename}:\n#{output}"
+      end
+      @incorrect += 1
+    else
+      @correct += 1
+    end
+    `rm out1.txt; rm out2.txt; rm *.s`
+    break if @incorrect >= 5
+  end
+end
+
+puts "Starting Valid Emulate tests..."
+check()
+puts "Finished tests."
+puts "#{@correct} Correct"
+
+puts `cat #{@emulationsFile}`
