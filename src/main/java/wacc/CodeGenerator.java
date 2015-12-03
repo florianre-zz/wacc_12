@@ -129,11 +129,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     for (Binding b : variables) {
       Variable v = (Variable) b;
       if (v.isParam()) {
-        stackSpaceParamSize += ADDRESS_SIZE;
+        stackSpaceParamSize += v.getType().getSize();
       } else {
         stackSpaceVarSize += v.getType().getSize();
       }
     }
+
+//    long size = 4 + stackSpaceParamSize + stackSpaceVarSize;
+//    System.err.println("Stack size = " + size);
 
     // TODO: deal with '4095', the max size... of something
     if (stackSpaceVarSize > 0) {
@@ -166,6 +169,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         v.setOffset(offset);
         offset += v.getType().getSize();
       }
+    }
+
+    for (Binding b : variables) {
+      Variable v = (Variable) b;
     }
 
     return list;
@@ -342,7 +349,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
     Register resultReg = freeRegisters.peek();
     list.add(visitExpr(ctx.expr()))
-        .add(InstructionFactory.createMov(ARM11Registers.R0, resultReg));
+        .add(InstructionFactory.createMov(ARM11Registers.R0, resultReg))
+        .add(deallocateSpaceOnStack())
+        .add(InstructionFactory.createPop(ARM11Registers.PC));
     freeRegisters.push(resultReg);
     return list;
   }
@@ -900,8 +909,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createPush(ARM11Registers.LR))
             .add(allocateSpaceOnStack())
             .add(visitStatList(ctx.statList()))
-            .add(deallocateSpaceOnStack())
-            .add(InstructionFactory.createPop(ARM11Registers.PC))
             .add(InstructionFactory.createPop(ARM11Registers.PC))
             .add(InstructionFactory.createLTORG());
     popCurrentScopeVariableSet();
