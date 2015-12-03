@@ -317,11 +317,11 @@ public class InstructionFactory {
 
   public static Instruction createLoad(Register dst,
                                        Register base,
-                                       long offset) {
+                                       Immediate offset) {
     List<Operand> operands = new ArrayList<>(2);
     operands.add(dst);
     operands.add(base);
-    operands.add(new Immediate(offset));
+    operands.add(offset);
     return new Instruction(InstructionType.LDR, operands) {
       @Override
       protected String printInstruction() {
@@ -339,11 +339,11 @@ public class InstructionFactory {
 
   public static Instruction createLoadStoredByte(Register dst,
                                                  Register base,
-                                                 long offset) {
+                                                 Immediate offset) {
     List<Operand> operands = new ArrayList<>(2);
     operands.add(dst);
     operands.add(base);
-    operands.add(new Immediate(offset));
+    operands.add(offset);
     return new Instruction(InstructionType.LDRSB, operands) {
       @Override
       protected String printInstruction() {
@@ -502,12 +502,13 @@ public class InstructionFactory {
   }
 
   public static Instruction createSubs(final Register dst,
-                                       final Register src1,
-                                       final Register src2) {
+                                       final Register src,
+                                       final Operand op) {
     return new Instruction(InstructionType.SUBS) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + dst + ", " + src1 + ", " + src2;
+        String optionalHash = op.isImmediate() ? "#" : "";
+        return type.toString() + " " + dst + ", " + src + ", " + optionalHash + op;
       }
     };
   }
