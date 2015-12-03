@@ -57,8 +57,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     changeWorkingSymbolTableTo(scopeName);
     InstructionList program = defaultResult();
     // visit all the functions and add their instructions
+    InstructionList functions = defaultResult();
     for (WACCParser.FuncContext function : ctx.func()) {
-      program.add(visitFunc(function));
+      functions.add(visitFunc(function));
     }
     InstructionList main = visitMain(ctx.main());
     program.add(data.getInstructionList());
@@ -67,7 +68,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     program.add(InstructionFactory.createGlobal(mainLabel));
 
     program.add(data.getFunctionList());
-    program.add(main);
+    program.add(functions).add(main);
 
     // Add the helper functions
     for (InstructionList instructionList : helperFunctions) {
@@ -128,7 +129,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     for (Binding b : variables) {
       Variable v = (Variable) b;
       if (v.isParam()) {
-        stackSpaceParamSize += v.getType().getSize();
+        stackSpaceParamSize += ADDRESS_SIZE;
       } else {
         stackSpaceVarSize += v.getType().getSize();
       }
@@ -157,12 +158,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       }
     }
 
-    // Variables are stored in reverse order in the symbol table
-    for (int i = variables.size() - 1; i >= 0; i--) {
-      Variable v = (Variable) variables.get(i);
+    offset += 4;
+
+    for (Binding b : variables) {
+      Variable v = (Variable)b;
       if (v.isParam()) {
-        v.setOffset(stackSpaceParamSize + stackSpaceVarSize);
-        stackSpaceParamSize -= v.getType().getSize();
+        v.setOffset(offset);
+        offset += v.getType().getSize();
       }
     }
 
@@ -223,7 +225,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label body = new Label("while_body_" + whileCount);
     Operand trueOp = new Immediate((long) 1);
 
-    list.add(InstructionFactory.createBranchLink(predicate))
+    list.add(InstructionFactory.createBranch(predicate))
         .add(InstructionFactory.createLabel(body))
         .add(allocateSpaceOnStack())
         .add(visitStatList(ctx.statList()))
@@ -627,21 +629,24 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   @Override
-  public InstructionList visitArgList(@NotNull WACCParser.ArgListContext ctx) {
+  public InstructionList visitArgList(WACCParser.ArgListContext ctx) {
     InstructionList list = defaultResult();
 
-    Collections.reverse(ctx.expr());
-
-    for (WACCParser.ExprContext exprCtx : ctx.expr()) {
+    for (int i = ctx.expr().size() - 1; i >= 0; i--) {
+      WACCParser.ExprContext exprCtx = ctx.expr(i);
       Register result = freeRegisters.peek();
       Long varSize = (long) -exprCtx.returnType.getSize();
       Operand size = new Immediate(varSize);
-      list.add(visitExpr(exprCtx))
-          .add(InstructionFactory.createStore(result, ARM11Registers.SP, size));
+      list.add(visitExpr(exprCtx));
+      if (varSize == -1L) {
+        list.add(InstructionFactory.createStoreBool(result, ARM11Registers.SP,
+                                                    size));
+      } else {
+        list.add(InstructionFactory.createStore(result, ARM11Registers.SP, size));
+      }
       freeRegisters.push(result);
     }
     // Put back in the correct order!!
-    Collections.reverse(ctx.expr());
     return list;
   }
 
@@ -712,13 +717,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     long offset = getAccumulativeOffsetForVariable(ctx.getText());
     Register reg = freeRegisters.pop();
 
-    createStore(list, variable.getType(), reg, offset);
+    createLoad(list, variable.getType(), reg, offset);
 
     return list;
   }
 
-  private void createStore(InstructionList list, Type type,
-                           Register reg, long offset) {
+  // TODO: put back
+  private void createLoad(InstructionList list, Type type,
+                          Register reg, long offset) {
     if (Type.isBool(type) || Type.isChar(type)) {
       list.add(InstructionFactory.createLoadStoredBool(reg,
           ARM11Registers.SP, offset));
@@ -862,8 +868,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createStore(lengthOfArray,
                 addressOfArray,
                 new Immediate((long) 0)));
-
-    freeRegisters.push(addressOfArray);
 
     return list;
   }
