@@ -153,7 +153,7 @@ public class InstructionFactory {
   }
 
   // TODO: make printInstructions consistent
-  public static Instruction createMov(Register dst, final Operand op) {
+  public static Instruction createMove(Register dst, final Operand op) {
     List<Operand> operands = new ArrayList<>(2);
     operands.add(dst);
     operands.add(op);
@@ -280,7 +280,7 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createStoreBool(final Register src,
+  public static Instruction createStoreByte(final Register src,
                                             final Register base,
                                             final Operand offset) {
     return new Instruction(InstructionType.STRB) {
@@ -311,11 +311,11 @@ public class InstructionFactory {
 
   public static Instruction createLoad(Register dst,
                                        Register base,
-                                       long offset) {
+                                       Immediate offset) {
     List<Operand> operands = new ArrayList<>(2);
     operands.add(dst);
     operands.add(base);
-    operands.add(new Immediate(offset));
+    operands.add(offset);
     return new Instruction(InstructionType.LDR, operands) {
       @Override
       protected String printInstruction() {
@@ -331,13 +331,13 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createLoadStoredBool(Register dst,
+  public static Instruction createLoadStoredByte(Register dst,
                                                  Register base,
-                                                 long offset) {
+                                                 Immediate offset) {
     List<Operand> operands = new ArrayList<>(2);
     operands.add(dst);
     operands.add(base);
-    operands.add(new Immediate(offset));
+    operands.add(offset);
     return new Instruction(InstructionType.LDRSB, operands) {
       @Override
       protected String printInstruction() {
@@ -496,25 +496,26 @@ public class InstructionFactory {
   }
 
   public static Instruction createSubs(final Register dst,
-                                       final Register src1,
+                                       final Register src,
                                        final Operand op) {
     return new Instruction(InstructionType.SUBS) {
       @Override
       protected String printInstruction() {
         String optionalHash = op.isImmediate() ? "#" : "";
-        return type.toString() + " " + dst + ", " + src1 + ", "
-            + optionalHash + op;
+        return type.toString() + " " + dst + ", " + src + ", " + optionalHash + op;
       }
     };
   }
 
-  public static Instruction createSmull(final Register reg1,
-                                        final Register reg2) {
+  public static Instruction createSmull(final Register dst1,
+                                        final Register dst2,
+                                        final Register src1,
+                                        final Register src2) {
     return new Instruction(InstructionType.SMULL) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + reg1 + ", "
-            + reg2 + ", " + reg1 + ", " + reg2;
+        return type.toString() + " " + dst1 + ", "
+            + dst2 + ", " + src1 + ", " + src2;
       }
     };
   }
