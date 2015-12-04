@@ -217,7 +217,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitExitStat(WACCParser.ExitStatContext ctx) {
-    // CHECKED --ALL
     Register result = accMachine.peekFreeRegister();
 
     return defaultResult()
@@ -273,7 +272,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label continueLabel = new Label("fi_" + ifCount);
 
     list.add(InstructionFactory.createBranchEqual(elseLabel));
-
     String thenScope = Scope.THEN.toString() + ifCount;
     list.add(ifBranchInstructions(list, thenScope, ctx.thenStat));
     list.add(InstructionFactory.createBranch(continueLabel));
@@ -388,7 +386,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     Register result = accMachine.peekFreeRegister();
     list.add(visitExpr(ctx.expr()))
-        // CHECKED --ALL
         .add(InstructionFactory.createMove(ARM11Registers.R0, result))
         .add(InstructionFactory.createBranchLink(printLabel));
     addPrintFunctionToHelpers(printFunction);
