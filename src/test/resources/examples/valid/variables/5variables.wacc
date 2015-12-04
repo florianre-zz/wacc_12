@@ -1,0 +1,9 @@
+begin
+
+int x1 = 1;
+int x2 = 2;
+int x3 = 3;
+int x4 = 4;
+char c = chr 97
+
+end

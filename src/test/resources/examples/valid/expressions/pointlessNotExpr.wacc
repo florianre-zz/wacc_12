@@ -1,0 +1,4 @@
+begin
+  bool b1 = true;
+  bool b2 = !(!b1)
+end

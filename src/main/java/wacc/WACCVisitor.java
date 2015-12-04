@@ -5,12 +5,17 @@ import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import wacc.error.*;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+
 public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
 
   protected final SymbolTable<String, Binding> top;
   protected SymbolTable<String, Binding> workingSymbolTable;
   protected final WACCErrorHandler errorHandler;
   protected int ifCount, whileCount, beginCount;
+  protected Deque<HashSet<String>> variableStack;
 
   public WACCVisitor(SymbolTable<String, Binding> top) {
     this(top, null);
@@ -24,15 +29,17 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     this.beginCount = 0;
     this.whileCount = 0;
     this.ifCount = 0;
+    variableStack = new ArrayDeque<>();
   }
 
   protected Function getCalledFunction(WACCParser.CallContext ctx) {
     NewScope progScope = (NewScope) top.get(Scope.PROG.toString());
-    String funcName = ctx.funcName.getText();
+    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
     Binding function = progScope.getSymbolTable().get(funcName);
     if (function instanceof Function) {
       return (Function) function;
     }
+    System.err.println(funcName + ": " + function.getClass());
     return null;
   }
 
@@ -57,8 +64,68 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     }
   }
 
-  protected enum ScopeType {
+  protected void changeWorkingSymbolTableTo(String scopeName) {
+    NewScope b = (NewScope) workingSymbolTable.lookupAll(scopeName);
+    if (b != null) {
+      workingSymbolTable = (SymbolTable<String, Binding>) b.getSymbolTable();
+    }
+  }
 
+  protected void pushEmptyVariableSet() {
+    HashSet<String> scope = new HashSet<>();
+    variableStack.push(scope);
+  }
+
+  protected void popCurrentScopeVariableSet() {
+    variableStack.pop();
+  }
+
+  protected void addVariableToCurrentScope(String name) {
+    HashSet<String> current = variableStack.peek();
+    current.add(name);
+  }
+
+  protected Variable getMostRecentBindingForVariable(String varName) {
+    // Keep looking up the variable down the stack, if not found return null
+    HashSet<String> declaredVars = variableStack.peek();
+    Binding b;
+    if (declaredVars.contains(varName)) {
+      b = workingSymbolTable.get(varName);
+    } else {
+      b = workingSymbolTable.getEnclosingST().lookupAll(varName);
+    }
+    return (Variable) b;
+  }
+
+  protected long getAccumulativeOffsetForVariable(String varName) {
+    long offset = 0;
+    HashSet<String> declaredVars = variableStack.peek();
+    Binding b = null;
+    if (declaredVars.contains(varName)) {
+      b = workingSymbolTable.get(varName);
+    } else {
+      SymbolTable<String, Binding> currentScope = workingSymbolTable;
+      while (currentScope != null) {
+        String scopeName = currentScope.getName();
+        SymbolTable<String, Binding> parent = currentScope.getEnclosingST();
+        offset += ((NewScope) parent.get(scopeName)).getStackSpaceSize();
+        Binding value = parent.get(varName);
+        // looking into next highest scope
+        if (value != null) {
+          b = value;
+          break;
+        }
+        currentScope = parent;
+      }
+    }
+    if (b != null) {
+      offset += ((Variable) b).getOffset();
+    }
+    return offset;
+  }
+
+  protected enum ScopeType {
+    FUNCTION_SCOPE("f_"),
     REGULAR_SCOPE("0"),
     ONE_WAY_SCOPE("1");
 
@@ -76,9 +143,8 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
   }
 
   protected enum Scope {
-
-    MAIN(ScopeType.REGULAR_SCOPE + "main"),
-    PROG(ScopeType.REGULAR_SCOPE + "prog"),
+    MAIN("main"),
+    PROG("prog"),
     BEGIN(ScopeType.REGULAR_SCOPE + "begin"),
     WHILE(ScopeType.ONE_WAY_SCOPE + "while"),
     THEN(ScopeType.ONE_WAY_SCOPE + "then"),

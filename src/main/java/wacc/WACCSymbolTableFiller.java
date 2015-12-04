@@ -3,7 +3,6 @@ package wacc;
 import antlr.WACCParser;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.DeclarationError;
 import wacc.error.SemanticError;
 import wacc.error.SyntaxError;
@@ -82,10 +81,12 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
     String funcName;
 
     // Allows mutual recursion but does not allow overloading
+    // TODO: make only 1 dummy
     Function dummy = new Function();
     for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
       funcName = progFuncContext.funcName.getText();
-      Binding checker = progSymbolTable.put(funcName, dummy);
+      Binding checker = progSymbolTable.put(ScopeType.FUNCTION_SCOPE + funcName,
+                                            dummy);
 
       if (checker != null){
         String errorMsg = "Function name " + funcName + " is already used";
@@ -257,7 +258,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
   public Void visitFunc(WACCParser.FuncContext ctx) {
     hasReturnStat = false;
     hasExitStat = false;
-    String funcName = ctx.funcName.getText();
+    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
     setANewScope(ctx, funcName);
     if (!hasReturnStat && !hasExitStat) {
       String errorMsg = "Return statement required in body of " + funcName;
@@ -363,7 +364,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
    * Notify when ReturnStat reached
    */
   @Override
-  public Void visitReturnStat(@NotNull WACCParser.ReturnStatContext ctx) {
+  public Void visitReturnStat(WACCParser.ReturnStatContext ctx) {
     hasReturnStat = true;
     return super.visitReturnStat(ctx);
   }
@@ -372,7 +373,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
    * Notify when ExitStat reached
    */
   @Override
-  public Void visitExitStat(@NotNull WACCParser.ExitStatContext ctx) {
+  public Void visitExitStat(WACCParser.ExitStatContext ctx) {
     hasExitStat = true;
     return super.visitExitStat(ctx);
   }

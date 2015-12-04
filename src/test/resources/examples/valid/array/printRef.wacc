@@ -8,5 +8,5 @@
 begin
   print "Printing an array variable gives an address, such as " ;
   int[] a = [1,2,3] ;
-  println a
+  print a
 end

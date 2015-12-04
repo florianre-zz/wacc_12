@@ -105,19 +105,28 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
 
   public boolean printLexingErrors() {
     for (String error : lexingErrors) {
-      System.out.println(error);
+      System.err.println(error);
     }
 
     return lexingErrors.size() > 0;
   }
 
   public boolean printSyntaxErrors() {
-    printErrors(syntacticErrors);
+    System.err.println(printErrors(syntacticErrors));
     return syntacticErrors.size() > 0;
   }
 
-  public boolean printSemanticErrors() {
-    printErrors(semanticErrors);
+  public void printSemanticErrors() {
+    if (hasSemanticErrors()) {
+      System.err.println(printErrors(semanticErrors));
+    }
+  }
+
+  public boolean hasSyntaxErrors() {
+    return syntacticErrors.size() > 0;
+  }
+
+  public boolean hasSemanticErrors() {
     return semanticErrors.size() > 0;
   }
 }

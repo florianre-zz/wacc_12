@@ -6,5 +6,5 @@
 # Program:
 
 begin
-  bool b = false
+  bool b = !false
 end

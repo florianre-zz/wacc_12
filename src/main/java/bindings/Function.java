@@ -2,7 +2,7 @@ package bindings;
 
 import wacc.SymbolTable;
 
-import java.util.Dictionary;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class Function extends NewScope {
@@ -11,7 +11,7 @@ public class Function extends NewScope {
   private List<Variable> params;
 
   public Function(Type type, String name, List<Variable> params,
-                  Dictionary<String, Binding> symbolTable) {
+                  LinkedHashMap<String, Binding> symbolTable) {
     super(name, symbolTable);
     this.params = params;
     this.type = type;

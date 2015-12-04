@@ -1,5 +1,9 @@
 parser grammar WACCParser;
 
+@header {
+  import bindings.Type;
+}
+
 options {
   tokenVocab=WACCLexer;
 }
@@ -24,7 +28,8 @@ stat: SKIP                                                       # SkipStat
       | BEGIN statList END                                       # BeginStat
       ;
 
-assignLHS: ident | arrayElem | pairElem;
+assignLHS returns [Object returnType]: (ident | arrayElem | pairElem) {Object
+returnType = null;};
 assignRHS: expr | arrayLitr | newPair | pairElem | call;
 newPair: NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS;
 call: CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS;
@@ -35,36 +40,44 @@ baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | PAIR;
-expr: binaryOper;
+expr returns [Type returnType]: binaryOper {Type returnType = null;};
 sign: MINUS | PLUS;
 binaryOper: logicalOper;
-logicalOper: first=comparisonOper ((AND | OR) otherExprs+=comparisonOper)*
+logicalOper: first=comparisonOper (ops+=(AND | OR) otherExprs+=comparisonOper)*
 {
   WACCParser.ComparisonOperContext first;
   List<WACCParser.ComparisonOperContext> otherExprs = new ArrayList();
+  List<TerminalNode> ops = new ArrayList();
 };
 comparisonOper: orderingOper | equalityOper;
-orderingOper: first=arithmeticOper ((GT | GTE | LT | LTE) second=arithmeticOper)?
+orderingOper: first=addOper ((GT | GE | LT | LE) second=addOper)?
 {
-  WACCParser.ArithmeticOperContext first;
-  WACCParser.ArithmeticOperContext second;
+  WACCParser.AddOperContext first;
+  WACCParser.AddOperContext second;
 };
-equalityOper: first=arithmeticOper ((EQ | NE) second=arithmeticOper)?
+equalityOper: first=addOper ((EQ | NE) second=addOper)?
 {
-  WACCParser.ArithmeticOperContext first;
-  WACCParser.ArithmeticOperContext second;
+  WACCParser.AddOperContext first;
+  WACCParser.AddOperContext second;
 };
-arithmeticOper: first=atom ((MUL | DIV | MOD | PLUS | MINUS) otherExprs+=atom)*
+addOper: first=multOper (ops+=(PLUS | MINUS) otherExprs+=multOper)*
+{
+  WACCParser.MultOperContext first;
+  List<WACCParser.MultOperContext> otherExprs = new ArrayList();
+  List<TerminalNode> ops = new ArrayList();
+};
+multOper: first=atom (ops+=(MUL | DIV | MOD) otherExprs+=atom)*
 {
   WACCParser.AtomContext first;
   List<WACCParser.AtomContext> otherExprs = new ArrayList();
+  List<TerminalNode> ops = new ArrayList();
 };
 atom: integer | bool | character | string | pairLitr | unaryOper | array;
 integer: (CHR)? (sign)? INTEGER;
 bool: (NOT)? boolLitr;
 character: (ORD)? CHARACTER;
 array: (LEN)? arrayElem;
-string: STRING;
+string: (LEN)? STRING;
 unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
 pairElem: (FST | SND) ident;
 arrayElem: varName=ident (OPEN_BRACKET expr CLOSE_BRACKET)+;

@@ -1,0 +1,16 @@
+# Minimal if program
+
+# Output:
+# #empty#
+
+# Program:
+
+begin
+  int x = 0;
+  if 0 == 0
+  then
+    x = 22 
+  else
+    x = 44
+  fi
+end

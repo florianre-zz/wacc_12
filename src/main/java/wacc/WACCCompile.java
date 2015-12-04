@@ -2,6 +2,7 @@ package wacc;
 
 import antlr.WACCLexer;
 import antlr.WACCParser;
+import arm11.InstructionList;
 import bindings.Binding;
 import bindings.PairType;
 import bindings.Type;
@@ -27,11 +28,12 @@ public class WACCCompile {
       System.exit(100);
     }
 
-    performSemanticAnalysis(tree, errorHandler);
+    SymbolTable<String, Binding> top
+        = performSemanticAnalysis(tree, errorHandler);
 
     checkForErrors(errorHandler);
 
-    performCodeGeneration(tree);
+    performCodeGeneration(tree, top);
   }
 
   private static ParseTree performLexicalAnalysis(WACCErrorHandler errorHandler,
@@ -48,7 +50,8 @@ public class WACCCompile {
     return tree;
   }
 
-  private static void performSemanticAnalysis(ParseTree tree,
+  private static SymbolTable<String, Binding> performSemanticAnalysis(
+                                              ParseTree tree,
                                               WACCErrorHandler errorHandler) {
     SymbolTable<String, Binding> top = createTopSymbolTable();
 
@@ -58,15 +61,15 @@ public class WACCCompile {
 
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
+
+    return top;
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
     SymbolTable<String, Binding> top = new SymbolTable<>();
-    // TODO: move somewhere more appropriate
-    int min = (int) -Math.pow(2, 31);
-    int max = (int) (Math.pow(2, 31) - 1);
-    top.put(Types.INT_T.toString(), new Type(Types.INT_T, min,
-        max));
+    top.put(Types.INT_T.toString(), new Type(Types.INT_T,
+                                             WACCConstants.MIN_INT,
+                                             WACCConstants.MAX_INT));
     top.put(Types.BOOL_T.toString(), new Type(Types.BOOL_T, 0, 1));
     top.put(Types.CHAR_T.toString(), new Type(Types.CHAR_T, 0, 255));
     top.put(Types.STRING_T.toString(), new Type(Types.STRING_T));
@@ -75,15 +78,20 @@ public class WACCCompile {
   }
 
   private static void checkForErrors(WACCErrorHandler errorHandler) {
-    if (errorHandler.printSyntaxErrors()) {
+    if (errorHandler.hasSyntaxErrors()) {
+      errorHandler.printSyntaxErrors();
       System.exit(100);
-    } else if (errorHandler.printSemanticErrors()) {
+    } else if (errorHandler.hasSemanticErrors()) {
+      errorHandler.printSemanticErrors();
       System.exit(200);
     }
   }
 
-  private static void performCodeGeneration(ParseTree tree) {
-
+  private static void performCodeGeneration(ParseTree tree,
+                                            SymbolTable<String, Binding> top) {
+    CodeGenerator codeGenerator = new CodeGenerator(top);
+    InstructionList program = codeGenerator.visit(tree);
+    System.out.println(program);
   }
 
 }
