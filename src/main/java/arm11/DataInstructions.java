@@ -1,6 +1,5 @@
 package arm11;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 public class DataInstructions {
@@ -9,21 +8,13 @@ public class DataInstructions {
   public static final int QUOTE_LENGTH = 2;
   private InstructionList instructionList;
   private Map<IOFormatters, Label> printFormattersMap;
-  private Map<String, Label> constStringMap;
   private int labelCounter;
-  private ArrayList<InstructionList> functionList;
 
   public DataInstructions() {
     this.instructionList = new InstructionList();
     instructionList.add(InstructionFactory.createData());
     this.printFormattersMap = new HashMap<>();
-    this.constStringMap = new HashMap<>();
     this.labelCounter = EMPTY;
-    this.functionList = new ArrayList<>();
-  }
-
-  public Map<String, Label> getConstStringMap() {
-    return constStringMap;
   }
 
   public Label addPrintFormatter(IOFormatters printFormatter) {
@@ -41,7 +32,6 @@ public class DataInstructions {
   public Label addConstString(String string) {
     labelCounter++;
     Label label = new Label("msg_" + labelCounter);
-    constStringMap.put(string, label);
 
     instructionList.add(InstructionFactory.createLabel(label));
     int length = string.length() - QUOTE_LENGTH;
@@ -63,15 +53,4 @@ public class DataInstructions {
     return hasData() ? instructionList : new InstructionList();
   }
 
-  public InstructionList getFunctionList() {
-    InstructionList list = new InstructionList();
-    for (InstructionList functionInstrunctions : functionList) {
-      list.add(functionInstrunctions);
-    }
-    return list;
-  }
-
-  public void addFunctionInstructions(InstructionList functionInstructions) {
-    functionList.add(functionInstructions);
-  }
 }
