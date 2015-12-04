@@ -781,9 +781,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label malloc = new Label("malloc");
     Register result = accMachine.popFreeRegister();
     Immediate sizeOfObject = new Immediate(PAIR_SIZE);
-    // CHECKED --ALL
-    list.add(InstructionFactory.createLoad(ARM11Registers.R0, sizeOfObject));
-    list.add(InstructionFactory.createBranchLink(malloc));
+    list.add(allocateSpaceForNewPair(malloc, sizeOfObject));
     list.add(accMachine.getInstructionList(InstructionType.MOV,
                                            result,
                                            ARM11Registers.R0));
@@ -792,21 +790,38 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     for (WACCParser.ExprContext exprCtx : ctx.expr()) {
       Long size = (long) exprCtx.returnType.getSize();
       Register next = accMachine.peekFreeRegister();
-      list.add(visitExpr(exprCtx));
-
-      list.add(InstructionFactory.createLoad(ARM11Registers.R0,
-                                             new Immediate(size)));
-      list.add(InstructionFactory.createBranchLink(malloc));
-      list.add(InstructionFactory.createStore(next, ARM11Registers.R0,
-                                              new Immediate(0L)));
+      list.add(allocateSpaceForPairElem(malloc, exprCtx, size, next));
       accMachine.pushFreeRegister(next);
-      // CHECKED --IGNORE since 'PUSH' would have happened above with the move
       list.add(InstructionFactory.createStore(ARM11Registers.R0,
                                               result,
                                               new Immediate(accSize)));
       accSize += size;
     }
 
+    return list;
+  }
+
+  private InstructionList allocateSpaceForPairElem(Label malloc,
+                                                   WACCParser.ExprContext
+                                                     exprCtx,
+                                                   Long size,
+                                                   Register next) {
+    InstructionList list = defaultResult();
+    list.add(visitExpr(exprCtx))
+        .add(InstructionFactory.createLoad(ARM11Registers.R0,
+                                           new Immediate(size)))
+        .add(InstructionFactory.createBranchLink(malloc))
+        .add(InstructionFactory.createStore(next,
+                                            ARM11Registers.R0,
+                                            new Immediate(0L)));
+    return list;
+  }
+
+  private InstructionList allocateSpaceForNewPair(Label malloc,
+                                                  Immediate sizeOfObject) {
+    InstructionList list = defaultResult();
+    list.add(InstructionFactory.createLoad(ARM11Registers.R0, sizeOfObject))
+        .add(InstructionFactory.createBranchLink(malloc));
     return list;
   }
 
