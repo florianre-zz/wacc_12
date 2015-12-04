@@ -473,7 +473,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private void printNewLine(InstructionList list) {
     Label printLabel = new Label("p_print_ln");
-    // CHECKED
     list.add(InstructionFactory.createBranchLink(printLabel));
     InstructionList printHelperFunction = PrintFunctions.printLn(data);
     helperFunctions.add(printHelperFunction);
@@ -491,7 +490,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       long falseLong = (ctx.EQ() != null) ? 0 : 1;
       Operand trueOp = new Immediate(trueLong);
       Operand falseOp = new Immediate(falseLong);
-      // CHECKED --ALL
       list.add(visitAddOper(ctx.second))
           .add(accMachine.getInstructionList(InstructionType.CMP, dst1, dst2))
           .add(InstructionFactory.createMovEq(dst1, trueOp))
@@ -549,20 +547,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         String op = ctx.ops.get(i).getText();
 
         list.add(visitAtom(otherExpr));
-
         if (op.equals(getToken(WACCParser.MUL))){
           arithmeticInstr.add(
             accMachine.getInstructionList(InstructionType.SMULL, dst1, dst2));
-        } else if (op.equals(getToken(WACCParser.DIV))){
-          arithmeticInstr.add(divMoves(dst1, dst2))
-              .add(InstructionFactory.createDiv())
-              .add(InstructionFactory.createMove(dst1, ARM11Registers.R0));
         } else {
-          arithmeticInstr.add(divMoves(dst1, dst2))
-              .add(InstructionFactory.createMod())
-              .add(InstructionFactory.createMove(dst1, ARM11Registers.R1));
+          arithmeticInstr.add(divMoves(dst1, dst2, op));
         }
-
         list.add(arithmeticInstr);
         accMachine.pushFreeRegister(dst2);
       }
@@ -571,11 +561,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  private InstructionList divMoves(Register dst1, Register dst2) {
-    return defaultResult()
-            .add(accMachine.getInstructionList(InstructionType.DIVMOD,
-                                               dst1,
-                                               dst2));
+  private InstructionList divMoves(Register dst1, Register dst2, String op) {
+    InstructionList list =  defaultResult();
+    list.add(accMachine.getInstructionList(InstructionType.DIVMOD, dst1, dst2));
+    if (op.equals(getToken(WACCParser.DIV))){
+      list.add(InstructionFactory.createDiv())
+          .add(InstructionFactory.createMove(dst1, ARM11Registers.R0));
+    } else {
+      list.add(InstructionFactory.createMod())
+          .add(InstructionFactory.createMove(dst1, ARM11Registers.R1));
+    }
+    return list;
   }
 
   @Override
