@@ -830,10 +830,15 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register dst = ARM11Registers.R0;
     Long offset = 0L;
 
-    // TODO: 
+    // TODO:
+    String name;
     if (ctx.assignLHS().ident() != null) {
-      String name = ctx.assignLHS().ident().getText();
+      name = ctx.assignLHS().ident().getText();
       offset = getAccumulativeOffsetForVariable(name);
+    } else if (ctx.assignLHS().arrayElem() != null) {
+
+    } else {
+
     }
 
     Immediate imm = new Immediate(offset);
