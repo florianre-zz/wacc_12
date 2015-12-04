@@ -2,16 +2,16 @@ package wacc;
 
 import antlr.WACCParser;
 import arm11.*;
-import bindings.Binding;
-import bindings.NewScope;
-import bindings.Type;
-import bindings.Variable;
+import bindings.*;
 
 import java.util.HashSet;
 import java.util.List;
 
 
 import static arm11.HeapFunctions.freePair;
+
+// TODO: document functions
+// TODO: Make utils file
 
 public class CodeGenerator extends WACCVisitor<InstructionList> {
   
@@ -43,9 +43,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private String getToken(int index){
     String tokenName = WACCParser.tokenNames[index];
-
     assert(tokenName.charAt(0) != '\'');
-
     return tokenName.substring(1, tokenName.length() - 1);
   }
 
@@ -68,7 +66,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     // CHECKED
     program.add(InstructionFactory.createGlobal(mainLabel));
 
-    program.add(data.getFunctionList());
     program.add(functions).add(main);
 
     // Add the helper functions
@@ -107,17 +104,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   private InstructionList allocateSpaceOnStack() {
-    // TODO: account for newScopes within...
     InstructionList list = defaultResult();
     List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
     long stackSpaceVarSize = 0;
-    long stackSpaceParamSize = 0; // Occupied by params
 
     for (Binding b : variables) {
       Variable v = (Variable) b;
-      if (v.isParam()) {
-        stackSpaceParamSize += ADDRESS_SIZE;
-      } else {
+      if (!v.isParam()) {
         stackSpaceVarSize += v.getType().getSize();
       }
     }
@@ -133,9 +126,27 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     String scopeName = workingSymbolTable.getName();
     Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
     NewScope scope = (NewScope) scopeB;
-    scope.setStackSpaceSize(stackSpaceParamSize + stackSpaceVarSize);
+    scope.setStackSpaceSize(stackSpaceVarSize);
 
+    long offset = addOffsetsToVariables(variables);
+    addOffsetToParam(variables, offset);
 
+    return list;
+  }
+
+  private static void addOffsetToParam(List<Binding> variables, long offset) {
+    offset += 4;
+
+    for (Binding b : variables) {
+      Variable v = (Variable) b;
+      if (v.isParam()) {
+        v.setOffset(offset);
+        offset += v.getType().getSize();
+      }
+    }
+  }
+
+  private static long addOffsetsToVariables(List<Binding> variables) {
     // First pass to add offsets to variables
     long offset = 0;
     for (int i = variables.size() - 1; i >= 0; i--) {
@@ -145,31 +156,49 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         offset += v.getType().getSize();
       }
     }
+    return offset;
+  }
 
-    offset += 4;
+  private InstructionList deallocateSpaceOnStackFromReturn() {
+    InstructionList list = defaultResult();
 
-    for (Binding b : variables) {
-      Variable v = (Variable)b;
-      if (v.isParam()) {
-        v.setOffset(offset);
-        offset += v.getType().getSize();
-      }
+    long stackSpaceSize = getAccumulativeStackSizeFromReturn();
+
+    if (stackSpaceSize > 0) {
+      Operand imm = new Immediate(stackSpaceSize);
+      Register sp = ARM11Registers.SP;
+      list.add(InstructionFactory.createAdd(sp, sp, imm));
     }
 
     return list;
   }
 
+  private long getAccumulativeStackSizeFromReturn() {
+    long accumulativeStackSize = 0;
+
+    SymbolTable<String, Binding> currentSymbolTable = workingSymbolTable;
+    while (currentSymbolTable != null) {
+      String scopeName = currentSymbolTable.getName();
+      SymbolTable<String, Binding> parent = currentSymbolTable.getEnclosingST();
+      NewScope currentScope = (NewScope) parent.get(scopeName);
+      accumulativeStackSize += (currentScope).getStackSpaceSize();
+      if (currentScope instanceof Function) {
+        break;
+      }
+      currentSymbolTable = parent;
+    }
+
+    return accumulativeStackSize;
+  }
+
+  // TODO: look at making one deallocate function
   private InstructionList deallocateSpaceOnStack() {
     InstructionList list = defaultResult();
-    List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
-    // TODO: use NewScope.getStackSpaceSize()
-    long stackSpaceSize = 0;
-    for (Binding b : variables) {
-      Variable v = (Variable) b;
-      if (!v.isParam()) {
-        stackSpaceSize += v.getType().getSize();
-      }
-    }
+    String scopeName = workingSymbolTable.getName();
+    Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
+    NewScope scope = (NewScope) scopeB;
+
+    long stackSpaceSize = scope.getStackSpaceSize();
 
     if (stackSpaceSize > 0) {
       Immediate imm = new Immediate(stackSpaceSize);
@@ -234,7 +263,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitIfStat(WACCParser.IfStatContext ctx) {
-
     ++ifCount;
     InstructionList list = defaultResult();
 
@@ -244,39 +272,35 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createCompare(predicate, new Immediate(0L)));
     // predicate no longer required
     accMachine.pushFreeRegister(predicate);
-    
+
     Label elseLabel = new Label("else_" + ifCount);
+    Label continueLabel = new Label("fi_" + ifCount);
+
     list.add(InstructionFactory.createBranchEqual(elseLabel));
 
     String thenScope = Scope.THEN.toString() + ifCount;
     changeWorkingSymbolTableTo(thenScope);
-
-    pushEmptyVariableSet();
-    list.add(allocateSpaceOnStack())
-      .add(visitStatList(ctx.thenStat))
-      .add(deallocateSpaceOnStack());
-    popCurrentScopeVariableSet();
-
+    createConditionalStatList(ctx.thenStat, list);
     goUpWorkingSymbolTable();
-
-    Label continueLabel = new Label("fi_" + ifCount);
     list.add(InstructionFactory.createBranch(continueLabel));
 
     list.add(InstructionFactory.createLabel(elseLabel));
-
     String elseScope = Scope.ELSE.toString() + ifCount;
     changeWorkingSymbolTableTo(elseScope);
-
-    pushEmptyVariableSet();
-    list.add(allocateSpaceOnStack())
-      .add(visitStatList(ctx.elseStat))
-      .add(deallocateSpaceOnStack());
-    popCurrentScopeVariableSet();
+    createConditionalStatList(ctx.elseStat, list);
+    goUpWorkingSymbolTable();
     list.add(InstructionFactory.createLabel(continueLabel));
 
-    goUpWorkingSymbolTable();
-
     return list;
+  }
+
+  private void createConditionalStatList(WACCParser.StatListContext ctx,
+                                         InstructionList list) {
+    pushEmptyVariableSet();
+    list.add(allocateSpaceOnStack())
+      .add(visitStatList(ctx))
+      .add(deallocateSpaceOnStack());
+    popCurrentScopeVariableSet();
   }
 
   @Override
@@ -319,7 +343,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (Type.isBool(varType) || Type.isChar(varType)) {
       storeInstr = accMachine.getInstructionList(InstructionType.STRB, reg, sp, offset);
     } else {
-      storeInstr = accMachine.getInstructionList(InstructionType.STR, reg, sp, offset);
+      storeInstr = accMachine.getInstructionList(InstructionType.STR, reg, sp,
+                                                  offset);
     }
 
     list.add(storeInstr);
@@ -332,9 +357,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
     Register resultReg = accMachine.peekFreeRegister();
     list.add(visitExpr(ctx.expr()))
-        // CHECKED
-        .add(InstructionFactory.createMove(ARM11Registers.R0, resultReg));
+        .add(InstructionFactory.createMove(ARM11Registers.R0, resultReg))
+        .add(deallocateSpaceOnStackFromReturn())
+        .add(InstructionFactory.createPop(ARM11Registers.PC));
     accMachine.pushFreeRegister(resultReg);
+
     return list;
   }
 
@@ -345,6 +372,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList printFunction = null;
     Type returnType = ctx.expr().returnType;
 
+    // TODO: looks like a getter, maybe from an enum?
     if (Type.isString(returnType)) {
       printFunction = PrintFunctions.printString(data);
       printLabel = new Label("p_print_string");
@@ -522,12 +550,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         list.add(visitAtom(otherExpr));
 
         if (op.equals(getToken(WACCParser.MUL))){
-          // TODO: check this is right for all cases
-          // TODO: if always dst1, dst2,dst1,dst2 that is thee MOST pointless
-          // argument list since the 1940's
           arithmeticInstr.add(accMachine.getInstructionList(InstructionType.SMULL, dst1, dst2));
         } else if (op.equals(getToken(WACCParser.DIV))){
-          // CHECKED --ALL
           arithmeticInstr.add(divMoves(dst1, dst2))
               .add(InstructionFactory.createDiv())
               .add(InstructionFactory.createMove(dst1, ARM11Registers.R0));
@@ -636,7 +660,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Long varSize = (long) -exprCtx.returnType.getSize();
       Operand size = new Immediate(varSize);
       list.add(visitExpr(exprCtx));
-      // CHECKED
       if (varSize == -ADDRESS_SIZE) {
         list.add(InstructionFactory.createStore(result, ARM11Registers.SP, size));
       } else {
@@ -731,9 +754,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitFreeStat(WACCParser.FreeStatContext ctx) {
     InstructionList list = defaultResult();
-    list.add(visitExpr(ctx.expr()));
-    // CHECKED
-    list.add(InstructionFactory.createBranchLink(new Label("p_free_pair")));
+
+    Register result = accMachine.peekFreeRegister();
+    list.add(visitExpr(ctx.expr()))
+        .add(InstructionFactory.createMove(ARM11Registers.R0, result))
+        .add(InstructionFactory.createBranchLink(new Label("p_free_pair")));
 
     helperFunctions.add(freePair(data));
     return list;
@@ -797,8 +822,15 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     Register reg = accMachine.popFreeRegister();
     Register dst = ARM11Registers.R0;
+    Long offset = 0L;
 
-    Immediate imm = new Immediate((long) 0);
+    // TODO: 
+    if (ctx.assignLHS().ident() != null) {
+      String name = ctx.assignLHS().ident().getText();
+      offset = getAccumulativeOffsetForVariable(name);
+    }
+
+    Immediate imm = new Immediate(offset);
     InstructionList printHelperFunction;
     Label readLabel;
 
@@ -830,6 +862,18 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitPairElem(WACCParser.PairElemContext ctx) {
     InstructionList list = defaultResult();
+    Register result = accMachine.peekFreeRegister();
+    list.add(visitChildren(ctx));
+
+    if (ctx.FST() != null) {
+      list.add(InstructionFactory.createLoad(result, result,
+                                              new Immediate(0L)));
+    } else {
+      list.add(InstructionFactory.createLoad(result, result,
+                                              new Immediate(ADDRESS_SIZE)));
+    }
+
+    list.add(InstructionFactory.createLoad(result, result, new Immediate(0L)));
 
     return list;
   }
@@ -873,10 +917,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register lengthOfArray = accMachine.peekFreeRegister();
 
     list.add(InstructionFactory.createLoad(lengthOfArray,
-            new Immediate(numberOfElems)))
+                                            new Immediate(numberOfElems)))
         .add(InstructionFactory.createStore(lengthOfArray,
-                addressOfArray,
-                new Immediate((long) 0)));
+                                            addressOfArray, new Immediate(0L)));
 
     accMachine.pushFreeRegister(addressOfArray);
 
@@ -913,8 +956,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createPush(ARM11Registers.LR))
             .add(allocateSpaceOnStack())
             .add(visitStatList(ctx.statList()))
-            .add(deallocateSpaceOnStack())
-            .add(InstructionFactory.createPop(ARM11Registers.PC))
             .add(InstructionFactory.createPop(ARM11Registers.PC))
             .add(InstructionFactory.createLTORG());
     popCurrentScopeVariableSet();

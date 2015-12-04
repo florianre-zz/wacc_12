@@ -3,6 +3,8 @@ package arm11;
 import java.util.ArrayList;
 import java.util.List;
 
+// TODO: Clean up and refactor
+
 public class InstructionFactory {
 
   public static final String AEABI_IDIV = "__aeabi_idiv";
@@ -505,15 +507,15 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createSmull(final Register dstHi,
-                                        final Register dstLo,
+  public static Instruction createSmull(final Register dst1,
+                                        final Register dst2,
                                         final Register src1,
                                         final Register src2) {
     return new Instruction(InstructionType.SMULL) {
       @Override
       protected String printInstruction() {
-        return type.toString() + " " + dstHi + ", "
-            + dstLo + ", " + src1 + ", " + src2;
+        return type.toString() + " " + dst1 + ", "
+            + dst2 + ", " + src1 + ", " + src2;
       }
     };
   }

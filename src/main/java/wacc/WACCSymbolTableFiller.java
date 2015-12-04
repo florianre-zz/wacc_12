@@ -3,13 +3,11 @@ package wacc;
 import antlr.WACCParser;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.DeclarationError;
 import wacc.error.SemanticError;
 import wacc.error.SyntaxError;
 import wacc.error.WACCErrorHandler;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class WACCSymbolTableFiller extends WACCVisitor<Void> {
@@ -366,7 +364,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
    * Notify when ReturnStat reached
    */
   @Override
-  public Void visitReturnStat(@NotNull WACCParser.ReturnStatContext ctx) {
+  public Void visitReturnStat(WACCParser.ReturnStatContext ctx) {
     hasReturnStat = true;
     return super.visitReturnStat(ctx);
   }
@@ -375,7 +373,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
    * Notify when ExitStat reached
    */
   @Override
-  public Void visitExitStat(@NotNull WACCParser.ExitStatContext ctx) {
+  public Void visitExitStat(WACCParser.ExitStatContext ctx) {
     hasExitStat = true;
     return super.visitExitStat(ctx);
   }
