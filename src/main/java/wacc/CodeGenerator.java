@@ -3,7 +3,6 @@ package wacc;
 import antlr.WACCParser;
 import arm11.*;
 import bindings.*;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -848,11 +847,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (ctx.assignLHS().ident() != null) {
       name = ctx.assignLHS().ident().getText();
       offset = getAccumulativeOffsetForVariable(name);
-    } else if (ctx.assignLHS().arrayElem() != null) {
-
-    } else {
-
     }
+//    else if (ctx.assignLHS().arrayElem() != null) {
+//
+//    } else {
+//
+//    }
 
     Immediate imm = new Immediate(offset);
     InstructionList printHelperFunction;
@@ -866,7 +866,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       printHelperFunction = ReadFunctions.readChar(data);
     }
 
-    // CHECKED
     list.add(accMachine.getInstructionList(InstructionType.ADD, reg,
                                            ARM11Registers.SP, imm))
         .add(InstructionFactory.createMove(dst, reg))
@@ -949,7 +948,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
               new Immediate(ADDRESS_SIZE)))
           .add(InstructionFactory.createAdd(result, result, helper,
               new Immediate(2L)))
-          .add(InstructionFactory.createLoad(result, result, new Immediate(0L)));
+          .add(InstructionFactory.createLoad(result, result,
+              new Immediate(0L)));
       accMachine.pushFreeRegister(helper);
     }
     return list;
@@ -975,8 +975,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            new Immediate(bytesToAllocate)))
         .add(InstructionFactory.createBranchLink(malloc))
-        .add(accMachine.getInstructionList(InstructionType.MOV,
-                                           addressOfArray,
+        .add(accMachine.getInstructionList(InstructionType.MOV, addressOfArray,
                                            ARM11Registers.R0));
     return list;
   }
@@ -1000,7 +999,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitParam(WACCParser.ParamContext ctx) {
     String name = ctx.name.getText();
     addVariableToCurrentScope(name);
-    // set the variable as a param
     Variable var = (Variable) workingSymbolTable.lookupAll(name);
     var.setAsParam();
     return null;
@@ -1014,13 +1012,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     pushEmptyVariableSet();
 
     Label functionLabel = new Label(ScopeType.FUNCTION_SCOPE
-            + ctx.funcName.getText());
+        + ctx.funcName.getText());
 
     if (ctx.paramList() != null) {
       visitParamList(ctx.paramList());
     }
-
-    // CHECKED --ALL
 
     list.add(InstructionFactory.createLabel(functionLabel));
     list.add(InstructionFactory.createPush(ARM11Registers.LR))

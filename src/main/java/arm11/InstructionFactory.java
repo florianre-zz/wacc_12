@@ -4,8 +4,8 @@ import static arm11.InstructionType.*;
 
 public class InstructionFactory {
 
-  public static  String AEABI_IDIV = "__aeabi_idiv";
-  private static  String AEABI_IDIVMOD = AEABI_IDIV + "mod";
+  public static final String AEABI_IDIV = "__aeabi_idiv";
+  private static final String AEABI_IDIVMOD = AEABI_IDIV + "mod";
 
   private static String getOptionalHash(Operand op) {
     return op.isImmediate() ? "#" : "";
@@ -19,7 +19,7 @@ public class InstructionFactory {
     };
   }
 
-  public static Instruction createBranch( Label label) {
+  public static Instruction createBranch(Label label) {
     return () -> B + " " + label;
   }
 
@@ -95,8 +95,8 @@ public class InstructionFactory {
       int offsetValue = Integer.parseInt(offset.toString());
       String forceIncrement = offsetValue < 0 ? "!" : "";
       String addOffset = offsetValue != 0 ? ", #" + offset : "";
-      return STR + " " + src + ", [" + base +
-          addOffset + "]" + forceIncrement;
+      return STR + " " + src + ", [" + base
+          + addOffset + "]" + forceIncrement;
     };
   }
 
@@ -106,8 +106,8 @@ public class InstructionFactory {
       int offsetValue = Integer.parseInt(offset.toString());
       String forceIncrement = offsetValue < 0 ? "!" : "";
       String addOffset = offsetValue != 0 ? ", #" + offset : "";
-      return STRB + " " + src + ", [" + base +
-          addOffset + "]" + forceIncrement;
+      return STRB + " " + src + ", [" + base
+          + addOffset + "]" + forceIncrement;
     };
   }
 
