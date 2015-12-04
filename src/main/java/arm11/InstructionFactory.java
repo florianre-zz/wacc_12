@@ -11,84 +11,84 @@ public class InstructionFactory {
     return op.isImmediate() ? "#" : "";
   }
 
-  public static IInstruction createLoad(Register dst,  Operand op) {
+  public static Instruction createLoad(Register dst,  Operand op) {
     return () -> {
       String optionalEquals = op instanceof Address ? "=" : "";
       return LDR + " " + dst + ", " + optionalEquals + op;
     };
   }
 
-  public static IInstruction createBranch( Label label) {
+  public static Instruction createBranch( Label label) {
     return () -> B + " " + label;
   }
 
-  public static IInstruction createBranchLink(Label label) {
+  public static Instruction createBranchLink(Label label) {
     return () -> BL + " " + label;
   }
 
-  public static IInstruction createBranchEqual(Label label) {
+  public static Instruction createBranchEqual(Label label) {
     return () -> BEQ + " " + label;
   }
 
-  public static IInstruction createLabel(Label label) {
+  public static Instruction createLabel(Label label) {
     return () -> label + ":";
   }
 
-  public static IInstruction createPush(Register register) {
+  public static Instruction createPush(Register register) {
     return () -> PUSH + " {" + register + "}";
   }
 
-  public static IInstruction createPop(Register register) {
+  public static Instruction createPop(Register register) {
     return () -> POP + " {" + register + "}";
   }
 
-  public static IInstruction createLTORG() {
+  public static Instruction createLTORG() {
     return LTORG::toString;
   }
 
-  public static IInstruction createText() {
+  public static Instruction createText() {
     return TEXT::toString;
   }
 
-  public static IInstruction createGlobal(Label mainLabel) {
+  public static Instruction createGlobal(Label mainLabel) {
     return () -> GLOBAL + " " + mainLabel;
   }
 
-  public static IInstruction createSub(Register dst, Register rn, Operand imm) {
+  public static Instruction createSub(Register dst, Register rn, Operand imm) {
     return () -> SUB + " " + dst + ", " + rn + ", #" + imm;
   }
 
-  public static IInstruction createMove(Register dst, Operand op) {
+  public static Instruction createMove(Register dst, Operand op) {
     return () -> MOV + " " + dst + ", " + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createAdd(Register dst, Register src, Operand op) {
+  public static Instruction createAdd(Register dst, Register src, Operand op) {
     return () -> ADD + " " + dst + ", " + src + ", " + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createCompare(Register reg, Operand op) {
+  public static Instruction createCompare(Register reg, Operand op) {
     return () -> CMP + " " + reg + ", " + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createLoadNotEqual(Register register,
+  public static Instruction createLoadNotEqual(Register register,
                                                 Label label) {
     return () -> LDRNE + " " + register + ", =" + label;
   }
 
-  public static IInstruction createLoadEqual(Register register,
+  public static Instruction createLoadEqual(Register register,
                                              Label label) {
     return () -> LDREQ + " " + register + ", =" + label;
   }
 
-  public static IInstruction createWord(int length) {
+  public static Instruction createWord(int length) {
     return () -> WORD + " " + new Word(length);
   }
 
-  public static IInstruction createAscii(String ascii) {
+  public static Instruction createAscii(String ascii) {
     return () -> ASCII + " " + ascii;
   }
 
-  public static IInstruction createStore(Register src, Register base,
+  public static Instruction createStore(Register src, Register base,
                                         Operand offset) {
     return () -> {
       int offsetValue = Integer.parseInt(offset.toString());
@@ -99,7 +99,7 @@ public class InstructionFactory {
     };
   }
 
-  public static IInstruction createStoreByte(Register src, Register base,
+  public static Instruction createStoreByte(Register src, Register base,
                                              Operand offset) {
     return () -> {
       int offsetValue = Integer.parseInt(offset.toString());
@@ -110,11 +110,11 @@ public class InstructionFactory {
     };
   }
 
-  public static IInstruction createData() {
+  public static Instruction createData() {
     return DATA::toString;
   }
 
-  public static IInstruction createLoad(Register dst, Register base,
+  public static Instruction createLoad(Register dst, Register base,
                                         Immediate offset) {
     return () -> {
       String addOffset = !offset.toString().equals("0") ? ", #" + offset : "";
@@ -122,7 +122,7 @@ public class InstructionFactory {
     };
   }
 
-  public static IInstruction createLoadStoredByte(Register dst, Register base,
+  public static Instruction createLoadStoredByte(Register dst, Register base,
                                                   Immediate offset) {
     return () -> {
       String addOffset = !offset.toString().equals("0") ? ", #" + offset : "";
@@ -130,73 +130,73 @@ public class InstructionFactory {
     };
   }
 
-  public static IInstruction createEOR(Register dst, Register src,
+  public static Instruction createEOR(Register dst, Register src,
                                        Operand imm) {
     return () -> EOR + " " + dst + ", " + src + ", #" + imm;
   }
 
-  public static IInstruction createRSBS(Register dst,
+  public static Instruction createRSBS(Register dst,
                                         Register src,
                                         Operand imm) {
     return () -> RSBS + " " + dst + ", " + src + ", #" + imm;
   }
 
-  public static IInstruction createAdds(Register dst, Register src,
+  public static Instruction createAdds(Register dst, Register src,
                                         Operand op) {
     return () -> ADDS + " " + dst + ", " + src + ", "
         + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createMovEq(Register dst,  Operand op) {
+  public static Instruction createMovEq(Register dst,  Operand op) {
     return () -> MOVEQ + " " + dst + ", " + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createMovNe(Register dst,  Operand op) {
+  public static Instruction createMovNe(Register dst,  Operand op) {
     return () -> MOVNE + " " + dst + ", " + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createMovGt(Register dst,  Operand op) {
+  public static Instruction createMovGt(Register dst,  Operand op) {
     return () -> MOVGT + " " + dst + ", " + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createMovLe(Register dst,  Operand op) {
+  public static Instruction createMovLe(Register dst,  Operand op) {
     return () -> MOVLE + " " + dst + ", " + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createMovGe(Register dst,  Operand op) {
+  public static Instruction createMovGe(Register dst,  Operand op) {
     return () -> MOVGE + " " + dst + ", " + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createMovLt(Register dst,  Operand op) {
+  public static Instruction createMovLt(Register dst,  Operand op) {
     return () -> MOVLT + " " + dst + ", " + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createAnd(Register dst,  Register src1,
+  public static Instruction createAnd(Register dst,  Register src1,
                                        Register src2) {
     return () -> AND + " " + dst + ", " + src1 + ", " + src2;
   }
 
-  public static IInstruction createOrr(Register dst, Register src1,
+  public static Instruction createOrr(Register dst, Register src1,
                                        Register src2) {
     return () -> ORR + " " + dst + ", " + src1 + ", " + src2;
   }
 
-  public static IInstruction createSubs(Register dst,  Register src,
+  public static Instruction createSubs(Register dst,  Register src,
                                         Operand op) {
     return () -> SUBS + " " + dst + ", " + src + ", "
         + getOptionalHash(op) + op;
   }
 
-  public static IInstruction createSmull(Register dst1, Register dst2,
+  public static Instruction createSmull(Register dst1, Register dst2,
                                          Register src1, Register src2) {
     return () -> SMULL + " " + dst1 + ", " + dst2 + ", " + src1 + ", " + src2;
   }
 
-  public static IInstruction createDiv() {
+  public static Instruction createDiv() {
     return () -> BL + " " + AEABI_IDIV;
   }
 
-  public static IInstruction createMod() {
+  public static Instruction createMod() {
     return () -> BL + " " + AEABI_IDIVMOD;
   }
 

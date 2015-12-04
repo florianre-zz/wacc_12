@@ -5,13 +5,13 @@ import java.util.List;
 
 public class InstructionList  {
 
-  private List<IInstruction> instructions;
+  private List<Instruction> instructions;
 
   public InstructionList() {
     this.instructions = new ArrayList<>();
   }
 
-  public InstructionList add(IInstruction instruction) {
+  public InstructionList add(Instruction instruction) {
     instructions.add(instruction);
     return this;
   }
@@ -23,14 +23,14 @@ public class InstructionList  {
     return this;
   }
 
-  private List<IInstruction> getInstructions() {
+  private List<Instruction> getInstructions() {
     return instructions;
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    for (IInstruction instruction : instructions) {
+    for (Instruction instruction : instructions) {
       sb.append(instruction.printInstruction()).append("\n");
     }
     return sb.toString();
