@@ -2,7 +2,6 @@ package wacc;
 
 import antlr.WACCParser;
 import bindings.*;
-import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
@@ -19,37 +18,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
   /***************************** Helper Method *******************************/
 
-  private boolean isReadable(Type lhsType) {
-    return Type.isInt(lhsType) || Type.isChar(lhsType);
-  }
-
-  private boolean isFreeable(Type exprType) {
-    return ArrayType.isArray(exprType) || PairType.isPair(exprType);
-  }
-
-  private boolean checkTypesEqual(ParserRuleContext ctx,
-                                  Type lhsType, Type rhsType) {
-    if (lhsType != null) {
-      if (!lhsType.equals(rhsType)) {
-        incorrectType(ctx, rhsType, lhsType.toString());
-        return false;
-      }
-      return true;
-    } else {
-      errorHandler.complain(new TypeError(ctx, "Null Type"));
-    }
-    return false;
-  }
-
-  private void incorrectType(ParserRuleContext ctx,
-                             Type exprType,
-                             String expectedType) {
-    String actual = exprType != null ? exprType.toString() : "'null'";
-    errorHandler.complain(
-        new TypeAssignmentError(ctx, expectedType, actual)
-    );
-  }
-
   private Type checkAllTypesEqual(List<? extends WACCParser.ExprContext> ctxs) {
     Type firstType = visitExpr(ctxs.get(0));
     for (WACCParser.ExprContext ctx : ctxs) {
@@ -63,20 +31,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return firstType;
   }
 
-  private void inconsistentParamCountError(WACCParser.CallContext ctx,
-                                           int expectedSize, int actualSize) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("The number of arguments doesn't match function declaration: ");
-
-    sb.append(ctx.getText()).append("\n");
-    sb.append("There are currently ").append(actualSize);
-    sb.append(" params, there should be ");
-    sb.append(expectedSize);
-
-    String errorMsg = sb.toString();
-    errorHandler.complain(new DeclarationError(ctx, errorMsg));
-  }
-
   private void checkArrayElemExpressions(
       List<? extends WACCParser.ExprContext> exprs) {
     for (WACCParser.ExprContext expr : exprs) {
@@ -86,18 +40,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       }
     }
   }
-
-  private Type lookupTypeInWorkingSymbolTable(String key) {
-    Binding b = workingSymbolTable.lookupAll(key);
-    if (b instanceof Variable) {
-      return ((Variable) b).getType();
-    }
-    if (b instanceof Function) {
-      return ((Function) b).getType();
-    }
-    return null;
-  }
-
+  
   /************************** Visit Functions ****************************/
 
   /**
@@ -178,7 +121,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   */
   @Override
   public Type visitParam(WACCParser.ParamContext ctx) {
-    Type type = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
+    Type type = Utils.lookupTypeInWorkingSymbolTable(ctx.ident().getText(), workingSymbolTable);
 
     // Add the param to the current variable scope symbol table
     addVariableToCurrentScope(ctx.ident().getText());
@@ -196,11 +139,11 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   */
   @Override
   public Type visitInitStat(WACCParser.InitStatContext ctx) {
-    Type lhsType = lookupTypeInWorkingSymbolTable(ctx.ident().getText());
+    Type lhsType = Utils.lookupTypeInWorkingSymbolTable(ctx.ident().getText(), workingSymbolTable);
     Type rhsType = visitAssignRHS(ctx.assignRHS());
 
     addVariableToCurrentScope(ctx.ident().getText());
-    checkTypesEqual(ctx, lhsType, rhsType);
+    Utils.checkTypesEqual(ctx, lhsType, rhsType, errorHandler);
 
     return lhsType;
   }
@@ -216,7 +159,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Type lhsType = visitAssignLHS(ctx.assignLHS());
     Type rhsType = visitAssignRHS(ctx.assignRHS());
 
-    checkTypesEqual(ctx, lhsType, rhsType);
+    Utils.checkTypesEqual(ctx, lhsType, rhsType, errorHandler);
 
     return lhsType;
   }
@@ -229,12 +172,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
   /**
   * READ assignLHS
-  * type check isReadable */
+  * type check Utils.isReadable */
   @Override
   public Type visitReadStat(WACCParser.ReadStatContext ctx) {
     Type lhsType = visitAssignLHS(ctx.assignLHS());
 
-    if (!isReadable(lhsType)) {
+    if (!Utils.isReadable(lhsType)) {
       errorHandler.complain(
           new ReadTypeAssignmentError(ctx, lhsType.toString()));
     }
@@ -246,12 +189,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
   /**
   * FREE expr
-  * type check isFreeable */
+  * type check Utils.isFreeable */
   @Override
   public Type visitFreeStat(WACCParser.FreeStatContext ctx) {
     Type exprType = visitExpr(ctx.expr());
 
-    if (!isFreeable(exprType)) {
+    if (!Utils.isFreeable(exprType)) {
       errorHandler.complain(
           new FreeTypeAssignmentError(ctx, exprType.toString()));
     }
@@ -290,7 +233,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Type actualReturnType = visitExpr(ctx.expr());
     if (currentFunction != null) {
       Type expectedReturnType = currentFunction.getType();
-      checkTypesEqual(ctx, expectedReturnType, actualReturnType);
+      Utils.checkTypesEqual(ctx, expectedReturnType, actualReturnType, errorHandler);
       return expectedReturnType;
     }
 
@@ -348,7 +291,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Type predicateType = visitExpr(ctx.expr());
 
     if (!Type.isBool(predicateType)) {
-      incorrectType(ctx, predicateType, "'bool'");
+      Utils.incorrectType(ctx, predicateType, "'bool'", errorHandler);
     }
 
     String scopeName = Scope.WHILE.toString() + ++whileCount;
@@ -417,13 +360,13 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
           WACCParser.ExprContext exprCtx = argListContext.expr(i);
           Type actualType = visitExpr(exprCtx);
           Type expectedType = calledFunction.getParams().get(i).getType();
-          checkTypesEqual(ctx, actualType, expectedType);
+          Utils.checkTypesEqual(ctx, actualType, expectedType, errorHandler);
         }
       } else {
-        inconsistentParamCountError(ctx, expectedSize, actualSize);
+        Utils.inconsistentParamCountError(ctx, expectedSize, actualSize, errorHandler);
       }
     } else if (expectedSize > 0) {
-      inconsistentParamCountError(ctx, expectedSize, 0);
+      Utils.inconsistentParamCountError(ctx, expectedSize, 0, errorHandler);
     }
 
     return calledFunction.getType();
@@ -573,7 +516,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       }
     }
 
-    incorrectType(ctx, type, "'T[]' or 'string");
+    Utils.incorrectType(ctx, type, "'T[]' or 'string", errorHandler);
 
 		return null;
 	}
@@ -592,7 +535,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
     Type returnType = null;
 
-    if (checkTypesEqual(ctx, new PairType(), varType)) {
+    if (Utils.checkTypesEqual(ctx, new PairType(), varType, errorHandler)) {
       PairType pairType = (PairType) varType;
 
       if (ctx.FST() != null) {
@@ -629,22 +572,22 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
     if (ctx.NOT() != null) {
       if (!Type.isBool(exprType)) {
-        incorrectType(ctx, exprType, Types.BOOL_T.toString());
+        Utils.incorrectType(ctx, exprType, Types.BOOL_T.toString(), errorHandler);
       }
       return getType(Types.BOOL_T);
     } else if (ctx.MINUS() != null || ctx.CHR() != null) {
       if (!Type.isInt(exprType)) {
-        incorrectType(ctx, exprType, Types.INT_T.toString());
+        Utils.incorrectType(ctx, exprType, Types.INT_T.toString(), errorHandler);
       }
       return ctx.CHR() != null ? getType(Types.CHAR_T) : getType(Types.INT_T);
     } else if (ctx.LEN() != null) {
       if (!ArrayType.isArray(exprType)) {
-        incorrectType(ctx, exprType, Types.GENERIC_ARRAY_T.toString());
+        Utils.incorrectType(ctx, exprType, Types.GENERIC_ARRAY_T.toString(), errorHandler);
       }
       return getType(Types.INT_T);
     } else if (ctx.ORD() != null) {
       if (!Type.isChar(exprType)) {
-        incorrectType(ctx, exprType, Types.CHAR_T.toString());
+        Utils.incorrectType(ctx, exprType, Types.CHAR_T.toString(), errorHandler);
       }
       return getType(Types.INT_T);
     }
@@ -664,7 +607,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       for (WACCParser.ComparisonOperContext operCtx : ctx.comparisonOper()) {
         Type type = visitComparisonOper(operCtx);
         if (!Type.isBool(type)) {
-          incorrectType(operCtx, type, Types.BOOL_T.toString());
+          Utils.incorrectType(operCtx, type, Types.BOOL_T.toString(), errorHandler);
         }
       }
       return getType(Types.BOOL_T);
@@ -700,8 +643,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         errorHandler.complain(new TypeError(ctx.first));
         errorHandler.complain(new TypeError(ctx.second));
       } else if (!(Type.isInt(fstType) || Type.isChar(fstType))) {
-        incorrectType(ctx.first, fstType, "'int' or 'char'");
-        incorrectType(ctx.second, sndType, "'int' or 'char'");
+        Utils.incorrectType(ctx.first, fstType, "'int' or 'char'", errorHandler);
+        Utils.incorrectType(ctx.second, sndType, "'int' or 'char'", errorHandler);
       }
       return getType(Types.BOOL_T);
     } else {
@@ -755,7 +698,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       for (WACCParser.AtomContext atomContext : ctx.atom()) {
         Type type = visitAtom(atomContext);
         if (!Type.isInt(type)) {
-          incorrectType(atomContext, type, Types.INT_T.toString());
+          Utils.incorrectType(atomContext, type, Types.INT_T.toString(), errorHandler);
         }
       }
       return getType(Types.INT_T);
@@ -772,7 +715,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       for (WACCParser.MultOperContext multOperContext : ctx.multOper()) {
         Type type = visitMultOper(multOperContext);
         if (!Type.isInt(type)) {
-          incorrectType(multOperContext, type, Types.INT_T.toString());
+          Utils.incorrectType(multOperContext, type, Types.INT_T.toString(), errorHandler);
         }
       }
       return getType(Types.INT_T);
