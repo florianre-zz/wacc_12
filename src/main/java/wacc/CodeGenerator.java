@@ -880,46 +880,71 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitArrayLitr(WACCParser.ArrayLitrContext ctx) {
-
     InstructionList list = defaultResult();
-
     long bytesToAllocate = ADDRESS_SIZE;
     long typeSize = 0;
-
     long numberOfElems = ctx.expr().size();
+
     if (numberOfElems != 0) {
-      Type returnType = ctx.expr().get(0).returnType;
-      typeSize = returnType.getSize();
+      typeSize = getTypeSize(ctx);
       bytesToAllocate += typeSize * numberOfElems;
     }
 
-    list.add(InstructionFactory.createLoad(ARM11Registers.R0,
-            new Immediate(bytesToAllocate)));
     Label malloc = new Label("malloc");
-    list.add(InstructionFactory.createBranchLink(malloc));
-
     Register addressOfArray = freeRegisters.pop();
-    list.add(InstructionFactory.createMov(addressOfArray, ARM11Registers.R0));
+    list.add(allocateArrayAddress(bytesToAllocate, malloc, addressOfArray));
 
-    // Load all the exprs into the array (if any)
-    long offset = 4;
+    long offset = ADDRESS_SIZE;
     for (WACCParser.ExprContext elem : ctx.expr()) {
       Register result = freeRegisters.peek();
-      list.add(visitExpr(elem))
-              .add(InstructionFactory.createStore(result,
-                      addressOfArray,
-                      new Immediate(offset)));
+      storeArrayElem(list, addressOfArray, offset, elem, result);
       offset += typeSize;
       freeRegisters.push(result);
     }
 
     Register lengthOfArray = freeRegisters.peek();
-    list.add(InstructionFactory.createLoad(lengthOfArray,
-                                            new Immediate(numberOfElems)))
-        .add(InstructionFactory.createStore(lengthOfArray,
-                                            addressOfArray, new Immediate(0L)));
+    list.add(storeLengthOfArray(numberOfElems, addressOfArray, lengthOfArray));
 
     return list;
+  }
+
+  private InstructionList storeLengthOfArray(long numberOfElems,
+                                             Register addressOfArray,
+                                             Register lengthOfArray) {
+
+    InstructionList list = defaultResult();
+    list.add(InstructionFactory.createLoad(lengthOfArray,
+                                           new Immediate(numberOfElems)))
+        .add(InstructionFactory.createStore(lengthOfArray,
+                                            addressOfArray,
+                                            new Immediate(0L)));
+    return list;
+  }
+
+  private InstructionList allocateArrayAddress(long bytesToAllocate,
+                                               Label malloc,
+                                               Register addressOfArray) {
+    InstructionList list = defaultResult();
+    list.add(InstructionFactory.createLoad(ARM11Registers.R0,
+                                           new Immediate(bytesToAllocate)))
+        .add(InstructionFactory.createBranchLink(malloc))
+        .add(InstructionFactory.createMov(addressOfArray, ARM11Registers.R0));
+    return list;
+  }
+
+  private void storeArrayElem(InstructionList list,
+                              Register addressOfArray,
+                              long offset,
+                              WACCParser.ExprContext elem,
+                              Register result) {
+    Immediate imm = new Immediate(offset);
+    list.add(visitExpr(elem))
+        .add(InstructionFactory.createStore(result, addressOfArray, imm));
+  }
+
+  private long getTypeSize(WACCParser.ArrayLitrContext ctx) {
+    Type returnType = ctx.expr().get(0).returnType;
+    return returnType.getSize();
   }
 
   @Override
