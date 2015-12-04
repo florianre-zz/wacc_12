@@ -451,7 +451,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Operand falseOp = new Immediate((long) 0);
       list.add(visitAddOper(ctx.second))
           .add(accMachine.getInstructionList(InstructionType.CMP, dst1, dst2));
-      // CHECKED --ALL
       if (ctx.GT() != null){
         list.add(InstructionFactory.createMovGt(dst1, trueOp))
             .add(InstructionFactory.createMovLe(dst1, falseOp));
