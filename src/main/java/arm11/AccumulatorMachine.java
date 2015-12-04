@@ -6,11 +6,11 @@ public class AccumulatorMachine {
 
     private static final Register ACCUMULATOR = ARM11Registers.R10;
     private static final Register RESERVED = ARM11Registers.R11;
-    
+
     private int borrowedRegCount;
     private Stack<Register> freeRegisters;
 
-    public AccumulatorMachine(){
+    public AccumulatorMachine() {
         this.freeRegisters = new Stack<>();
         this.borrowedRegCount = 0;
     }
@@ -76,7 +76,7 @@ public class AccumulatorMachine {
 
     public InstructionList getInstructionList(InstructionType inst,
                                               Register dst, Register src,
-                                              Operand op){
+                                              Operand op) {
         InstructionList result = new InstructionList();
         if (op instanceof Register) {
             Register src2 = (Register) op;
@@ -88,7 +88,7 @@ public class AccumulatorMachine {
         } else if (op instanceof Immediate) {
             Immediate imm = (Immediate) op;
             if (inst.isLoad()) {
-                    return loadInstructions(inst, dst, src, imm);
+                return loadInstructions(inst, dst, src, imm);
             } else if (inst.isStore()) {
                 return storeInstructions(inst, dst, src, imm);
             }
@@ -96,7 +96,9 @@ public class AccumulatorMachine {
         return result;
     }
 
-    /*********************** Arithmetic Instructions ***********************/
+    /***********************
+     * Arithmetic Instructions
+     ***********************/
 
     private InstructionList arithmeticInstructions(InstructionType inst,
                                                    Register dst, Register src1,
@@ -145,7 +147,7 @@ public class AccumulatorMachine {
                 break;
             case DIVMOD:
                 result.add(InstructionFactory.createMove(ARM11Registers.R0, src1))
-                    .add(InstructionFactory.createMove(ARM11Registers.R1, src2));
+                        .add(InstructionFactory.createMove(ARM11Registers.R1, src2));
                 break;
             default:
                 break;
@@ -153,7 +155,9 @@ public class AccumulatorMachine {
         return result;
     }
 
-    /************************** Load Instructions **************************/
+    /**************************
+     * Load Instructions
+     **************************/
 
     private InstructionList loadInstructions(InstructionType inst, Register dst,
                                              Operand op) {
@@ -186,7 +190,9 @@ public class AccumulatorMachine {
         return result;
     }
 
-    /************************* Logical Instructions ************************/
+    /*************************
+     * Logical Instructions
+     ************************/
 
     private InstructionList logicalInstructions(InstructionType inst,
                                                 Register dst, Register src1,
@@ -227,7 +233,9 @@ public class AccumulatorMachine {
         return result;
     }
 
-    /************************** Move Instructions **************************/
+    /**************************
+     * Move Instructions
+     **************************/
 
     private InstructionList moveInstructions(InstructionType inst, Register dst,
                                              Operand op) {
@@ -243,7 +251,9 @@ public class AccumulatorMachine {
         return result;
     }
 
-    /************************** Store Instructions *************************/
+    /**************************
+     * Store Instructions
+     *************************/
 
     private InstructionList storeInstructions(InstructionType inst, Register dst,
                                               Register src, Immediate offset) {
