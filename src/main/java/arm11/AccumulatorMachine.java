@@ -1,7 +1,5 @@
 package arm11;
 
-import wacc.CodeGenerator;
-
 import java.util.Stack;
 
 public class AccumulatorMachine {
@@ -64,23 +62,37 @@ public class AccumulatorMachine {
             return loadInstructions(inst, dst, op);
         } else if (inst.isMove()) {
             return moveInstructions(inst, dst, op);
-        }
-        return result;
-    }
-
-    public InstructionList getInstructionList (InstructionType inst, Register dst, Register src, Operand op){
-        InstructionList result = new InstructionList();
-        if (inst.isArithmetic()) {
-            return arithmeticInstructions(inst, dst, src, op);
         } else if (inst.isLogical()) {
-            return logicalInstructions(inst, dst, src, op);
-        } else if (inst.isLoad()) {
-            if (op instanceof Immediate) {
-                return loadInstructions(inst, dst, src, (Immediate) op);
+            return logicalInstructions(inst, dst, op);
+        } else if (inst.isArithmetic()) {
+            if (op instanceof Register) {
+                return arithmeticInstructions(inst, dst, (Register) op);
             }
         }
         return result;
     }
+
+
+    public InstructionList getInstructionList (InstructionType inst, Register dst, Register src, Operand op){
+        InstructionList result = new InstructionList();
+        if (op instanceof Register) {
+            Register src2 = (Register) op;
+            if (inst.isArithmetic()) {
+                return arithmeticInstructions(inst, dst, src, src2);
+            } else if (inst.isLogical()) {
+                return logicalInstructions(inst, dst, src, src2);
+            }
+        } else if (op instanceof Immediate) {
+            Immediate imm = (Immediate) op;
+            if (inst.isLoad()) {
+                    return loadInstructions(inst, dst, src, imm);
+            } else if (inst.isStore()) {
+                return storeInstructions(inst, dst, src, imm);
+            }
+        }
+        return result;
+    }
+
 
 //    public InstructionList getInstructionList(InstructionType inst, Register dst, Register src,
 //                                              Operand op, Immediate offset){
@@ -96,34 +108,55 @@ public class AccumulatorMachine {
 
     /************************************* Arithmetic Instructions *************************************/
 
-    private InstructionList arithmeticInstructions(InstructionType inst, Register dst, Register src, Operand op) {
-        // TODO: see if true for all cases
-
+    private InstructionList arithmeticInstructions(InstructionType inst, Register dst, Register src1, Register src2) {
         InstructionList result = new InstructionList();
 
         if (inAccumulatorMode()) {
             result.add(InstructionFactory.createPop(RESERVED));
-            src = RESERVED;
+            src1 = RESERVED;
         }
         switch (inst) {
             case ADD:
                 // Not used so far
-                result.add(InstructionFactory.createAdd(dst, src, op));
+                result.add(InstructionFactory.createAdd(dst, src1, src2));
                 break;
             case ADDS:
                 // Used in visitAddOper
-                result.add(InstructionFactory.createAdds(dst, src, op));
+                result.add(InstructionFactory.createAdds(dst, src1, src2));
                 break;
             case SUB:
-                result.add(InstructionFactory.createSub(dst, src, op));
+                result.add(InstructionFactory.createSub(dst, src1, src2));
                 break;
             case SUBS:
-                result.add(InstructionFactory.createSubs(dst, src, op));
+                result.add(InstructionFactory.createSubs(dst, src1, src2));
                 break;
             case RSBS:
                 // TODO
             case SMULL:
                 // TODO
+            default:
+                break;
+        }
+        return result;
+    }
+
+    private InstructionList arithmeticInstructions(InstructionType inst, Register src1, Register src2) {
+        InstructionList result = new InstructionList();
+        Register dst1 = src1;
+        Register dst2 = src2;
+        if (inAccumulatorMode()) {
+            result.add(InstructionFactory.createPop(RESERVED));
+            src1 = RESERVED;
+            dst2 = RESERVED;
+        }
+        switch (inst) {
+            case SMULL:
+                result.add(InstructionFactory.createSmull(dst1, dst2, src1, src2));
+                break;
+            case DIVMOD:
+                result.add(InstructionFactory.createMove(ARM11Registers.R0, src1))
+                        .add(InstructionFactory.createMove(ARM11Registers.R1, src2));
+                break;
             default:
                 break;
         }
@@ -145,7 +178,7 @@ public class AccumulatorMachine {
         return result;
     }
 
-    private InstructionList loadInstructions(InstructionType inst, Register dst, Register rn, Immediate offset) {
+    private InstructionList loadInstructions(InstructionType inst, Register dst, Register src, Immediate offset) {
         InstructionList result = new InstructionList();
         if (inAccumulatorMode()) {
             result.add(InstructionFactory.createPush(dst));
@@ -154,7 +187,7 @@ public class AccumulatorMachine {
         }
         switch (inst) {
             case LDR:
-                result.add(InstructionFactory.createLoad(dst, rn, offset));
+                result.add(InstructionFactory.createLoad(dst, src, offset));
             default:
                 break;
         }
@@ -163,35 +196,75 @@ public class AccumulatorMachine {
 
     /*************************************** Logical Instructions **************************************/
 
-    private InstructionList logicalInstructions(InstructionType inst, Register dst, Register src, Operand op) {
+    private InstructionList logicalInstructions(InstructionType inst, Register dst, Register src1, Register src2) {
+        InstructionList result = new InstructionList();
+
+        if (inAccumulatorMode()) {
+            result.add(InstructionFactory.createPop(RESERVED));
+            src1 = RESERVED;
+        }
         switch (inst) {
             case AND:
-                if (inAccumulatorMode()) {
-
-                } else {
-
-                }
+                result.add(InstructionFactory.createAnd(dst, src1, src2));
+                break;
+            case ORR:
+                result.add(InstructionFactory.createOrr(dst, src1, src2));
+                break;
+            default:
+                break;
         }
-        return new InstructionList();
+        return result;
+    }
+
+    private InstructionList logicalInstructions(InstructionType inst, Register src, Operand op) {
+        InstructionList result = new InstructionList();
+
+        if (inAccumulatorMode()) {
+            result.add(InstructionFactory.createPop(RESERVED));
+            src = RESERVED;
+        }
+        switch (inst) {
+            case CMP:
+                result.add(InstructionFactory.createCompare(src, op));
+            default:
+                break;
+        }
+        return result;
     }
 
     /**************************************** Move Instructions ****************************************/
 
     private InstructionList moveInstructions(InstructionType inst, Register dst, Operand op) {
+        InstructionList result = new InstructionList();
+        if (inAccumulatorMode()) {
+            result.add(InstructionFactory.createPush(dst));
+        }
         switch (inst) {
             case MOV:
-                if (inAccumulatorMode()) {
-
-                } else {
-
-                }
+                result.add(InstructionFactory.createMove(dst, op));
+                break;
         }
-        return new InstructionList();
+        return result;
     }
 
     /**************************************** Store Instructions ***************************************/
 
     private InstructionList storeInstructions(InstructionType inst, Register dst, Register src, Immediate offset) {
-        return null;
+        InstructionList result = new InstructionList();
+        if (inAccumulatorMode()) {
+            result.add(InstructionFactory.createPush(dst));
+            // TODO: Remove magic number - once merged
+            offset = new Immediate(offset.getValue() + (borrowedRegCount * 4));
+        }
+        switch (inst) {
+            case STR:
+                result.add(InstructionFactory.createStore(dst, src, offset));
+                break;
+            case STRB:
+                result.add(InstructionFactory.createStoreByte(dst, src, offset));
+            default:
+                break;
+        }
+        return result;
     }
 }
