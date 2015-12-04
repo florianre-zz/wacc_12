@@ -4,8 +4,8 @@ public class PrintFunctions {
 
   private static void printAsciiAndFlush(InstructionList list, String print) {
     list.add(InstructionFactory.createBranchLink(new Label(print)))
-        .add(InstructionFactory.createMov(ARM11Registers.R0,
-                                          new Immediate((long) 0)))
+        .add(InstructionFactory.createMove(ARM11Registers.R0,
+                new Immediate((long) 0)))
         .add(InstructionFactory.createBranchLink(new Label("fflush")));
   }
 
@@ -23,8 +23,8 @@ public class PrintFunctions {
         = data.addPrintFormatter(IOFormatters.INT_FORMATTER);
 
     saveLinkRegister(list, printLabel);
-    list.add(InstructionFactory.createMov(ARM11Registers.R1,
-                                          ARM11Registers.R0))
+    list.add(InstructionFactory.createMove(ARM11Registers.R1,
+            ARM11Registers.R0))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            intFormatterLabel))
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
@@ -110,8 +110,8 @@ public class PrintFunctions {
         = data.addPrintFormatter(IOFormatters.REFERENCE_FORMATTER);
 
     saveLinkRegister(list, printLabel);
-    list.add(InstructionFactory.createMov(ARM11Registers.R1,
-                                           ARM11Registers.R0))
+    list.add(InstructionFactory.createMove(ARM11Registers.R1,
+            ARM11Registers.R0))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            referenceFormatterLabel))
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
