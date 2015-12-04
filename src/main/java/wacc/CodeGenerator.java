@@ -364,36 +364,41 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
     Label printLabel;
-    InstructionList printFunction = null;
     Type returnType = ctx.expr().returnType;
 
-    // TODO: looks like a getter, maybe from an enum?
     if (Type.isString(returnType)) {
-      printFunction = PrintFunctions.printString(data);
       printLabel = new Label("p_print_string");
+      addPrintFunctionToHelpers(PrintFunctions.printString(data));
     } else if (Type.isInt(returnType)) {
-      printFunction = PrintFunctions.printInt(data);
       printLabel = new Label("p_print_int");
+      addPrintFunctionToHelpers(PrintFunctions.printInt(data));
     } else if (Type.isChar(returnType)){
       printLabel = new Label("putchar");
     } else if (Type.isBool(returnType)) {
-      printFunction = PrintFunctions.printBool(data);
       printLabel = new Label("p_print_bool");
+      addPrintFunctionToHelpers(PrintFunctions.printBool(data));
     } else {
-      printFunction = PrintFunctions.printReference(data);
       printLabel = new Label("p_print_reference");
+      addPrintFunctionToHelpers(PrintFunctions.printReference(data));
     }
 
     Register result = accMachine.peekFreeRegister();
-    list.add(visitExpr(ctx.expr()))
-        .add(InstructionFactory.createMove(ARM11Registers.R0, result))
-        .add(InstructionFactory.createBranchLink(printLabel));
-    addPrintFunctionToHelpers(printFunction);
+    list.add(printExpression(ctx.expr(), printLabel, result));
+    accMachine.pushFreeRegister(result);
     if (ctx.PRINTLN() != null) {
       printNewLine(list);
     }
-    accMachine.pushFreeRegister(result);
 
+    return list;
+  }
+
+  private InstructionList printExpression(WACCParser.ExprContext ctx,
+                                          Label printLabel,
+                                          Register result) {
+    InstructionList list = defaultResult();
+    list.add(visitExpr(ctx))
+        .add(InstructionFactory.createMove(ARM11Registers.R0, result))
+        .add(InstructionFactory.createBranchLink(printLabel));
     return list;
   }
 
