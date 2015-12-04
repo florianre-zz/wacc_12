@@ -517,7 +517,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         String op = ctx.ops.get(i).getText();
 
         list.add(visitMultOper(otherExpr));
-
         if (op.equals(getToken(WACCParser.PLUS))){
           arithmeticInstr.add(
             accMachine.getInstructionList(InstructionType.ADDS,
@@ -527,9 +526,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
             accMachine.getInstructionList(InstructionType.SUBS,
                                           dst1, dst1, dst2));
         }
-
-        // TODO: Remember, the other expression must be visited before the
-        // arithmetic op instruction is created
         list.add(arithmeticInstr);
         accMachine.pushFreeRegister(dst2);
       }
