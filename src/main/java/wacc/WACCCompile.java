@@ -9,40 +9,47 @@ import bindings.Types;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import wacc.error.WACCErrorHandler;
+import wacc.error.WACCLexerErrorListener;
 
 import java.io.IOException;
 
 public class WACCCompile {
   public static void main(String[] args) throws Exception {
 
-    CommonTokenStream tokens = performLexicalAnalysis();
-    WACCErrorHandler errorHandler = new WACCErrorHandler(tokens);
+    ANTLRInputStream input = new ANTLRInputStream(System.in);
+    WACCLexer lexer = new WACCLexer(input);
+    CommonTokenStream tokenStream = new CommonTokenStream(lexer);
 
-    ParseTree tree = new WACCParser(tokens).prog();
+    WACCErrorHandler errorHandler = new WACCErrorHandler(tokenStream);
+    ParseTree tree = performLexicalAnalysis(errorHandler, tokenStream);
+
+    if (errorHandler.printLexingErrors()) {
+      System.exit(100);
+    }
 
     performSemanticAnalysis(tree, errorHandler);
 
     checkForErrors(errorHandler);
 
     performCodeGeneration(tree);
-
   }
 
-  private static CommonTokenStream performLexicalAnalysis() throws IOException {
-    ANTLRInputStream input = new ANTLRInputStream(System.in);
-    WACCLexer lexer = new WACCLexer(input);
-    return new CommonTokenStream(lexer);
+  private static ParseTree performLexicalAnalysis(WACCErrorHandler errorHandler,
+                     CommonTokenStream tokenStream) throws IOException {
+
+    WACCParser parser = new WACCParser(tokenStream);
+    WACCLexerErrorListener errorListener = new WACCLexerErrorListener();
+
+    parser.removeErrorListeners();
+    parser.addErrorListener(errorListener);
+    ParseTree tree = parser.prog();
+    errorHandler.complainAboutLexing(errorListener.getErrors());
+
+    return tree;
   }
 
   private static void performSemanticAnalysis(ParseTree tree,
                                               WACCErrorHandler errorHandler) {
-
-//    int numberOfSyntaxErrors = parser.getNumberOfSyntaxErrors();
-//    if (numberOfSyntaxErrors > 0) {
-//      System.err.println(numberOfSyntaxErrors + " Syntax Errors");
-//      System.exit(100);
-//    }
-
     SymbolTable<String, Binding> top = createTopSymbolTable();
 
     WACCSymbolTableFiller buildSTVisitor
@@ -51,7 +58,6 @@ public class WACCCompile {
 
     WACCTypeChecker typeChecker = new WACCTypeChecker(top, errorHandler);
     typeChecker.visit(tree);
-
   }
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
