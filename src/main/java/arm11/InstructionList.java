@@ -18,9 +18,7 @@ public class InstructionList  {
 
   public InstructionList add(InstructionList instructionList) {
     if (instructionList != null) {
-      for (Instruction instruction : instructionList.getInstructions()) {
-        this.instructions.add(instruction);
-      }
+      this.instructions.addAll(instructionList.getInstructions());
     }
     return this;
   }
@@ -33,7 +31,7 @@ public class InstructionList  {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     for (Instruction instruction : instructions) {
-      sb.append(instruction).append("\n");
+      sb.append(instruction.printInstruction()).append("\n");
     }
     return sb.toString();
   }
