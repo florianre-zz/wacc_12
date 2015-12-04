@@ -6,7 +6,6 @@ public class AccumulatorMachine {
 
   private static final Register ACCUMULATOR = ARM11Registers.R10;
   private static final Register RESERVED = ARM11Registers.R11;
-
   private int borrowedRegCount;
   private Stack<Register> freeRegisters;
 
@@ -80,7 +79,6 @@ public class AccumulatorMachine {
     return result;
   }
 
-
   public InstructionList getInstructionList(InstructionType inst, Register dst,
                                             Register src, Operand op) {
 
@@ -140,7 +138,6 @@ public class AccumulatorMachine {
 
   private InstructionList arithmeticInstructions(InstructionType inst,
                                                  Register src1, Register src2) {
-
     InstructionList result = new InstructionList();
     Register dst1 = src1;
     Register dst2 = src2;
@@ -169,7 +166,6 @@ public class AccumulatorMachine {
 
   private InstructionList loadInstructions(InstructionType inst, Register dst,
                                            Operand op) {
-
     InstructionList result = new InstructionList();
     if (inAccumulatorMode()) {
       result.add(InstructionFactory.createPush(dst));
@@ -184,7 +180,6 @@ public class AccumulatorMachine {
 
   private InstructionList loadInstructions(InstructionType inst, Register dst,
                                            Register src, Immediate offset) {
-
     InstructionList result = new InstructionList();
     if (inAccumulatorMode()) {
       result.add(InstructionFactory.createPush(dst));

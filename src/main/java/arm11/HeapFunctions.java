@@ -16,7 +16,8 @@ public class HeapFunctions {
                                            ARM11Registers.SP))
         .add(InstructionFactory.createBranchLink(new Label("free")))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
-                                           ARM11Registers.R0, new Immediate(4L)))
+                                           ARM11Registers.R0,
+                                           new Immediate(4L)))
         .add(InstructionFactory.createPop(ARM11Registers.R0))
         .add(InstructionFactory.createBranchLink(new Label("free")))
         .add(InstructionFactory.createPop(ARM11Registers.PC));
