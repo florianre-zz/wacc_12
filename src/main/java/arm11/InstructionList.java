@@ -2,6 +2,7 @@ package arm11;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class InstructionList  {
 
@@ -18,9 +19,9 @@ public class InstructionList  {
 
   public InstructionList add(InstructionList instructionList) {
     if (instructionList != null) {
-      for (Instruction instruction : instructionList.getInstructions()) {
-        this.instructions.add(instruction);
-      }
+      List<Instruction> all = instructionList.getInstructions().stream()
+          .collect(Collectors.toList());
+      this.instructions.addAll(all);
     }
     return this;
   }
