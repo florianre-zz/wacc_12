@@ -24,11 +24,10 @@ public class PrintFunctions {
 
     saveLinkRegister(list, printLabel);
     list.add(InstructionFactory.createMove(ARM11Registers.R1,
-                                          ARM11Registers.R0))
+                                           ARM11Registers.R0))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            intFormatterLabel))
-        .add(InstructionFactory.createAdd(ARM11Registers.R0,
-                                          ARM11Registers.R0,
+        .add(InstructionFactory.createAdd(ARM11Registers.R0, ARM11Registers.R0,
                                           new Immediate(4L)));
     printAsciiAndFlush(list, "printf");
     list.add(InstructionFactory.createPop(ARM11Registers.PC));

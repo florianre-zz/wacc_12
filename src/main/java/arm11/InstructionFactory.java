@@ -2,8 +2,6 @@ package arm11;
 
 import static arm11.InstructionType.*;
 
-// TODO: Clean up and refactor
-
 public class InstructionFactory {
 
   public static  String AEABI_IDIV = "__aeabi_idiv";
