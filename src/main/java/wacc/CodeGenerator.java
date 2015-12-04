@@ -275,7 +275,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register predicate = freeRegisters.peek();
     list.add(visitExpr(ctx.expr()));
     list.add(InstructionFactory.createCompare(predicate,
-                                              new Immediate((long) 0)));
+        new Immediate((long) 0)));
     // predicate no longer required
     freeRegisters.push(predicate);
 
@@ -348,7 +348,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(visitAssignRHS(assignRHS));
 
-    Instruction storeInstr;
+    IInstruction storeInstr;
     Register sp  = ARM11Registers.SP;
     Operand offset = new Immediate(varOffset);
     if (Type.isBool(varType) || Type.isChar(varType)){
@@ -424,7 +424,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (!ctx.otherExprs.isEmpty()) {
       Register dst2;
       // for loop used instead of visitChildren so only 2 registers used up
-      Instruction logicalInstr;
+      IInstruction logicalInstr;
       for (int i = 0; i < ctx.ops.size(); i++) {
         WACCParser.ComparisonOperContext otherExpr = ctx.otherExprs.get(i);
         dst2 = freeRegisters.peek();
@@ -598,7 +598,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Operand imm = new Immediate((long) 0);
       list.add(InstructionFactory.createRSBS(dst, dst, imm));
     } else if (ctx.LEN() != null) {
-      list.add(InstructionFactory.createLoad(dst, dst, 0));
+      list.add(InstructionFactory.createLoad(dst, dst, new Immediate(0L)));
     }
 
     return list;
@@ -609,7 +609,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Operand op;
-    Instruction loadOrMove;
+    IInstruction loadOrMove;
     Register reg = freeRegisters.pop();
     String digits = ctx.INTEGER().getText();
     long value = Long.parseLong(digits);
@@ -667,7 +667,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(visitExpr(exprCtx));
       if (varSize == -1L) {
         list.add(InstructionFactory.createStoreByte(result, ARM11Registers.SP,
-                                                    size));
+            size));
       } else {
         list.add(InstructionFactory.createStore(result, ARM11Registers.SP, size));
       }
@@ -682,7 +682,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Operand op;
-    Instruction move;
+    IInstruction move;
     Register reg = freeRegisters.pop();
 
     String boolLitr = ctx.boolLitr().getText();
@@ -704,7 +704,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
 
     Operand op;
-    Instruction loadOrMove;
+    IInstruction loadOrMove;
     Register reg = freeRegisters.pop();
     String chr = ctx.CHARACTER().getText();
 
@@ -732,7 +732,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (ctx.LEN() != null) {
       // TODO: allow for 0 default offset
-      list.add(InstructionFactory.createLoad(reg, reg, 0));
+      list.add(InstructionFactory.createLoad(reg, reg, new Immediate(0L)));
     }
     return list;
   }
@@ -752,11 +752,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   // TODO: put back
   private void createLoad(InstructionList list, Type type,
                           Register reg, long offset) {
+    Immediate offsetImm = new Immediate(offset);
     if (Type.isBool(type) || Type.isChar(type)) {
       list.add(InstructionFactory.createLoadStoredByte(reg,
-          ARM11Registers.SP, offset));
+          ARM11Registers.SP, offsetImm));
     } else {
-      list.add(InstructionFactory.createLoad(reg, ARM11Registers.SP, offset));
+      list.add(InstructionFactory.createLoad(reg,
+          ARM11Registers.SP, offsetImm));
     }
   }
 
@@ -871,12 +873,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(visitChildren(ctx));
 
     if (ctx.FST() != null) {
-      list.add(InstructionFactory.createLoad(result, result, 0L));
+      list.add(InstructionFactory.createLoad(result, result, new Immediate(0L)));
     } else {
-      list.add(InstructionFactory.createLoad(result, result, ADDRESS_SIZE));
+      list.add(InstructionFactory.createLoad(result, result, new Immediate(ADDRESS_SIZE)));
     }
 
-    list.add(InstructionFactory.createLoad(result, result, 0L));
+    list.add(InstructionFactory.createLoad(result, result, new Immediate(0L)));
 
     return list;
   }

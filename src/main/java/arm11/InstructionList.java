@@ -6,34 +6,32 @@ import java.util.stream.Collectors;
 
 public class InstructionList  {
 
-  private List<Instruction> instructions;
+  private List<IInstruction> instructions;
 
   public InstructionList() {
     this.instructions = new ArrayList<>();
   }
 
-  public InstructionList add(Instruction instruction) {
+  public InstructionList add(IInstruction instruction) {
     instructions.add(instruction);
     return this;
   }
 
   public InstructionList add(InstructionList instructionList) {
     if (instructionList != null) {
-      List<Instruction> all = instructionList.getInstructions().stream()
-          .collect(Collectors.toList());
-      this.instructions.addAll(all);
+      this.instructions.addAll(instructionList.getInstructions());
     }
     return this;
   }
 
-  private List<Instruction> getInstructions() {
+  private List<IInstruction> getInstructions() {
     return instructions;
   }
 
   @Override
   public String toString() {
     StringBuilder sb = new StringBuilder();
-    for (Instruction instruction : instructions) {
+    for (IInstruction instruction : instructions) {
       sb.append(instruction).append("\n");
     }
     return sb.toString();
