@@ -9,8 +9,6 @@ import java.util.*;
 
 import static arm11.HeapFunctions.freePair;
 
-// TODO: make @NotNulls consistent
-
 public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private static final long ADDRESS_SIZE = 4L;

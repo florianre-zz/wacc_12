@@ -2,7 +2,6 @@ package arm11;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class InstructionList  {
 
@@ -32,7 +31,7 @@ public class InstructionList  {
   public String toString() {
     StringBuilder sb = new StringBuilder();
     for (IInstruction instruction : instructions) {
-      sb.append(instruction).append("\n");
+      sb.append(instruction.printInstruction()).append("\n");
     }
     return sb.toString();
   }
