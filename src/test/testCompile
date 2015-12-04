@@ -34,7 +34,7 @@ def runCompile(testPath, expectedExitCode)
       end
       hasErrored += 1
       output += "Wrong exit code: #{actualExitCode}, was expecting: #{expectedExitCode}"
-      # open(@errFile, 'a') { |f| f.puts output}
+      open(@errFile, 'a') { |f| f.puts output}
     end
     break if hasErrored > 10
     `rm #{@tmp}`

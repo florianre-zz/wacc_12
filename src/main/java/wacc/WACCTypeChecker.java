@@ -769,7 +769,11 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitIdent(WACCParser.IdentContext ctx) {
-    return getMostRecentBindingForVariable(ctx.getText()).getType();
+    Variable variable = getMostRecentBindingForVariable(ctx.getText());
+    if (variable != null) {
+      return variable.getType();
+    }
+    return null;
   }
 
 }

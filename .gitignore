@@ -38,5 +38,7 @@ target
 .project
 .DS_Store
 
+!src/test/output/expected
+
 #ignore windows specific files
 compileWindows

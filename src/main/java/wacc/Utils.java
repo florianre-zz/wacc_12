@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import wacc.error.DeclarationError;
 import wacc.error.WACCErrorHandler;
 import wacc.error.TypeAssignmentError;
-import wacc.error.TypeError;
 
 public class Utils {
 
@@ -36,8 +35,6 @@ public class Utils {
         return false;
       }
       return true;
-    } else {
-      errorHandler.complain(new TypeError(ctx, "Null Type"));
     }
     return false;
   }
