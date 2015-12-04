@@ -5,7 +5,7 @@ public class PrintFunctions {
   private static void printAsciiAndFlush(InstructionList list, String print) {
     list.add(InstructionFactory.createBranchLink(new Label(print)))
         .add(InstructionFactory.createMove(ARM11Registers.R0,
-                new Immediate((long) 0)))
+                                          new Immediate(0L)))
         .add(InstructionFactory.createBranchLink(new Label("fflush")));
   }
 
@@ -24,12 +24,11 @@ public class PrintFunctions {
 
     saveLinkRegister(list, printLabel);
     list.add(InstructionFactory.createMove(ARM11Registers.R1,
-            ARM11Registers.R0))
+                                           ARM11Registers.R0))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            intFormatterLabel))
-        .add(InstructionFactory.createAdd(ARM11Registers.R0,
-                                          ARM11Registers.R0,
-                                          new Immediate((long) 4)));
+        .add(InstructionFactory.createAdd(ARM11Registers.R0, ARM11Registers.R0,
+                                          new Immediate(4L)));
     printAsciiAndFlush(list, "printf");
     list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
@@ -48,12 +47,12 @@ public class PrintFunctions {
                                            new Address(ARM11Registers.R0)))
         .add(InstructionFactory.createAdd(ARM11Registers.R2,
                                           ARM11Registers.R0,
-                                          new Immediate((long) 4)))
+                                          new Immediate(4L)))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            stringFormatterLabel))
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
-                                          new Immediate((long) 4)));
+                                          new Immediate(4L)));
     printAsciiAndFlush(list, "printf");
     list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
@@ -70,7 +69,7 @@ public class PrintFunctions {
                                            lnFormatterLabel))
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
-                                          new Immediate((long) 4)));
+                                          new Immediate(4L)));
     printAsciiAndFlush(list, "puts");
     list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
@@ -88,14 +87,14 @@ public class PrintFunctions {
 
     saveLinkRegister(list, printLabel);
     list.add(InstructionFactory.createCompare(ARM11Registers.R0, new
-        Immediate((long) 0)));
+        Immediate(0L)));
     list.add(InstructionFactory.createLoadNotEqual(ARM11Registers.R0,
                                                    trueFormatterLabel));
     list.add(InstructionFactory.createLoadEqual(ARM11Registers.R0,
                                                 falseFormatterLabel));
     list.add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
-                                          new Immediate((long) 4)));
+                                          new Immediate(4L)));
     printAsciiAndFlush(list, "printf");
     list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
@@ -111,12 +110,12 @@ public class PrintFunctions {
 
     saveLinkRegister(list, printLabel);
     list.add(InstructionFactory.createMove(ARM11Registers.R1,
-            ARM11Registers.R0))
+                                           ARM11Registers.R0))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            referenceFormatterLabel))
         .add(InstructionFactory.createAdd(ARM11Registers.R0,
                                           ARM11Registers.R0,
-                                          new Immediate((long) 4)));
+                                          new Immediate(4L)));
     printAsciiAndFlush(list, "printf");
     list.add(InstructionFactory.createPop(ARM11Registers.PC));
 
