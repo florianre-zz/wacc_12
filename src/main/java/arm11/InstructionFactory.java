@@ -13,7 +13,8 @@ public class InstructionFactory {
 
   public static Instruction createLoad(Register dst,  Operand op) {
     return () -> {
-      String optionalEquals = op instanceof Address ? "=" : "";
+      boolean immAd = op instanceof Address || op instanceof Immediate;
+      String optionalEquals = immAd ? "=" : "";
       return LDR + " " + dst + ", " + optionalEquals + op;
     };
   }
@@ -200,4 +201,10 @@ public class InstructionFactory {
     return () -> BL + " " + AEABI_IDIVMOD;
   }
 
+  public static Instruction createAdd(Register dst,
+                                      Register src1,
+                                      Register src2, Operand shift) {
+    return () -> ADD + " " + dst + ", " + src1 + ", " + src2
+        + ", " + LSL + " #" + shift;
+  }
 }
