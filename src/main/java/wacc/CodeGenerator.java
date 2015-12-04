@@ -3,6 +3,7 @@ package wacc;
 import antlr.WACCParser;
 import arm11.*;
 import bindings.*;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -876,10 +877,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     }
 
     // CHECKED
-    list.add(accMachine.getInstructionList(InstructionType.ADD,
-                                           reg,
-                                           ARM11Registers.SP,
-                                           imm))
+    list.add(accMachine.getInstructionList(InstructionType.ADD, reg,
+                                           ARM11Registers.SP, imm))
         .add(InstructionFactory.createMove(dst, reg))
         .add(InstructionFactory.createBranchLink(readLabel));
     accMachine.pushFreeRegister(reg);
@@ -945,6 +944,24 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(storeLengthOfArray(numberOfElems, addressOfArray, lengthOfArray));
     accMachine.pushFreeRegister(lengthOfArray);
 
+    return list;
+  }
+
+  @Override
+  public InstructionList visitArrayElem(WACCParser.ArrayElemContext ctx) {
+    InstructionList list = defaultResult();
+    Register result = accMachine.peekFreeRegister();
+    list.add(visitIdent(ctx.ident()));
+    for (WACCParser.ExprContext exprCtx : ctx.expr()) {
+      Register helper = accMachine.peekFreeRegister();
+      list.add(visitExpr(exprCtx))
+          .add(InstructionFactory.createAdd(result, result,
+              new Immediate(ADDRESS_SIZE)))
+          .add(InstructionFactory.createAdd(result, result, helper,
+              new Immediate(2L)))
+          .add(InstructionFactory.createLoad(result, result, new Immediate(0L)));
+      accMachine.pushFreeRegister(helper);
+    }
     return list;
   }
 
