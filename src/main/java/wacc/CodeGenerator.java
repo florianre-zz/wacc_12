@@ -559,9 +559,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private InstructionList divMoves(Register dst1, Register dst2, String op) {
     InstructionList list =  defaultResult();
+    Label checkDivideByZeroLabel = new Label("p_check_divide_by_zero");
     list.add(accMachine.getInstructionList(InstructionType.DIVMOD, dst1, dst2))
-        .add(InstructionFactory.createBranchLink(
-          new Label("p_check_divide_by_zero")));
+        .add(InstructionFactory.createBranchLink(checkDivideByZeroLabel));
     if (op.equals(getToken(WACCParser.DIV))){
       list.add(InstructionFactory.createDiv())
           .add(InstructionFactory.createMove(dst1, ARM11Registers.R0));
@@ -569,9 +569,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createMod())
           .add(InstructionFactory.createMove(dst1, ARM11Registers.R1));
     }
-      addFunctionToHelpers(RuntimeErrorFunctions.divideByZero(data));
-      addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
-      addFunctionToHelpers(PrintFunctions.printString(data));
+    addFunctionToHelpers(RuntimeErrorFunctions.divideByZero(data));
+    addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
+    addFunctionToHelpers(PrintFunctions.printString(data));
+
     return list;
   }
 

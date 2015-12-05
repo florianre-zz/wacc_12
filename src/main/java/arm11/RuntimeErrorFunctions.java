@@ -26,6 +26,7 @@ public class RuntimeErrorFunctions {
     data.addPrintFormatter(IOFormatters.STRING_FORMATTER);
 
     Immediate exitCode = new Immediate((long) -1);
+
     list.add(InstructionFactory.createLabel(new Label("p_throw_runtime_error")))
          .add(InstructionFactory.createBranchLink(new Label("p_print_string")))
         .add(InstructionFactory.createMove(ARM11Registers.R0, exitCode))
@@ -33,4 +34,5 @@ public class RuntimeErrorFunctions {
 
     return list;
   }
+
 }
