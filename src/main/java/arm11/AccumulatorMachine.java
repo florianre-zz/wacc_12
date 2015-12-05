@@ -189,6 +189,8 @@ public class AccumulatorMachine {
     switch (inst) {
       case LDR:
         result.add(InstructionFactory.createLoad(dst, src, offset));
+      case LDRSB:
+        result.add(InstructionFactory.createLoadStoredByte(dst, src, offset));
       default:
         break;
     }

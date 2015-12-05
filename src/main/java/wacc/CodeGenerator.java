@@ -654,18 +654,16 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     for (int i = ctx.expr().size() - 1; i >= 0; i--) {
       WACCParser.ExprContext exprCtx = ctx.expr(i);
       Register result = accMachine.peekFreeRegister();
-      Long varSize = (long) exprCtx.returnType.getSize();
-      Operand size = new Immediate(-varSize);
+      Long varSize = (long) -exprCtx.returnType.getSize();
+      Operand size = new Immediate(varSize);
       list.add(visitExpr(exprCtx));
-      if (varSize == 1L) {
+      if (varSize == -ADDRESS_SIZE) {
+        list.add(InstructionFactory.createStore(result, ARM11Registers.SP, size));
+      } else {
         list.add(InstructionFactory.createStoreByte(result, ARM11Registers.SP,
             size));
-      } else if (varSize == ADDRESS_SIZE) {
-        list.add(InstructionFactory.createStore(result, ARM11Registers.SP,
-            size));
       }
-      list.add(InstructionFactory.createStoreByte(result, ARM11Registers.SP,
-            size));
+//      list.add(InstructionFactory.createStoreByte(result, ARM11Registers.SP, size));
       accMachine.pushFreeRegister(result);
     }
     return list;
@@ -986,8 +984,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
                               WACCParser.ExprContext elem,
                               Register result) {
     Immediate imm = new Immediate(offset);
-    list.add(visitExpr(elem))
-        .add(InstructionFactory.createStore(result, addressOfArray, imm));
+    list.add(visitExpr(elem));
+    if (elem.returnType.getSize() == ADDRESS_SIZE) {
+      list.add(InstructionFactory.createStore(result, addressOfArray, imm));
+    } else {
+      list.add(InstructionFactory.createStoreByte(result, addressOfArray, imm));
+    }
   }
 
   private long getTypeSize(WACCParser.ArrayLitrContext ctx) {

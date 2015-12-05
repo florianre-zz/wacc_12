@@ -13,9 +13,10 @@ public class InstructionFactory {
 
   public static Instruction createLoad(Register dst,  Operand op) {
     return () -> {
-      boolean immAd = op instanceof Address || op instanceof Immediate;
+      boolean immAd = !(op instanceof Register);
       String optionalEquals = immAd ? "=" : "";
-      return LDR + " " + dst + ", " + optionalEquals + op;
+      String operand = !immAd ? "[" + op + "]" : op.toString();
+      return LDR + " " + dst + ", " + optionalEquals + operand;
     };
   }
 
@@ -119,15 +120,16 @@ public class InstructionFactory {
                                         Immediate offset) {
     return () -> {
       String addOffset = !offset.toString().equals("0") ? ", #" + offset : "";
-      return LDR + " " + dst + ", [" + base + "]" + addOffset;
+      return LDR + " " + dst + ", [" + base + addOffset + "]";
     };
   }
 
+  // TODO: check this out
   public static Instruction createLoadStoredByte(Register dst, Register base,
                                                   Immediate offset) {
     return () -> {
       String addOffset = !offset.toString().equals("0") ? ", #" + offset : "";
-      return LDRSB + " " + dst + ", [" + base + "]" + addOffset;
+      return LDRSB + " " + dst + ", [" + base + addOffset + "]";
     };
   }
 
