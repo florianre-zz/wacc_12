@@ -899,9 +899,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register result = accMachine.popFreeRegister();
     Operand nullOp = new Immediate(0L);
 
-    addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
-    addFunctionToHelpers(PrintFunctions.printString(data));
-
     return
       defaultResult().add(accMachine.getInstructionList(InstructionType.LDR,
                                                         result,
@@ -912,14 +909,21 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitPairElem(WACCParser.PairElemContext ctx) {
     InstructionList list = defaultResult();
     Register result = accMachine.peekFreeRegister();
-    list.add(visitChildren(ctx));
+    list.add(visitChildren(ctx))
+        .add(InstructionFactory.createMove(ARM11Registers.R0, result))
+        .add(InstructionFactory.createBranchLink(
+          new Label("p_check_null_pointer")));
+
+    addFunctionToHelpers(RuntimeErrorFunctions.checkNullPointer(data));
+    addFunctionToHelpers(PrintFunctions.printString(data));
+    addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
 
     if (ctx.FST() != null) {
       list.add(InstructionFactory.createLoad(result, result,
                                               new Immediate(0L)));
     } else {
-      list.add(InstructionFactory.createLoad(result, result,
-                                              new Immediate(ADDRESS_SIZE)));
+      list.add(InstructionFactory
+                 .createLoad(result, result, new Immediate(ADDRESS_SIZE)));
     }
 
     list.add(InstructionFactory.createLoad(result, result, new Immediate(0L)));

@@ -13,7 +13,7 @@ public class RuntimeErrorFunctions {
     list.add(InstructionFactory.createLabel(checkDivideByZerolabel))
         .add(InstructionFactory.createPush(ARM11Registers.LR))
         .add(InstructionFactory.createCompare(ARM11Registers.R1,
-                                              new Immediate((long) 0)))
+                                              new Immediate(0L)))
         .add(InstructionFactory.createLoadEqual(ARM11Registers.R0, errMessage))
         .add(InstructionFactory.createBranchLinkEqual(throwRuntimeErrorLabel))
         .add(InstructionFactory.createPop(ARM11Registers.PC));
@@ -51,13 +51,12 @@ public class RuntimeErrorFunctions {
     list.add(InstructionFactory.createLabel(checkArrayBoundsLabel))
         .add(InstructionFactory.createPush(ARM11Registers.LR))
         .add(InstructionFactory.createCompare(ARM11Registers.R0,
-                                              new Immediate((long) 0)))
+                                              new Immediate(0L)))
         .add(InstructionFactory.createLoadLessThan(ARM11Registers.R0,
                                                    negErrMessage))
         .add(InstructionFactory.createBranchLinkLT(throwRuntimeErrorLabel))
         .add(InstructionFactory.createLoad(ARM11Registers.R1,
                                            new Address(ARM11Registers.R1)))
-
         .add(InstructionFactory.createCompare(ARM11Registers.R0,
                                               ARM11Registers.R1))
         .add(InstructionFactory.createLoadCS(ARM11Registers.R0,
@@ -72,12 +71,32 @@ public class RuntimeErrorFunctions {
     InstructionList list = new InstructionList();
     data.addPrintFormatter(IOFormatters.STRING_FORMATTER);
 
-    Immediate exitCode = new Immediate((long) -1);
+    Immediate exitCode = new Immediate(-1L);
 
     list.add(InstructionFactory.createLabel(new Label("p_throw_runtime_error")))
          .add(InstructionFactory.createBranchLink(new Label("p_print_string")))
         .add(InstructionFactory.createMove(ARM11Registers.R0, exitCode))
         .add(InstructionFactory.createBranchLink(new Label("exit")));
+
+    return list;
+  }
+
+  public static InstructionList checkNullPointer(DataInstructions data) {
+    InstructionList list = new InstructionList();
+    data.addPrintFormatter(IOFormatters.STRING_FORMATTER);
+
+    Label throwRuntimeError = new Label("p_throw_runtime_error");
+    Label checkNullPointer = new Label("p_check_null_pointer");
+    Label errMessage = data.addMessage("NullReferenceError: dereference a "
+                                       + "null reference\\n\\0");
+
+    list.add(InstructionFactory.createLabel(checkNullPointer))
+        .add(InstructionFactory.createPush(ARM11Registers.LR))
+        .add(InstructionFactory.createCompare(ARM11Registers.R0,
+                                              new Immediate(0L)))
+        .add(InstructionFactory.createLoadEqual(ARM11Registers.R0, errMessage))
+        .add(InstructionFactory.createBranchEqual(throwRuntimeError))
+        .add(InstructionFactory.createPop(ARM11Registers.PC));
 
     return list;
   }

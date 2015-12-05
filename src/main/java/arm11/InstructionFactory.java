@@ -12,8 +12,8 @@ public class InstructionFactory {
   }
 
   public static Instruction createLoad(Register dst,  Operand op) {
-    return () -> LDR + " " + dst + ", " + (op instanceof Immediate ? "=" : "")
-                 + op;
+    return () -> LDR + " " + dst + ", " + (op instanceof Immediate || op
+                 instanceof Label ? "=" : "") + op;
   }
 
   public static Instruction createBranch(Label label) {
