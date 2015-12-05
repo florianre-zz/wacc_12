@@ -43,9 +43,10 @@ public class RuntimeErrorFunctions {
     Label checkArrayBoundsLabel = new Label("p_check_array_bounds");
     Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
     Label negErrMessage
-      = data.addConstString("ArrayIndexOutOfBoundsError: negative index\n\0");
+      = data.addConstString("ArrayIndexOutOfBoundsError: negative index\\n\\0");
     Label oufOfBoundIndexErrMessage
-      = data.addConstString("ArrayIndexOutOfBoundsError: index too large\n\0");
+      = data.addConstString("ArrayIndexOutOfBoundsError: index too "
+                            + "large\\n\\0");
 
     list.add(InstructionFactory.createLabel(checkArrayBoundsLabel))
         .add(InstructionFactory.createPush(ARM11Registers.LR))
