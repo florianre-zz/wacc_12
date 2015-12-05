@@ -37,6 +37,36 @@ public class RuntimeErrorFunctions {
     return list;
   }
 
+  public static InstructionList checkArrayBounds(DataInstructions data) {
+    InstructionList list = new InstructionList();
+
+    Label checkArrayBoundsLabel = new Label("p_check_array_bounds");
+    Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
+    Label negErrMessage
+      = data.addConstString("ArrayIndexOutOfBoundsError: negative index\n\0");
+    Label oufOfBoundIndexErrMessage
+      = data.addConstString("ArrayIndexOutOfBoundsError: index too large\n\0");
+
+    list.add(InstructionFactory.createLabel(checkArrayBoundsLabel))
+        .add(InstructionFactory.createPush(ARM11Registers.LR))
+        .add(InstructionFactory.createCompare(ARM11Registers.R0,
+                                              new Immediate((long) 0)))
+        .add(InstructionFactory.createLoadLessThan(ARM11Registers.R0,
+                                                   negErrMessage))
+        .add(InstructionFactory.createBranchLinkLT(throwRuntimeErrorLabel))
+        .add(InstructionFactory.createLoad(ARM11Registers.R1,
+                                           new Address(ARM11Registers.R1)))
+
+        .add(InstructionFactory.createCompare(ARM11Registers.R0,
+                                              ARM11Registers.R1))
+        .add(InstructionFactory.createLoadCS(ARM11Registers.R0,
+                                             oufOfBoundIndexErrMessage))
+        .add(InstructionFactory.createBranchLinkCS(throwRuntimeErrorLabel))
+        .add(InstructionFactory.createPop(ARM11Registers.PC));
+
+    return list;
+  }
+
   public static InstructionList throwRuntimeError(DataInstructions data) {
     InstructionList list = new InstructionList();
     data.addPrintFormatter(IOFormatters.STRING_FORMATTER);

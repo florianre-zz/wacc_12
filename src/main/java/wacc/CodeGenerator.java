@@ -961,13 +961,21 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(visitIdent(ctx.ident()));
     for (WACCParser.ExprContext exprCtx : ctx.expr()) {
       Register helper = accMachine.peekFreeRegister();
+      Label checkArrayBounds = new Label("p_check_array_bounds");
       list.add(visitExpr(exprCtx))
+          .add(InstructionFactory.createMove(ARM11Registers.R0, helper))
+          .add(InstructionFactory.createMove(ARM11Registers.R1, result))
+          .add(InstructionFactory.createBranchLink(checkArrayBounds))
           .add(InstructionFactory.createAdd(result, result,
               new Immediate(ADDRESS_SIZE)))
           .add(InstructionFactory.createAdd(result, result, helper,
               new Immediate(2L)))
           .add(InstructionFactory.createLoad(result, result,
               new Immediate(0L)));
+
+      addFunctionToHelpers(RuntimeErrorFunctions.checkArrayBounds(data));
+      addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
+      addFunctionToHelpers(PrintFunctions.printString(data));
       accMachine.pushFreeRegister(helper);
     }
     return list;

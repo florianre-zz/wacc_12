@@ -15,6 +15,8 @@ public enum InstructionType {
   BLEQ("BLEQ"),
   BLNE("BLNE"),
   BLVS("BLVS"),
+  BLCS("BLCS"),
+  BLLT("BLLT"),
 
   LABEL("label"),
 
@@ -30,6 +32,8 @@ public enum InstructionType {
   LDRSB("LDRSB"),
   LDRNE("LDRNE"),
   LDREQ("LDREQ"),
+  LDRLT("LDRLT"),
+  LDRCS("LDRCS"),
 
   STR("STR"),
   STRB("STRB"),

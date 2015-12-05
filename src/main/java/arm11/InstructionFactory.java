@@ -12,11 +12,8 @@ public class InstructionFactory {
   }
 
   public static Instruction createLoad(Register dst,  Operand op) {
-    return () -> {
-      boolean isImmOrAddr = op instanceof Address || op instanceof Immediate;
-      String optionalEquals = isImmOrAddr ? "=" : "";
-      return LDR + " " + dst + ", " + optionalEquals + op;
-    };
+    return () -> LDR + " " + dst + ", " + (op instanceof Immediate ? "=" : "")
+                 + op;
   }
 
   public static Instruction createBranch(Label label) {
@@ -230,4 +227,23 @@ public class InstructionFactory {
         + ", " + LSL + " #" + shift;
   }
 
+  public static Instruction createLoadLessThan(Register dst, Label label) {
+
+    return () -> LDRLT + " " + dst + ", =" + label;
+  }
+
+  public static Instruction createLoadCS(Register dst, Label label) {
+
+    return () -> LDRCS + " " + dst + ", =" + label;
+  }
+
+  public static Instruction createBranchLinkLT(Label label) {
+
+    return () -> BLLT + " " + label;
+  }
+
+  public static Instruction createBranchLinkCS(Label label) {
+
+    return () -> BLCS + " " + label;
+  }
 }
