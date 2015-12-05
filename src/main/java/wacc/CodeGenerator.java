@@ -365,18 +365,18 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (Type.isString(returnType)) {
       printLabel = new Label("p_print_string");
-      addPrintFunctionToHelpers(PrintFunctions.printString(data));
+      addFunctionToHelpers(PrintFunctions.printString(data));
     } else if (Type.isInt(returnType)) {
       printLabel = new Label("p_print_int");
-      addPrintFunctionToHelpers(PrintFunctions.printInt(data));
+      addFunctionToHelpers(PrintFunctions.printInt(data));
     } else if (Type.isChar(returnType)){
       printLabel = new Label("putchar");
     } else if (Type.isBool(returnType)) {
       printLabel = new Label("p_print_bool");
-      addPrintFunctionToHelpers(PrintFunctions.printBool(data));
+      addFunctionToHelpers(PrintFunctions.printBool(data));
     } else {
       printLabel = new Label("p_print_reference");
-      addPrintFunctionToHelpers(PrintFunctions.printReference(data));
+      addFunctionToHelpers(PrintFunctions.printReference(data));
     }
 
     Register result = accMachine.peekFreeRegister();
@@ -399,9 +399,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  private void addPrintFunctionToHelpers(InstructionList printFunction) {
-    if (printFunction != null) {
-      helperFunctions.add(printFunction);
+  private void addFunctionToHelpers(InstructionList function) {
+    if (function != null) {
+      helperFunctions.add(function);
     }
   }
 
@@ -471,8 +471,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   private void printNewLine(InstructionList list) {
     Label printLabel = new Label("p_print_ln");
     list.add(InstructionFactory.createBranchLink(printLabel));
-    InstructionList printHelperFunction = PrintFunctions.printLn(data);
-    helperFunctions.add(printHelperFunction);
+    addFunctionToHelpers(PrintFunctions.printLn(data));
   }
 
   @Override
@@ -560,7 +559,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private InstructionList divMoves(Register dst1, Register dst2, String op) {
     InstructionList list =  defaultResult();
-    list.add(accMachine.getInstructionList(InstructionType.DIVMOD, dst1, dst2));
+    list.add(accMachine.getInstructionList(InstructionType.DIVMOD, dst1, dst2))
+        .add(InstructionFactory.createBranchLink(
+          new Label("p_check_divide_by_zero")));
     if (op.equals(getToken(WACCParser.DIV))){
       list.add(InstructionFactory.createDiv())
           .add(InstructionFactory.createMove(dst1, ARM11Registers.R0));
@@ -568,6 +569,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createMod())
           .add(InstructionFactory.createMove(dst1, ARM11Registers.R1));
     }
+      addFunctionToHelpers(RuntimeErrorFunctions.divideByZero(data));
+      addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
+      addFunctionToHelpers(PrintFunctions.printString(data));
     return list;
   }
 
@@ -717,10 +721,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitString(WACCParser.StringContext ctx) {
     InstructionList list = defaultResult();
 
-    Operand op;
     Register reg = accMachine.popFreeRegister();
     String text = ctx.STRING().getText();
-    op = data.addConstString(text);
+    Operand op = data.addConstString(text);
     list.add(accMachine.getInstructionList(InstructionType.LDR, reg, op));
 
     if (ctx.LEN() != null) {

@@ -11,6 +11,7 @@ public enum InstructionType {
   B("B"),
   BL("BL"),
   BEQ("BEQ"),
+  BLEQ("BLEQ"),
   BNE("BNE"),
   LABEL("label"),
 

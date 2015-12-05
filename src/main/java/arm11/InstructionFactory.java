@@ -13,7 +13,8 @@ public class InstructionFactory {
 
   public static Instruction createLoad(Register dst,  Operand op) {
     return () -> {
-      String optionalEquals = op instanceof Address ? "=" : "";
+      boolean isImmOrAddr = op instanceof Address || op instanceof Immediate;
+      String optionalEquals = isImmOrAddr ? "=" : "";
       return LDR + " " + dst + ", " + optionalEquals + op;
     };
   }
@@ -200,4 +201,8 @@ public class InstructionFactory {
     return () -> BL + " " + AEABI_IDIVMOD;
   }
 
+  public static Instruction createBranchLinkEqual(Label label) {
+
+    return () -> BLEQ + " " + label;
+  }
 }
