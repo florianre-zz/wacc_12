@@ -505,30 +505,25 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register dst2;
       // for loop used instead of visitChildren so only 2 registers used up
       for (int i = 0; i < ctx.ops.size(); i++) {
-        InstructionList arithmeticInstr = defaultResult();
         WACCParser.MultOperContext otherExpr = ctx.otherExprs.get(i);
         dst2 = accMachine.peekFreeRegister();
         String op = ctx.ops.get(i).getText();
 
+        list.add(visitMultOper(otherExpr));
+        if (op.equals(getToken(WACCParser.PLUS))){
+          list.add(accMachine.getInstructionList(InstructionType.ADDS, dst1,
+                                                 dst1, dst2));
+        } else {
+          list.add(accMachine.getInstructionList(InstructionType.SUBS, dst1,
+                                                 dst1, dst2));
+        }
         Label throwOverflowError = new Label("p_throw_overflow_error");
-        list.add(visitMultOper(otherExpr))
-            .add(arithmeticInstr.add(
-              InstructionFactory.createBranchLinkVS(throwOverflowError)));
+        list.add(InstructionFactory.createBranchLinkVS(throwOverflowError));
 
         addFunctionToHelpers(RuntimeErrorFunctions.overflowError(data));
         addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
         addFunctionToHelpers(PrintFunctions.printString(data));
 
-        if (op.equals(getToken(WACCParser.PLUS))){
-          arithmeticInstr.add(
-            accMachine.getInstructionList(InstructionType.ADDS,
-                                          dst1, dst1, dst2));
-        } else {
-          arithmeticInstr.add(
-            accMachine.getInstructionList(InstructionType.SUBS,
-                                          dst1, dst1, dst2));
-        }
-        list.add(arithmeticInstr);
         accMachine.pushFreeRegister(dst2);
       }
     }
@@ -545,30 +540,27 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register dst2;
       // for loop used instead of visitChildren so only 2 registers used up
       for (int i = 0; i < ctx.ops.size(); i++) {
-        InstructionList arithmeticInstr = defaultResult();
         WACCParser.AtomContext otherExpr = ctx.otherExprs.get(i);
         dst2 = accMachine.peekFreeRegister();
         String op = ctx.ops.get(i).getText();
 
         list.add(visitAtom(otherExpr));
         if (op.equals(getToken(WACCParser.MUL))){
-          arithmeticInstr.add(
-            accMachine.getInstructionList(InstructionType.SMULL, dst1, dst2));
-
           Label throwOverflowError = new Label("p_throw_overflow_error");
-          arithmeticInstr.add(InstructionFactory.createCompare(
-            dst1, dst2, new Shift(Shift.Shifts.ASR, 31)));
-          arithmeticInstr.add(
-            InstructionFactory.createBranchLinkNotEqual(throwOverflowError));
+          list.add(
+            accMachine.getInstructionList(InstructionType.SMULL, dst1, dst2))
+              .add(InstructionFactory.createCompare(
+                dst2, dst1, new Shift(Shift.Shifts.ASR, 31)))
+              .add(InstructionFactory.createBranchLinkNotEqual(
+                throwOverflowError));
 
           addFunctionToHelpers(RuntimeErrorFunctions.overflowError(data));
           addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
           addFunctionToHelpers(PrintFunctions.printString(data));
 
         } else {
-          arithmeticInstr.add(divMoves(dst1, dst2, op));
+          list.add(divMoves(dst1, dst2, op));
         }
-        list.add(arithmeticInstr);
         accMachine.pushFreeRegister(dst2);
       }
     }
@@ -608,7 +600,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (ctx.NOT() != null) {
       list.add(InstructionFactory.createEOR(dst, dst, new Immediate(1L)));
     } else if (ctx.MINUS() != null) {
-      list.add(InstructionFactory.createRSBS(dst, dst, new Immediate(0L)));
+      list.add(InstructionFactory.createRSBS(dst, dst, new Immediate(0L)))
+          .add(InstructionFactory.createBranchLinkVS(new Label("p_throw_overflow_error")));
+
+      addFunctionToHelpers(RuntimeErrorFunctions.overflowError(data));
+      addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
+      addFunctionToHelpers(PrintFunctions.printString(data));
     } else if (ctx.LEN() != null) {
       list.add(InstructionFactory.createLoad(dst, dst, new Immediate(0L)));
     }
