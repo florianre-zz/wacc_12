@@ -51,6 +51,7 @@ public class InstructionList  {
 
   @Override
   public int hashCode() {
+
     return instructions != null ? instructions.toString().hashCode() : 0;
   }
 }

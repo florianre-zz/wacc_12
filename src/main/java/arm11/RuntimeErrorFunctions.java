@@ -21,6 +21,22 @@ public class RuntimeErrorFunctions {
     return list;
   }
 
+  public static InstructionList overflowError(DataInstructions data) {
+    InstructionList list = new InstructionList();
+
+    Label throwOverFlowErrorLabel = new Label("p_throw_overflow_error");
+    Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
+    Label errMessage = data.addConstString("OverflowError: the result is too " +
+                                           "small/large to store in a 4-byte " +
+                                           "signed-integer.\\n");
+
+    list.add(InstructionFactory.createLabel(throwOverFlowErrorLabel))
+        .add(InstructionFactory.createLoad(ARM11Registers.R0, errMessage))
+        .add(InstructionFactory.createBranchLink(throwRuntimeErrorLabel));
+
+    return list;
+  }
+
   public static InstructionList throwRuntimeError(DataInstructions data) {
     InstructionList list = new InstructionList();
     data.addPrintFormatter(IOFormatters.STRING_FORMATTER);

@@ -510,7 +510,15 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         dst2 = accMachine.peekFreeRegister();
         String op = ctx.ops.get(i).getText();
 
-        list.add(visitMultOper(otherExpr));
+        Label throwOverflowError = new Label("p_throw_overflow_error");
+        list.add(visitMultOper(otherExpr))
+            .add(arithmeticInstr.add(
+              InstructionFactory.createBranchLinkVS(throwOverflowError)));
+
+        addFunctionToHelpers(RuntimeErrorFunctions.overflowError(data));
+        addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
+        addFunctionToHelpers(PrintFunctions.printString(data));
+
         if (op.equals(getToken(WACCParser.PLUS))){
           arithmeticInstr.add(
             accMachine.getInstructionList(InstructionType.ADDS,
