@@ -71,6 +71,12 @@ public class InstructionFactory {
     return () -> CMP + " " + reg + ", " + getOptionalHash(op) + op;
   }
 
+  public static Instruction createCompare(Register reg, Operand op1,
+                                          Operand op2) {
+    return () -> CMP + " " + reg + ", " + getOptionalHash(op1) + op1 + ", "
+                 + op2;
+  }
+
   public static Instruction createLoadNotEqual(Register register,
                                                 Label label) {
     return () -> LDRNE + " " + register + ", =" + label;
@@ -209,5 +215,9 @@ public class InstructionFactory {
   public static Instruction createBranchLinkVS(Label label) {
 
     return () -> BLVS + " " + label;
+  }
+
+  public static Instruction createBranchLinkNotEqual(Label label) {
+    return () -> BLNE + " " + label;
   }
 }
