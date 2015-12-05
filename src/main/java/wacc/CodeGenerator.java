@@ -596,7 +596,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     } else if (ctx.expr() != null) {
       list.add(visitExpr(ctx.expr()));
     }
-    // CHECKED --ALL
     if (ctx.NOT() != null) {
       list.add(InstructionFactory.createEOR(dst, dst, new Immediate(1L)));
     } else if (ctx.MINUS() != null) {
