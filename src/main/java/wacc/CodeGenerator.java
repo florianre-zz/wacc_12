@@ -578,7 +578,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           .add(InstructionFactory.createMove(dst1, ARM11Registers.R1));
     }
     addRuntimeErrorFunctionsToHelpers(
-      RuntimeErrorFunctions.divideByZero(data), data);;
+      RuntimeErrorFunctions.divideByZero(data), data);
 
     return list;
   }
