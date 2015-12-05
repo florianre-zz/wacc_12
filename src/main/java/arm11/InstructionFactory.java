@@ -222,9 +222,8 @@ public class InstructionFactory {
 
   public static Instruction createAdd(Register dst,
                                       Register src1,
-                                      Register src2, Operand shift) {
-    return () -> ADD + " " + dst + ", " + src1 + ", " + src2
-        + ", " + LSL + " #" + shift;
+                                      Register src2, Operand op) {
+    return () -> ADD + " " + dst + ", " + src1 + ", " + src2 + ", " + op;
   }
 
   public static Instruction createLoadLessThan(Register dst, Label label) {

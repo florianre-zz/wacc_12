@@ -3,7 +3,7 @@ package arm11;
 public class Shift extends Operand {
 
   public enum Shifts {
-    ASR("ASR", 0);
+    ASR("ASR", 0), LSL("LSL", 0);
 
     private String name;
     private int value;

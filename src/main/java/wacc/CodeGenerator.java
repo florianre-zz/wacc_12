@@ -519,9 +519,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         Label throwOverflowError = new Label("p_throw_overflow_error");
         list.add(InstructionFactory.createBranchLinkVS(throwOverflowError));
 
-        addFunctionToHelpers(RuntimeErrorFunctions.overflowError(data));
-        addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
-        addFunctionToHelpers(PrintFunctions.printString(data));
+        addRuntimeErrorFunctionsToHelpers(
+          RuntimeErrorFunctions.overflowError(data), data);
 
         accMachine.pushFreeRegister(dst2);
       }
@@ -553,9 +552,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
               .add(InstructionFactory.createBranchLinkNotEqual(
                 throwOverflowError));
 
-          addFunctionToHelpers(RuntimeErrorFunctions.overflowError(data));
-          addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
-          addFunctionToHelpers(PrintFunctions.printString(data));
+          addRuntimeErrorFunctionsToHelpers(
+            RuntimeErrorFunctions.overflowError(data), data);
 
         } else {
           list.add(divMoves(dst1, dst2, op));
@@ -579,9 +577,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createMod())
           .add(InstructionFactory.createMove(dst1, ARM11Registers.R1));
     }
-    addFunctionToHelpers(RuntimeErrorFunctions.divideByZero(data));
-    addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
-    addFunctionToHelpers(PrintFunctions.printString(data));
+    addRuntimeErrorFunctionsToHelpers(
+      RuntimeErrorFunctions.divideByZero(data), data);;
 
     return list;
   }
@@ -602,9 +599,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createRSBS(dst, dst, new Immediate(0L)))
           .add(InstructionFactory.createBranchLinkVS(throwOverflowError));
 
-      addFunctionToHelpers(RuntimeErrorFunctions.overflowError(data));
-      addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
-      addFunctionToHelpers(PrintFunctions.printString(data));
+      addRuntimeErrorFunctionsToHelpers(
+        RuntimeErrorFunctions.overflowError(data), data);
     } else if (ctx.LEN() != null) {
       list.add(InstructionFactory.createLoad(dst, dst, new Immediate(0L)));
     }
@@ -914,9 +910,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createBranchLink(
           new Label("p_check_null_pointer")));
 
-    addFunctionToHelpers(RuntimeErrorFunctions.checkNullPointer(data));
-    addFunctionToHelpers(PrintFunctions.printString(data));
-    addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
+    addRuntimeErrorFunctionsToHelpers(
+      RuntimeErrorFunctions.checkNullPointer(data), data);
 
     if (ctx.FST() != null) {
       list.add(InstructionFactory.createLoad(result, result,
@@ -977,16 +972,26 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           .add(InstructionFactory.createAdd(result, result,
               new Immediate(ADDRESS_SIZE)))
           .add(InstructionFactory.createAdd(result, result, helper,
-              new Immediate(2L)))
+              new Shift(Shift.Shifts.LSL, 2)))
           .add(InstructionFactory.createLoad(result, result,
               new Immediate(0L)));
 
-      addFunctionToHelpers(RuntimeErrorFunctions.checkArrayBounds(data));
-      addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
-      addFunctionToHelpers(PrintFunctions.printString(data));
+      addRuntimeErrorFunctionsToHelpers(
+        RuntimeErrorFunctions.checkArrayBounds(data), data);
       accMachine.pushFreeRegister(helper);
     }
     return list;
+  }
+
+  private void addRuntimeErrorFunctionsToHelpers(InstructionList err,
+                                                 DataInstructions data) {
+    addFunctionToHelpers(err);
+    addThrowRuntimeErrorFunctionsToHelpers(data);
+  }
+
+  private void addThrowRuntimeErrorFunctionsToHelpers(DataInstructions data) {
+    addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
+    addFunctionToHelpers(PrintFunctions.printString(data));
   }
 
   private InstructionList storeLengthOfArray(long numberOfElems,
