@@ -554,6 +554,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         if (op.equals(getToken(WACCParser.MUL))){
           arithmeticInstr.add(
             accMachine.getInstructionList(InstructionType.SMULL, dst1, dst2));
+
+          Label throwOverflowError = new Label("p_throw_overflow_error");
+          arithmeticInstr.add(InstructionFactory.createCompare(
+            dst1, dst2, new Shift(Shift.Shifts.ASR, 31)));
+          arithmeticInstr.add(
+            InstructionFactory.createBranchLinkNotEqual(throwOverflowError));
+
+          addFunctionToHelpers(RuntimeErrorFunctions.overflowError(data));
+          addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
+          addFunctionToHelpers(PrintFunctions.printString(data));
+
         } else {
           arithmeticInstr.add(divMoves(dst1, dst2, op));
         }
