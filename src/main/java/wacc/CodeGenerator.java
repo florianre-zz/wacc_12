@@ -898,6 +898,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitPairLitr(WACCParser.PairLitrContext ctx) {
     Register result = accMachine.popFreeRegister();
     Operand nullOp = new Immediate(0L);
+
+    addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
+    addFunctionToHelpers(PrintFunctions.printString(data));
+
     return
       defaultResult().add(accMachine.getInstructionList(InstructionType.LDR,
                                                         result,

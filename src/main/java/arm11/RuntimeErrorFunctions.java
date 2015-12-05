@@ -26,7 +26,7 @@ public class RuntimeErrorFunctions {
 
     Label throwOverFlowErrorLabel = new Label("p_throw_overflow_error");
     Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
-    Label errMessage = data.addConstString("OverflowError: the result is too "
+    Label errMessage = data.addMessage("OverflowError: the result is too "
                                            + "small/large to store in a 4-byte "
                                            + "signed-integer.\\n");
 
@@ -43,9 +43,9 @@ public class RuntimeErrorFunctions {
     Label checkArrayBoundsLabel = new Label("p_check_array_bounds");
     Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
     Label negErrMessage
-      = data.addConstString("ArrayIndexOutOfBoundsError: negative index\\n\\0");
+      = data.addMessage("ArrayIndexOutOfBoundsError: negative index\\n\\0");
     Label oufOfBoundIndexErrMessage
-      = data.addConstString("ArrayIndexOutOfBoundsError: index too "
+      = data.addMessage("ArrayIndexOutOfBoundsError: index too "
                             + "large\\n\\0");
 
     list.add(InstructionFactory.createLabel(checkArrayBoundsLabel))
