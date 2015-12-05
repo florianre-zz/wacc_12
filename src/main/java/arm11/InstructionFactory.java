@@ -86,7 +86,7 @@ public class InstructionFactory {
   }
 
   public static Instruction createAscii(String ascii) {
-    return () -> ASCII + " " + ascii;
+    return () -> ASCII + " " + new Ascii(ascii);
   }
 
   public static Instruction createStore(Register src, Register base,
@@ -204,5 +204,10 @@ public class InstructionFactory {
   public static Instruction createBranchLinkEqual(Label label) {
 
     return () -> BLEQ + " " + label;
+  }
+
+  public static Instruction createBranchLinkVS(Label label) {
+
+    return () -> BLVS + " " + label;
   }
 }
