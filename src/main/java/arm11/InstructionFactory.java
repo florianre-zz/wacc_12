@@ -13,10 +13,9 @@ public class InstructionFactory {
 
   public static Instruction createLoad(Register dst,  Operand op) {
     return () -> {
-      boolean immAd = !(op instanceof Register);
-      String optionalEquals = immAd ? "=" : "";
-      String operand = !immAd ? "[" + op + "]" : op.toString();
-      return LDR + " " + dst + ", " + optionalEquals + operand;
+      boolean ad = op.isAddress();
+      String optionalEquals = !ad ? "=" : "";
+      return LDR + " " + dst + ", " + optionalEquals + op;
     };
   }
 

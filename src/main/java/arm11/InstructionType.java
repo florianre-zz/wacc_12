@@ -6,7 +6,7 @@ public enum InstructionType {
   GLOBAL("\n.global"),
   WORD(".word"),
   ASCII(".ascii"),
-  DATA(".data"),
+  DATA("\n.data\n"),
 
   B("B"),
   BL("BL"),
@@ -48,7 +48,6 @@ public enum InstructionType {
   LSL("LSL");
 
   private final String name;
-  private String tab;
 
   InstructionType(String name) {
     this.name = name;

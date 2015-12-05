@@ -10,10 +10,10 @@ public class HeapFunctions {
             new Immediate(0L)))
         .add(InstructionFactory.createPush(ARM11Registers.R0))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
-            ARM11Registers.R0))
+            new Address(ARM11Registers.R0)))
         .add(InstructionFactory.createBranchLink(new Label("free")))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
-            ARM11Registers.SP))
+            new Address(ARM11Registers.SP)))
         .add(InstructionFactory.createBranchLink(new Label("free")))
         .add(InstructionFactory.createLoad(ARM11Registers.R0, ARM11Registers.R0,
             new Immediate(4L)))

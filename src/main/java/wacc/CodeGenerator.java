@@ -270,27 +270,26 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(InstructionFactory.createBranchEqual(elseLabel));
     String thenScope = Scope.THEN.toString() + ifCount;
-    list.add(ifBranchInstructions(list, thenScope, ctx.thenStat));
+    changeWorkingSymbolTableTo(thenScope);
+    pushEmptyVariableSet();
+    list.add(allocateSpaceOnStack())
+        .add(visitStatList(ctx.thenStat))
+        .add(deallocateSpaceOnStack());
+    popCurrentScopeVariableSet();
+    goUpWorkingSymbolTable();
     list.add(InstructionFactory.createBranch(continueLabel));
 
     list.add(InstructionFactory.createLabel(elseLabel));
     String elseScope = Scope.ELSE.toString() + ifCount;
-    list.add(ifBranchInstructions(list, elseScope, ctx.elseStat));
-    list.add(InstructionFactory.createLabel(continueLabel));
-
-    return list;
-  }
-
-  private InstructionList ifBranchInstructions(InstructionList list,
-                                               String thenScope,
-                                               WACCParser.StatListContext ctx) {
-    changeWorkingSymbolTableTo(thenScope);
+    changeWorkingSymbolTableTo(elseScope);
     pushEmptyVariableSet();
     list.add(allocateSpaceOnStack())
-        .add(visitStatList(ctx))
+        .add(visitStatList(ctx.elseStat))
         .add(deallocateSpaceOnStack());
     popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
+    list.add(InstructionFactory.createLabel(continueLabel));
+
     return list;
   }
 
@@ -663,9 +662,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         list.add(InstructionFactory.createStoreByte(result, ARM11Registers.SP,
             size));
       }
-//      list.add(InstructionFactory.createStoreByte(result, ARM11Registers.SP, size));
       accMachine.pushFreeRegister(result);
+      argOffset -= varSize;
     }
+
+    argOffset = 0L;
     return list;
   }
 
@@ -739,12 +740,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register sp = ARM11Registers.SP;
 
       if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
-        // TODO: implement this
         list.add(accMachine.getInstructionList(InstructionType.LDRSB, reg,
-                                               sp, offset));
+            sp, offset));
       } else {
-        list.add(accMachine.getInstructionList(
-            InstructionType.LDR, reg, sp, offset));
+        list.add(accMachine.getInstructionList(InstructionType.LDR, reg,
+            sp, offset));
       }
 
     return list;
