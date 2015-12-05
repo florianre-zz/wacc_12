@@ -7,8 +7,8 @@ public class RuntimeErrorFunctions {
 
     Label checkDivideByZerolabel = new Label("p_check_divide_by_zero");
     Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
-    Label errMessage = data.addConstString("DivideByZeroError: divide or " +
-                                             "modulo by zero\\n\\0");
+    Label errMessage = data.addConstString("DivideByZeroError: divide or "
+                                           + "modulo by zero\\n\\0");
 
     list.add(InstructionFactory.createLabel(checkDivideByZerolabel))
         .add(InstructionFactory.createPush(ARM11Registers.LR))
@@ -26,9 +26,9 @@ public class RuntimeErrorFunctions {
 
     Label throwOverFlowErrorLabel = new Label("p_throw_overflow_error");
     Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
-    Label errMessage = data.addConstString("OverflowError: the result is too " +
-                                           "small/large to store in a 4-byte " +
-                                           "signed-integer.\\n");
+    Label errMessage = data.addConstString("OverflowError: the result is too "
+                                           + "small/large to store in a 4-byte "
+                                           + "signed-integer.\\n");
 
     list.add(InstructionFactory.createLabel(throwOverFlowErrorLabel))
         .add(InstructionFactory.createLoad(ARM11Registers.R0, errMessage))

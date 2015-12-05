@@ -598,8 +598,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (ctx.NOT() != null) {
       list.add(InstructionFactory.createEOR(dst, dst, new Immediate(1L)));
     } else if (ctx.MINUS() != null) {
+      Label throwOverflowError = new Label("p_throw_overflow_error");
       list.add(InstructionFactory.createRSBS(dst, dst, new Immediate(0L)))
-          .add(InstructionFactory.createBranchLinkVS(new Label("p_throw_overflow_error")));
+          .add(InstructionFactory.createBranchLinkVS(throwOverflowError));
 
       addFunctionToHelpers(RuntimeErrorFunctions.overflowError(data));
       addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
@@ -643,7 +644,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (ctx.argList() != null) {
       list.add(visitArgList(ctx.argList()));
     }
-    // CHECKED --ALL
     list.add(InstructionFactory.createBranchLink(functionLabel));
     Register result = accMachine.popFreeRegister();
     if (ctx.argList() != null) {
@@ -677,7 +677,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Operand size = new Immediate(varSize);
       list.add(visitExpr(exprCtx));
       if (varSize == -ADDRESS_SIZE) {
-        list.add(InstructionFactory.createStore(result, ARM11Registers.SP, size));
+        list.add(InstructionFactory.createStore(result, ARM11Registers.SP,
+                                                size));
       } else {
         list.add(InstructionFactory.createStoreByte(result, ARM11Registers.SP,
             size));
