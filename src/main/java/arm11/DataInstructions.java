@@ -1,12 +1,14 @@
 package arm11;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 public class DataInstructions {
 
   public static final int EMPTY = -1;
   public static final int QUOTE_LENGTH = 2;
   private InstructionList instructionList;
+  private Map<String, Label> messagesMap;
   private Map<IOFormatters, Label> printFormattersMap;
   private int labelCounter;
 
@@ -14,7 +16,22 @@ public class DataInstructions {
     this.instructionList = new InstructionList();
     instructionList.add(InstructionFactory.createData());
     this.printFormattersMap = new HashMap<>();
+    this.messagesMap = new HashMap<>();
     this.labelCounter = EMPTY;
+  }
+
+  public Label addMessage(String message) {
+    if (!messagesMap.containsKey(message)) {
+      labelCounter++;
+      Label label = new Label("msg_" + labelCounter);
+      messagesMap.put(message, label);
+
+      instructionList.add(InstructionFactory.createLabel(label));
+      int length = message.length() - QUOTE_LENGTH;
+      instructionList.add(InstructionFactory.createWord(length));
+      instructionList.add(InstructionFactory.createAscii(message));
+    }
+    return messagesMap.get(message);
   }
 
   public Label addPrintFormatter(IOFormatters printFormatter) {
