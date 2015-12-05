@@ -17,33 +17,19 @@ open(@emulationsFile, 'w') { |f| f.print "" }
 Find.find(@testFolder) do |path|
   @testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
 end
-
-def getAssembly(input)
-  equals = "==========================================================="
-  final = []
-  assembly = input.split(equals)[1].split("\n").each { |line| final << line[/[0-9]+\t(.*)/, 1]}
-  return final.join("\n")
-end
+@numTests = @testFiles.length
 
 def check()
+  i = 0
   @testFiles.each do |file|
     # compile
+    i += 1
+    print "Running Test: #{i}/#{@numTests}\r"
     filename = File.basename(file, ".wacc")
     $ourAsm = `./compile #{file} && cat #{@outputFolder}/#{filename}.s`
-    $theirAsm = ""
     $ourOutput = ""
-    $theirOutput = ""
-    RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/run.cgi",
-                      :stdin => "",
-                      :options => ['-a'],
-                      :testfile => File.new(file)
-                     ) do |response|
-      json = JSON.load(response)
-      $theirAsm = getAssembly(json['compiler_out'])
-    end
 
-    File.open("#{filename}_ours.s", "w") {|f| f.write($ourAsm)}
-    File.open("#{filename}_theirs.s", "w") {|f| f.write($theirAsm)}
+    File.open("#{@outputFolder}/#{filename}.s", "w") {|f| f.write($ourAsm)}
 
     # emulate
     stdin = ""
@@ -57,40 +43,31 @@ def check()
     RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
                       :stdin => stdin,
                       :options => [],
-                      :testfile => File.new("#{filename}_ours.s")
+                      :testfile => File.new("#{@outputFolder}/#{filename}.s")
                      ) do |response|
       json = JSON.load(response)
       $ourOutput = json['emulator_out']
     end
-    # emulate theirs
-    RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
-                      :stdin => stdin,
-                      :testfile => File.new("#{filename}_theirs.s")
-                     ) do |response|
-      json = JSON.load(response)
-      $theirOutput = json['emulator_out']
-    end
     # git diff
-    File.open("out1.txt", 'w') {|f| f.write($ourOutput) }
-    File.open("out2.txt", 'w') {|f| f.write($theirOutput) }
-    diff = `diff --suppress-common-lines out1.txt out2.txt`
+    File.open("#{@outputFolder}/#{filename}.out", 'w') {|f| f.write($ourOutput) }
+    diff = `diff --suppress-common-lines #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
     if diff != ""
       open("#{@emulationsFile}", 'a') do |f|
-        output = `diff -Eby --suppress-common-lines out1.txt out2.txt`
+        output = `diff -Eby --suppress-common-lines  #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
         f.puts "#{filename}:\n#{output}"
       end
       @incorrect += 1
     else
       @correct += 1
     end
-    `rm out1.txt; rm out2.txt; rm *.s`
     break if @incorrect >= 5
   end
+  puts "\n\n"
 end
 
 puts "Starting Valid Emulate tests..."
 check()
 puts "Finished tests."
-puts "#{@correct} Correct"
+puts "#{@correct}/#{@numTests} Correct"
 
 puts `cat #{@emulationsFile}`

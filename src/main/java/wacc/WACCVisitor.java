@@ -16,6 +16,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
   protected final WACCErrorHandler errorHandler;
   protected int ifCount, whileCount, beginCount;
   protected Deque<HashSet<String>> variableStack;
+  protected Long argOffset = 0L;
 
   public WACCVisitor(SymbolTable<String, Binding> top) {
     this(top, null);
@@ -98,7 +99,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
   }
 
   protected long getAccumulativeOffsetForVariable(String varName) {
-    long offset = 0;
+    long offset = argOffset;
     HashSet<String> declaredVars = variableStack.peek();
     Binding b = null;
     if (declaredVars.contains(varName)) {

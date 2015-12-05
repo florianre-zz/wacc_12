@@ -6,7 +6,7 @@ public enum InstructionType {
   GLOBAL("\n.global"),
   WORD(".word"),
   ASCII(".ascii"),
-  DATA(".data"),
+  DATA("\n.data\n"),
 
   B("B"),
   BL("BL"),
@@ -48,7 +48,8 @@ public enum InstructionType {
   AND("AND"),
   ORR("ORR"),
   EOR("EOR"),
-  CMP("CMP");
+  CMP("CMP"),
+  LSL("LSL");
 
   private final String name;
 
@@ -58,7 +59,7 @@ public enum InstructionType {
 
   @Override
   public String toString() {
-    return "\t" + this.name;
+    return getTab() + this.name;
   }
 
   public boolean isArithmetic() {
@@ -124,6 +125,18 @@ public enum InstructionType {
         return true;
       default:
         return false;
+    }
+  }
+
+  public String getTab() {
+    switch (this) {
+      case LSL:
+      case TEXT:
+      case GLOBAL:
+      case DATA:
+        return "";
+      default:
+        return "\t";
     }
   }
 }

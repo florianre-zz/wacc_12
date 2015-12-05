@@ -270,27 +270,26 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(InstructionFactory.createBranchEqual(elseLabel));
     String thenScope = Scope.THEN.toString() + ifCount;
-    list.add(ifBranchInstructions(list, thenScope, ctx.thenStat));
+    changeWorkingSymbolTableTo(thenScope);
+    pushEmptyVariableSet();
+    list.add(allocateSpaceOnStack())
+        .add(visitStatList(ctx.thenStat))
+        .add(deallocateSpaceOnStack());
+    popCurrentScopeVariableSet();
+    goUpWorkingSymbolTable();
     list.add(InstructionFactory.createBranch(continueLabel));
 
     list.add(InstructionFactory.createLabel(elseLabel));
     String elseScope = Scope.ELSE.toString() + ifCount;
-    list.add(ifBranchInstructions(list, elseScope, ctx.elseStat));
-    list.add(InstructionFactory.createLabel(continueLabel));
-
-    return list;
-  }
-
-  private InstructionList ifBranchInstructions(InstructionList list,
-                                               String thenScope,
-                                               WACCParser.StatListContext ctx) {
-    changeWorkingSymbolTableTo(thenScope);
+    changeWorkingSymbolTableTo(elseScope);
     pushEmptyVariableSet();
     list.add(allocateSpaceOnStack())
-        .add(visitStatList(ctx))
+        .add(visitStatList(ctx.elseStat))
         .add(deallocateSpaceOnStack());
     popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
+    list.add(InstructionFactory.createLabel(continueLabel));
+
     return list;
   }
 
@@ -674,20 +673,20 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     for (int i = ctx.expr().size() - 1; i >= 0; i--) {
       WACCParser.ExprContext exprCtx = ctx.expr(i);
       Register result = accMachine.peekFreeRegister();
-      Long varSize = (long) exprCtx.returnType.getSize();
-      Operand size = new Immediate(-varSize);
+      Long varSize = (long) -exprCtx.returnType.getSize();
+      Operand size = new Immediate(varSize);
       list.add(visitExpr(exprCtx));
-      if (varSize == 1L) {
+      if (varSize == -ADDRESS_SIZE) {
+        list.add(InstructionFactory.createStore(result, ARM11Registers.SP, size));
+      } else {
         list.add(InstructionFactory.createStoreByte(result, ARM11Registers.SP,
             size));
-      } else if (varSize == ADDRESS_SIZE) {
-        list.add(InstructionFactory.createStore(result, ARM11Registers.SP,
-            size));
       }
-      list.add(InstructionFactory.createStoreByte(result, ARM11Registers.SP,
-            size));
       accMachine.pushFreeRegister(result);
+      argOffset -= varSize;
     }
+
+    argOffset = 0L;
     return list;
   }
 
@@ -760,12 +759,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register sp = ARM11Registers.SP;
 
       if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
-        // TODO: implement this
         list.add(accMachine.getInstructionList(InstructionType.LDRSB, reg,
-                                               sp, offset));
+            sp, offset));
       } else {
-        list.add(accMachine.getInstructionList(
-            InstructionType.LDR, reg, sp, offset));
+        list.add(accMachine.getInstructionList(InstructionType.LDR, reg,
+            sp, offset));
       }
 
     return list;
@@ -866,11 +864,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (ctx.assignLHS().ident() != null) {
       name = ctx.assignLHS().ident().getText();
       offset = getAccumulativeOffsetForVariable(name);
-    } else if (ctx.assignLHS().arrayElem() != null) {
-
-    } else {
-
     }
+//    else if (ctx.assignLHS().arrayElem() != null) {
+//
+//    } else {
+//
+//    }
 
     Immediate imm = new Immediate(offset);
     InstructionList printHelperFunction;
@@ -884,11 +883,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       printHelperFunction = ReadFunctions.readChar(data);
     }
 
-    // CHECKED
-    list.add(accMachine.getInstructionList(InstructionType.ADD,
-                                           reg,
-                                           ARM11Registers.SP,
-                                           imm))
+    list.add(accMachine.getInstructionList(InstructionType.ADD, reg,
+                                           ARM11Registers.SP, imm))
         .add(InstructionFactory.createMove(dst, reg))
         .add(InstructionFactory.createBranchLink(readLabel));
     accMachine.pushFreeRegister(reg);
@@ -957,6 +953,25 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitArrayElem(WACCParser.ArrayElemContext ctx) {
+    InstructionList list = defaultResult();
+    Register result = accMachine.peekFreeRegister();
+    list.add(visitIdent(ctx.ident()));
+    for (WACCParser.ExprContext exprCtx : ctx.expr()) {
+      Register helper = accMachine.peekFreeRegister();
+      list.add(visitExpr(exprCtx))
+          .add(InstructionFactory.createAdd(result, result,
+              new Immediate(ADDRESS_SIZE)))
+          .add(InstructionFactory.createAdd(result, result, helper,
+              new Immediate(2L)))
+          .add(InstructionFactory.createLoad(result, result,
+              new Immediate(0L)));
+      accMachine.pushFreeRegister(helper);
+    }
+    return list;
+  }
+
   private InstructionList storeLengthOfArray(long numberOfElems,
                                              Register addressOfArray,
                                              Register lengthOfArray) {
@@ -977,8 +992,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            new Immediate(bytesToAllocate)))
         .add(InstructionFactory.createBranchLink(malloc))
-        .add(accMachine.getInstructionList(InstructionType.MOV,
-                                           addressOfArray,
+        .add(accMachine.getInstructionList(InstructionType.MOV, addressOfArray,
                                            ARM11Registers.R0));
     return list;
   }
@@ -989,8 +1003,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
                               WACCParser.ExprContext elem,
                               Register result) {
     Immediate imm = new Immediate(offset);
-    list.add(visitExpr(elem))
-        .add(InstructionFactory.createStore(result, addressOfArray, imm));
+    list.add(visitExpr(elem));
+    if (elem.returnType.getSize() == ADDRESS_SIZE) {
+      list.add(InstructionFactory.createStore(result, addressOfArray, imm));
+    } else {
+      list.add(InstructionFactory.createStoreByte(result, addressOfArray, imm));
+    }
   }
 
   private long getTypeSize(WACCParser.ArrayLitrContext ctx) {
@@ -1002,7 +1020,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitParam(WACCParser.ParamContext ctx) {
     String name = ctx.name.getText();
     addVariableToCurrentScope(name);
-    // set the variable as a param
     Variable var = (Variable) workingSymbolTable.lookupAll(name);
     var.setAsParam();
     return null;
@@ -1016,13 +1033,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     pushEmptyVariableSet();
 
     Label functionLabel = new Label(ScopeType.FUNCTION_SCOPE
-            + ctx.funcName.getText());
+        + ctx.funcName.getText());
 
     if (ctx.paramList() != null) {
       visitParamList(ctx.paramList());
     }
-
-    // CHECKED --ALL
 
     list.add(InstructionFactory.createLabel(functionLabel));
     list.add(InstructionFactory.createPush(ARM11Registers.LR))

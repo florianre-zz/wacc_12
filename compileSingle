@@ -1,0 +1,26 @@
+#!/bin/sh
+clear
+while getopts "m:" OPTION
+do
+  case $OPTION in
+    m)
+      make
+      shift
+    ;;
+    [?])
+      echo "Usage: $0 [-m] directory file" >&2
+      exit 1
+    ;;
+  esac
+done
+
+if [ $# -ne 2 ]; then
+    echo "$1"
+    echo "Usage: $0 [-m] directory file" >&2
+    exit 1
+fi
+
+DIR="$1"
+FILE="$2"
+
+./compile src/test/resources/examples/valid/$DIR/$FILE.wacc && pr -mt src/test/output/$FILE.s src/test/output/expected/asm/$FILE.s

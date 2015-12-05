@@ -4,16 +4,19 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.misc.Interval;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
   ArrayList<IError<ParserRuleContext>> semanticErrors;
   ArrayList<IError<ParserRuleContext>> syntacticErrors;
+  ArrayList<String> lexingErrors;
   TokenStream tokenStream;
 
 
   public WACCErrorHandler(TokenStream tokenStream) {
     this.semanticErrors = new ArrayList<>();
     this.syntacticErrors = new ArrayList<>();
+    this.lexingErrors = new ArrayList<>();
     this.tokenStream = tokenStream;
   }
 
@@ -41,24 +44,6 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
     return sb.toString();
   }
 
-  private StringBuilder printErrors(ArrayList<IError<ParserRuleContext>>
-                                        errors) {
-    final StringBuilder sb = new StringBuilder();
-    int size = errors.size();
-    sb.append(size).append(" Error");
-    sb.append(size == 1 ? "" : "s").append(":\n");
-
-    for (IError<ParserRuleContext> e : errors) {
-      String location = getLineAndChar(e);
-      sb.append(location);
-      String lines[] = e.toString().split("\\r?\\n");
-      sb.append(lines[0]).append("\n");
-      sb.append(concatWithNewLines(location, lines));
-    }
-
-    return sb;
-  }
-
   @Override
   public int getSemanticErrorCount() {
     return semanticErrors.size();
@@ -80,6 +65,11 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
         + String.format("%02d", charNumber) + " -- ";
   }
 
+  @Override
+  public int getLexingErrorCount() {
+    return lexingErrors.size();
+  }
+
   private String concatWithNewLines(String location, String[] lines) {
     StringBuilder sb = new StringBuilder();
     for (int i = 1; i < lines.length; i++) {
@@ -91,10 +81,39 @@ public class WACCErrorHandler implements ErrorHandler<ParserRuleContext> {
     return sb.toString();
   }
 
-  public void printSyntaxErrors() {
-    if (hasSyntaxErrors()) {
-      System.err.println(printErrors(syntacticErrors));
+  public void complainAboutLexing(List<String> errors) {
+    this.lexingErrors.addAll(errors);
+  }
+
+  private StringBuilder printErrors(ArrayList<IError<ParserRuleContext>>
+                                            errors) {
+    final StringBuilder sb = new StringBuilder();
+    int size = errors.size();
+    sb.append(size).append(" Error");
+    sb.append(size == 1 ? "" : "s").append(":\n");
+
+    for (IError<ParserRuleContext> e : errors) {
+      String location = getLineAndChar(e);
+      sb.append(location);
+      String lines[] = e.toString().split("\\r?\\n");
+      sb.append(lines[0]).append("\n");
+      sb.append(concatWithNewLines(location, lines));
     }
+
+    return sb;
+  }
+
+  public boolean printLexingErrors() {
+    for (String error : lexingErrors) {
+      System.err.println(error);
+    }
+
+    return lexingErrors.size() > 0;
+  }
+
+  public boolean printSyntaxErrors() {
+    System.err.println(printErrors(syntacticErrors));
+    return syntacticErrors.size() > 0;
   }
 
   public void printSemanticErrors() {

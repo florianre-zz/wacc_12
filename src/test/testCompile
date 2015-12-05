@@ -34,7 +34,7 @@ def runCompile(testPath, expectedExitCode)
       end
       hasErrored += 1
       output += "Wrong exit code: #{actualExitCode}, was expecting: #{expectedExitCode}"
-      # open(@errFile, 'a') { |f| f.puts output}
+      open(@errFile, 'a') { |f| f.puts output}
     end
     break if hasErrored > 10
     `rm #{@tmp}`
@@ -49,10 +49,10 @@ puts "Starting Valid Compile tests..."
 runCompile(testFolder+"valid", 0)
 puts "Finished tests."
 
-# puts "Starting Syntax Errors Compile tests..."
-# runCompile(testFolder+"invalid/syntaxErr", 100)
-# puts "Finished tests."
+puts "Starting Syntax Errors Compile tests..."
+runCompile(testFolder+"invalid/syntaxErr", 100)
+puts "Finished tests."
 
-# puts "Starting Semantic Errors Compile tests..."
-# runCompile(testFolder+"invalid/semanticErr", 200)
-# puts "Finished tests."
+puts "Starting Semantic Errors Compile tests..."
+runCompile(testFolder+"invalid/semanticErr", 200)
+puts "Finished tests."
