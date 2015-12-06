@@ -313,6 +313,25 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Variable var = getMostRecentBindingForVariable(varName);
       long varOffset = getAccumulativeOffsetForVariable(varName);
       return storeToOffset(varOffset, var.getType(), ctx.assignRHS());
+    } else if (ctx.assignLHS().arrayElem() != null) {
+      InstructionList list = defaultResult();
+      Register result = accMachine.peekFreeRegister();
+      list.add(visitAssignRHS(ctx.assignRHS()));
+      Register arrayElemAddr = accMachine.peekFreeRegister();
+      list.add(visitArrayElem(ctx.assignLHS().arrayElem()));
+      String varName = ctx.assignLHS().arrayElem().ident().getText();
+      Variable var = getMostRecentBindingForVariable(varName);
+      Type varType = var.getType();
+      if (Type.isBool(varType) || Type.isChar(varType)) {
+        list.add(accMachine.getInstructionList(InstructionType.STRB, result,
+            arrayElemAddr));
+      } else {
+        list.add(accMachine.getInstructionList(InstructionType.STR, result,
+            arrayElemAddr));
+      }
+      accMachine.pushFreeRegister(arrayElemAddr);
+      accMachine.pushFreeRegister(result);
+      return list;
     } else if (ctx.assignLHS().pairElem() != null) {
       InstructionList list = defaultResult();
 
@@ -326,8 +345,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           .add(InstructionFactory.createStore(reg, addr, new Immediate(0L)));
 
       return list;
-    } else {
-
     }
 
     return visitChildren(ctx);
@@ -615,7 +632,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           .add(InstructionFactory.createBranchLinkVS(throwOverflowError));
 
       addRuntimeErrorFunctionsToHelpers(
-        RuntimeErrorFunctions.overflowError(data), data);
+          RuntimeErrorFunctions.overflowError(data), data);
     } else if (ctx.LEN() != null) {
       list.add(InstructionFactory.createLoad(dst, dst, new Immediate(0L)));
     }
@@ -833,8 +850,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
                                            new Immediate(size)))
         .add(InstructionFactory.createBranchLink(malloc))
         .add(InstructionFactory.createStore(next,
-                                            ARM11Registers.R0,
-                                            new Immediate(0L)));
+            ARM11Registers.R0,
+            new Immediate(0L)));
     return list;
   }
 
@@ -985,9 +1002,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           .add(InstructionFactory.createAdd(result, result,
               new Immediate(ADDRESS_SIZE)))
           .add(InstructionFactory.createAdd(result, result, helper,
-              new Shift(Shift.Shifts.LSL, 2)))
-          .add(InstructionFactory.createLoad(result, result,
-              new Immediate(0L)));
+              new Shift(Shift.Shifts.LSL, 2)));
 
       addRuntimeErrorFunctionsToHelpers(
         RuntimeErrorFunctions.checkArrayBounds(data), data);

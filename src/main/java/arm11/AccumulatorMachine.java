@@ -75,6 +75,10 @@ public class AccumulatorMachine {
       if (op instanceof Register) {
         return arithmeticInstructions(inst, dst, (Register) op);
       }
+    } else if (inst.isStore()) {
+      if (op instanceof Register) {
+        return storeInstructions(inst, dst, (Register) op, new Immediate(0L));
+      }
     }
     return result;
   }
