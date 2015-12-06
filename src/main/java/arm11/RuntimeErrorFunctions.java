@@ -2,13 +2,15 @@ package arm11;
 
 public class RuntimeErrorFunctions {
 
+  // TODO: make errors constants
+
   public static InstructionList divideByZero(DataInstructions data) {
     InstructionList list = new InstructionList();
 
     Label checkDivideByZerolabel = new Label("p_check_divide_by_zero");
     Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
-    Label errMessage = data.addConstString("DivideByZeroError: divide or "
-                                           + "modulo by zero\\n\\0");
+    Label errMessage = data.addConstString("\"DivideByZeroError: divide or "
+                                           + "modulo by zero\\n\\0\"");
 
     list.add(InstructionFactory.createLabel(checkDivideByZerolabel))
         .add(InstructionFactory.createPush(ARM11Registers.LR))
@@ -26,9 +28,9 @@ public class RuntimeErrorFunctions {
 
     Label throwOverFlowErrorLabel = new Label("p_throw_overflow_error");
     Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
-    Label errMessage = data.addMessage("OverflowError: the result is too "
+    Label errMessage = data.addMessage("\"OverflowError: the result is too "
                                            + "small/large to store in a 4-byte "
-                                           + "signed-integer.\\n");
+                                           + "signed-integer.\\n\"");
 
     list.add(InstructionFactory.createLabel(throwOverFlowErrorLabel))
         .add(InstructionFactory.createLoad(ARM11Registers.R0, errMessage))
@@ -43,10 +45,10 @@ public class RuntimeErrorFunctions {
     Label checkArrayBoundsLabel = new Label("p_check_array_bounds");
     Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
     Label negErrMessage
-      = data.addMessage("ArrayIndexOutOfBoundsError: negative index\\n\\0");
+      = data.addMessage("\"ArrayIndexOutOfBoundsError: negative index\\n\\0\"");
     Label oufOfBoundIndexErrMessage
-      = data.addMessage("ArrayIndexOutOfBoundsError: index too "
-                            + "large\\n\\0");
+      = data.addMessage("\"ArrayIndexOutOfBoundsError: index too "
+                            + "large\\n\\0\"");
 
     list.add(InstructionFactory.createLabel(checkArrayBoundsLabel))
         .add(InstructionFactory.createPush(ARM11Registers.LR))
@@ -87,8 +89,8 @@ public class RuntimeErrorFunctions {
 
     Label throwRuntimeError = new Label("p_throw_runtime_error");
     Label checkNullPointer = new Label("p_check_null_pointer");
-    Label errMessage = data.addMessage("NullReferenceError: dereference a "
-                                       + "null reference\\n\\0");
+    Label errMessage = data.addMessage("\"NullReferenceError: dereference a "
+                                       + "null reference\\n\\0\"");
 
     list.add(InstructionFactory.createLabel(checkNullPointer))
         .add(InstructionFactory.createPush(ARM11Registers.LR))
