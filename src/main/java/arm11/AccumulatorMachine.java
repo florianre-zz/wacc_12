@@ -1,5 +1,7 @@
 package arm11;
 
+import wacc.SymbolTable;
+
 import java.util.Stack;
 
 public class AccumulatorMachine {
@@ -57,6 +59,9 @@ public class AccumulatorMachine {
     if (borrowedRegCount > 0) {
       borrowedRegCount--;
     } else {
+      if (freeRegisters.contains(register)) {
+        throw new RuntimeException();
+      }
       freeRegisters.push(register);
     }
   }

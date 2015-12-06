@@ -8,10 +8,6 @@
 
 begin
 	int x = 10;
-	int y = 5;
   println "input an integer to continue..." ;
-	read x;
-	read y;
-	print x;
-	print y
+	read x
 end

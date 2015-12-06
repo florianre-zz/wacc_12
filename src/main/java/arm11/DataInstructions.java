@@ -26,7 +26,8 @@ public class DataInstructions {
       messagesMap.put(message, label);
 
       instructionList.add(InstructionFactory.createLabel(label));
-      int length = message.length() - QUOTE_LENGTH * 2;
+      String s = message.replaceAll("\\\\([0btnfr\"'])", "$1");
+      int length = s.length() - QUOTE_LENGTH;
       instructionList.add(InstructionFactory.createWord(length));
       instructionList.add(InstructionFactory.createAscii(message));
     }
@@ -50,7 +51,8 @@ public class DataInstructions {
     Label label = new Label("msg_" + labelCounter);
 
     instructionList.add(InstructionFactory.createLabel(label));
-    int length = string.length() - QUOTE_LENGTH;
+    String s = string.replaceAll("\\\\([0btnfr\"'])", "$1");
+    int length = s.length() - QUOTE_LENGTH;
     instructionList.add(InstructionFactory.createWord(length));
     instructionList.add(InstructionFactory.createAscii(string));
     return label;

@@ -21,6 +21,7 @@ end
 
 def check()
   i = 0
+  @testFiles.delete_at(148)
   @testFiles.each do |file|
     # compile
     i += 1
@@ -39,29 +40,28 @@ def check()
     end
     if !inputFiles.empty?
       stdin = File.open("#{inputFiles[0]}").read
-    else
-      RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
-                        :stdin => stdin,
-                        :options => [],
-                        :testfile => File.new("#{@outputFolder}/#{filename}.s")
-                       ) do |response|
-        json = JSON.load(response)
-        $ourOutput = json['emulator_out']
-      end
-      # git diff
-      File.open("#{@outputFolder}/#{filename}.out", 'w') {|f| f.write($ourOutput) }
-      diff = `diff --suppress-common-lines #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
-      if diff != ""
-        open("#{@emulationsFile}", 'a') do |f|
-          output = `diff -Eby --suppress-common-lines  #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
-          f.puts "#{filename}:\n#{output}"
-        end
-        @incorrect += 1
-      else
-        @correct += 1
-      end
-      break if @incorrect >= 5
     end
+    RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
+                      :stdin => stdin,
+                      :options => [],
+                      :testfile => File.new("#{@outputFolder}/#{filename}.s")
+                     ) do |response|
+      json = JSON.load(response)
+      $ourOutput = json['emulator_out']
+    end
+    # git diff
+    File.open("#{@outputFolder}/#{filename}.out", 'w') {|f| f.write($ourOutput) }
+    diff = `diff --suppress-common-lines #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
+    if diff != ""
+      open("#{@emulationsFile}", 'a') do |f|
+        output = `diff -Eby --suppress-common-lines  #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
+        f.puts "#{filename}:\n#{output}"
+      end
+      @incorrect += 1
+    else
+      @correct += 1
+    end
+    break if @incorrect >= 10
   end
   puts "\n\n"
 end
