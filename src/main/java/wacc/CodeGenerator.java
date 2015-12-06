@@ -913,11 +913,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         Immediate(offset)));
     } else if (ctx.assignLHS().pairElem() != null) {
       list.add(visitPairElem(ctx.assignLHS().pairElem()));
+    } else {
+      list.add(visitArrayElem(ctx.assignLHS().arrayElem()));
     }
-    //TODO: read arrayElem
-    //else {
-//
-//    }
 
     Label readLabel;
     if (Type.isInt((Type) ctx.assignLHS().returnType)) {
@@ -965,9 +963,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory
                  .createLoad(result, result, new Immediate(ADDRESS_SIZE)));
     }
-
-    //list.add(InstructionFactory.createLoad(result, result, new Immediate
-    // (0L)));
 
     return list;
   }
