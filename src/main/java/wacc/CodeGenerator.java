@@ -18,6 +18,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   private static final long PAIR_SIZE = 2 * ADDRESS_SIZE;
   private DataInstructions data;
   private HashSet<InstructionList> helperFunctions;
+  private boolean isAssigning;
 
   public CodeGenerator(SymbolTable<String, Binding> top) {
     super(top);
@@ -306,12 +307,16 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  // TODO: refactor
   @Override
   public InstructionList visitAssignStat(WACCParser.AssignStatContext ctx) {
+    isAssigning = true;
     if (ctx.assignLHS().ident() != null) {
       String varName = ctx.assignLHS().ident().getText();
       Variable var = getMostRecentBindingForVariable(varName);
       long varOffset = getAccumulativeOffsetForVariable(varName);
+
+      isAssigning = false;
       return storeToOffset(varOffset, var.getType(), ctx.assignRHS());
     } else if (ctx.assignLHS().arrayElem() != null) {
       InstructionList list = defaultResult();
@@ -331,6 +336,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       }
       accMachine.pushFreeRegister(arrayElemAddr);
       accMachine.pushFreeRegister(result);
+
+      isAssigning = false;
       return list;
     } else if (ctx.assignLHS().pairElem() != null) {
       InstructionList list = defaultResult();
@@ -344,9 +351,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           .add(visitPairElem(ctx.assignLHS().pairElem()))
           .add(InstructionFactory.createStore(reg, addr, new Immediate(0L)));
 
+      isAssigning = false;
       return list;
     }
 
+    isAssigning = false;
     return visitChildren(ctx);
   }
 
@@ -424,26 +433,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
                                           Label printLabel,
                                           Register result) {
     InstructionList list = defaultResult();
-    list.add(visitExpr(ctx));
-    if (isHeapLoad(ctx)) {
-      list.add(InstructionFactory.createLoad(result, new Address(result)));
-    }
-    list.add(InstructionFactory.createMove(ARM11Registers.R0, result))
+    list.add(visitExpr(ctx))
+        .add(InstructionFactory.createMove(ARM11Registers.R0, result))
         .add(InstructionFactory.createBranchLink(printLabel));
     return list;
-  }
-
-  private boolean isHeapLoad(WACCParser.ExprContext ctx) {
-    WACCParser.ComparisonOperContext cmpCtx
-        = ctx.binaryOper().logicalOper().first;
-    if (cmpCtx.equalityOper() != null) {
-      WACCParser.AtomContext atomCtx = cmpCtx.equalityOper().first.first.first;
-      return atomCtx.array() != null || atomCtx.pairLitr() != null;
-    } else if (cmpCtx.orderingOper() != null) {
-      WACCParser.AtomContext atomCtx = cmpCtx.orderingOper().first.first.first;
-      return atomCtx.array() != null || atomCtx.pairLitr() != null;
-    }
-    return false;
   }
 
   private void addFunctionToHelpers(InstructionList function) {
@@ -662,9 +655,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Immediate op;
     InstructionList loadOrMove = defaultResult();
     Register reg = accMachine.popFreeRegister();
-    String digits = ctx.INTEGER().getText();
+    WACCParser.SignContext sign = ctx.sign();
+    String digits = (sign != null && sign.MINUS() != null) ? "-" : "";
+    digits += ctx.INTEGER();
     long value = Long.parseLong(digits);
-
     if (ctx.CHR() != null){
       String chr = "\'" + (char) ((int) value) + "\'";
       op = new Immediate(chr);
@@ -902,7 +896,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
     InstructionList list = defaultResult();
 
-    Register reg = accMachine.peekFreeRegister();
+    Register reg = accMachine.popFreeRegister();
     Register dst = ARM11Registers.R0;
 
     String name;
@@ -1014,6 +1008,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
               new Immediate(ADDRESS_SIZE)))
           .add(InstructionFactory.createAdd(result, result, helper,
               new Shift(Shift.Shifts.LSL, 2)));
+      if (!isAssigning) {
+        list.add(InstructionFactory.createLoad(result, new Address(result)));
+      }
 
       addRuntimeErrorFunctionsToHelpers(
         RuntimeErrorFunctions.checkArrayBounds(data), data);
