@@ -85,7 +85,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label label = new Label(Scope.MAIN.toString());
     Register r0 = ARM11Registers.R0;
     Immediate imm = new Immediate((long) 0);
-    // CHECKED --ALL
     list.add(InstructionFactory.createLabel(label))
         .add(InstructionFactory.createPush(ARM11Registers.LR))
         .add(allocateSpaceOnStack())
@@ -309,12 +308,28 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitAssignStat(WACCParser.AssignStatContext ctx) {
-    if (ctx.assignLHS().ident() != null){
+    if (ctx.assignLHS().ident() != null) {
       String varName = ctx.assignLHS().ident().getText();
       Variable var = getMostRecentBindingForVariable(varName);
       long varOffset = getAccumulativeOffsetForVariable(varName);
       return storeToOffset(varOffset, var.getType(), ctx.assignRHS());
+    } else if (ctx.assignLHS().pairElem() != null) {
+      InstructionList list = defaultResult();
+
+      Register reg = accMachine.popFreeRegister();
+      Register addr = accMachine.popFreeRegister();
+      accMachine.pushFreeRegister(addr);
+      accMachine.pushFreeRegister(reg);
+
+      list.add(visitAssignRHS(ctx.assignRHS()))
+          .add(visitPairElem(ctx.assignLHS().pairElem()))
+          .add(InstructionFactory.createStore(reg, addr, new Immediate(0L)));
+
+      return list;
+    } else {
+
     }
+
     return visitChildren(ctx);
   }
 
