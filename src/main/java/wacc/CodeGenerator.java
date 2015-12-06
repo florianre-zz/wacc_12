@@ -380,10 +380,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     Register result = accMachine.peekFreeRegister();
     list.add(printExpression(ctx.expr(), printLabel, result));
-    accMachine.pushFreeRegister(result);
     if (ctx.PRINTLN() != null) {
       printNewLine(list);
     }
+    accMachine.pushFreeRegister(result);
 
     return list;
   }
@@ -776,6 +776,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createMove(ARM11Registers.R0, result))
         .add(InstructionFactory.createBranchLink(new Label("p_free_pair")));
 
+    addThrowRuntimeErrorFunctionsToHelpers(data);
+
     helperFunctions.add(freePair(data));
     return list;
   }
@@ -852,40 +854,36 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitReadStat(WACCParser.ReadStatContext ctx) {
     InstructionList list = defaultResult();
 
-    Register reg = accMachine.popFreeRegister();
+    Register reg = accMachine.peekFreeRegister();
     Register dst = ARM11Registers.R0;
-    Long offset = 0L;
 
-    // TODO:
     String name;
     if (ctx.assignLHS().ident() != null) {
       name = ctx.assignLHS().ident().getText();
-      offset = getAccumulativeOffsetForVariable(name);
+      Long offset = getAccumulativeOffsetForVariable(name);
+      list.add((accMachine.getInstructionList(InstructionType.ADD, reg,
+                                              ARM11Registers.SP,
+                                              new Immediate(offset))));
+    } else if (ctx.assignLHS().pairElem() != null) {
+      list.add(visitPairElem(ctx.assignLHS().pairElem()));
     }
-//    else if (ctx.assignLHS().arrayElem() != null) {
-//
-//    } else {
+    //TODO: read arrayElem
+    //else {
 //
 //    }
 
-    Immediate imm = new Immediate(offset);
-    InstructionList printHelperFunction;
     Label readLabel;
-
     if (Type.isInt((Type) ctx.assignLHS().returnType)) {
       readLabel = new Label("p_read_int");
-      printHelperFunction = ReadFunctions.readInt(data);
+      helperFunctions.add(ReadFunctions.readInt(data));
     } else {
       readLabel = new Label("p_read_char");
-      printHelperFunction = ReadFunctions.readChar(data);
+      helperFunctions.add(ReadFunctions.readChar(data));
     }
 
-    list.add(accMachine.getInstructionList(InstructionType.ADD, reg,
-                                           ARM11Registers.SP, imm))
-        .add(InstructionFactory.createMove(dst, reg))
+    list.add(InstructionFactory.createMove(dst, reg))
         .add(InstructionFactory.createBranchLink(readLabel));
     accMachine.pushFreeRegister(reg);
-    helperFunctions.add(printHelperFunction);
 
     return list;
   }
@@ -921,7 +919,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
                  .createLoad(result, result, new Immediate(ADDRESS_SIZE)));
     }
 
-    list.add(InstructionFactory.createLoad(result, result, new Immediate(0L)));
+    //list.add(InstructionFactory.createLoad(result, result, new Immediate
+    // (0L)));
 
     return list;
   }
