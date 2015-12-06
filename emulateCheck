@@ -12,7 +12,7 @@ require 'shellwords'
 
 open(@emulationsFile, 'w') { |f| f.print "" }
 
-@testFolder = "src/test/resources/examples/valid/function/simple_functions"
+@testFolder = "src/test/resources/examples/valid"
 @testFiles = []
 Find.find(@testFolder) do |path|
   @testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
@@ -39,28 +39,29 @@ def check()
     end
     if !inputFiles.empty?
       stdin = File.open("#{inputFiles[0]}").read
-    end
-    RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
-                      :stdin => stdin,
-                      :options => [],
-                      :testfile => File.new("#{@outputFolder}/#{filename}.s")
-                     ) do |response|
-      json = JSON.load(response)
-      $ourOutput = json['emulator_out']
-    end
-    # git diff
-    File.open("#{@outputFolder}/#{filename}.out", 'w') {|f| f.write($ourOutput) }
-    diff = `diff --suppress-common-lines #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
-    if diff != ""
-      open("#{@emulationsFile}", 'a') do |f|
-        output = `diff -Eby --suppress-common-lines  #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
-        f.puts "#{filename}:\n#{output}"
-      end
-      @incorrect += 1
     else
-      @correct += 1
+      RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
+                        :stdin => stdin,
+                        :options => [],
+                        :testfile => File.new("#{@outputFolder}/#{filename}.s")
+                       ) do |response|
+        json = JSON.load(response)
+        $ourOutput = json['emulator_out']
+      end
+      # git diff
+      File.open("#{@outputFolder}/#{filename}.out", 'w') {|f| f.write($ourOutput) }
+      diff = `diff --suppress-common-lines #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
+      if diff != ""
+        open("#{@emulationsFile}", 'a') do |f|
+          output = `diff -Eby --suppress-common-lines  #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
+          f.puts "#{filename}:\n#{output}"
+        end
+        @incorrect += 1
+      else
+        @correct += 1
+      end
+      break if @incorrect >= 5
     end
-    break if @incorrect >= 5
   end
   puts "\n\n"
 end
