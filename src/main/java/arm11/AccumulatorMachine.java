@@ -23,15 +23,15 @@ public class AccumulatorMachine {
   public void resetFreeRegisters() {
 
     freeRegisters.clear();
-    pushFreeRegister(ARM11Registers.R12);
-    pushFreeRegister(ARM11Registers.R11);
-    pushFreeRegister(ARM11Registers.R10);
-    pushFreeRegister(ARM11Registers.R9);
-    pushFreeRegister(ARM11Registers.R8);
-    pushFreeRegister(ARM11Registers.R7);
-    pushFreeRegister(ARM11Registers.R6);
-    pushFreeRegister(ARM11Registers.R5);
-    pushFreeRegister(ARM11Registers.R4);
+    freeRegisters.push(ARM11Registers.R12);
+    freeRegisters.push(ARM11Registers.R11);
+    freeRegisters.push(ARM11Registers.R10);
+    freeRegisters.push(ARM11Registers.R9);
+    freeRegisters.push(ARM11Registers.R8);
+    freeRegisters.push(ARM11Registers.R7);
+    freeRegisters.push(ARM11Registers.R6);
+    freeRegisters.push(ARM11Registers.R5);
+    freeRegisters.push(ARM11Registers.R4);
   }
 
   public Register peekFreeRegister() {

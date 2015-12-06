@@ -424,10 +424,26 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
                                           Label printLabel,
                                           Register result) {
     InstructionList list = defaultResult();
-    list.add(visitExpr(ctx))
-        .add(InstructionFactory.createMove(ARM11Registers.R0, result))
+    list.add(visitExpr(ctx));
+    if (isHeapLoad(ctx)) {
+      list.add(InstructionFactory.createLoad(result, new Address(result)));
+    }
+    list.add(InstructionFactory.createMove(ARM11Registers.R0, result))
         .add(InstructionFactory.createBranchLink(printLabel));
     return list;
+  }
+
+  private boolean isHeapLoad(WACCParser.ExprContext ctx) {
+    WACCParser.ComparisonOperContext cmpCtx
+        = ctx.binaryOper().logicalOper().first;
+    if (cmpCtx.equalityOper() != null) {
+      WACCParser.AtomContext atomCtx = cmpCtx.equalityOper().first.first.first;
+      return atomCtx.array() != null || atomCtx.pairLitr() != null;
+    } else if (cmpCtx.orderingOper() != null) {
+      WACCParser.AtomContext atomCtx = cmpCtx.orderingOper().first.first.first;
+      return atomCtx.array() != null || atomCtx.pairLitr() != null;
+    }
+    return false;
   }
 
   private void addFunctionToHelpers(InstructionList function) {
@@ -980,7 +996,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       accMachine.pushFreeRegister(result);
     }
     
-    Register lengthOfArray = accMachine.peekFreeRegister();
+    Register lengthOfArray = accMachine.popFreeRegister();
     list.add(storeLengthOfArray(numberOfElems, addressOfArray, lengthOfArray));
     accMachine.pushFreeRegister(lengthOfArray);
 
