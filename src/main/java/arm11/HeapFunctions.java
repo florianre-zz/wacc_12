@@ -5,8 +5,8 @@ public class HeapFunctions {
   public static InstructionList freePair(DataInstructions data) {
     InstructionList list = new InstructionList();
 
-    Label errMessage = data.addMessage("NullReferenceError: dereference a "
-                                       + "null reference\\n\\0");
+    Label errMessage = data.addMessage("\"NullReferenceError: dereference a "
+                                       + "null reference\\n\\0\"");
     Label throwRuntimeError = new Label("p_throw_runtime_error");
 
     list.add(InstructionFactory.createLabel(new Label("p_free_pair")))

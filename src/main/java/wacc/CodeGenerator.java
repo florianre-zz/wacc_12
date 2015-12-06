@@ -876,9 +876,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (ctx.assignLHS().ident() != null) {
       name = ctx.assignLHS().ident().getText();
       Long offset = getAccumulativeOffsetForVariable(name);
-      list.add((accMachine.getInstructionList(InstructionType.ADD, reg,
-                                              ARM11Registers.SP,
-                                              new Immediate(offset))));
+      list.add(InstructionFactory.createAdd(reg, ARM11Registers.SP, new
+        Immediate(offset)));
     } else if (ctx.assignLHS().pairElem() != null) {
       list.add(visitPairElem(ctx.assignLHS().pairElem()));
     }

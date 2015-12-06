@@ -117,7 +117,6 @@ public class AccumulatorMachine {
     }
     switch (inst) {
       case ADD:
-        // Not used so far
         result.add(InstructionFactory.createAdd(dst, src1, src2));
         break;
       case ADDS:

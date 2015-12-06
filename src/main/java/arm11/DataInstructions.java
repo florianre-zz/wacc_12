@@ -26,7 +26,7 @@ public class DataInstructions {
       messagesMap.put(message, label);
 
       instructionList.add(InstructionFactory.createLabel(label));
-      int length = message.length() - QUOTE_LENGTH;
+      int length = message.length() - QUOTE_LENGTH * 2;
       instructionList.add(InstructionFactory.createWord(length));
       instructionList.add(InstructionFactory.createAscii(message));
     }
