@@ -1,7 +1,8 @@
 #!/usr/bin/ruby
 
 @file = ""
-@base = "src/test/output/"
+@base = ""
+#@base = "src/test/output/"
 
 usage = "Usage: ./compile filename.wacc"
 
@@ -15,7 +16,7 @@ else
 end
 
 def compile()
-  `java -jar target/WACC-Compiler-0.2-BETA-jar-with-dependencies.jar #{@file}`
+  `/usr/lib/jvm/jdk-8-oracle-x64/bin/java -jar target/WACC-Compiler-0.2-BETA-jar-with-dependencies.jar #{@file}`
   exitcode = $?.exitstatus
   if (exitcode != 0) then
     exit(exitcode)
