@@ -313,20 +313,21 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   // TODO: refactor
   @Override
   public InstructionList visitAssignStat(WACCParser.AssignStatContext ctx) {
-    isAssigning = true;
     if (ctx.assignLHS().ident() != null) {
+
       String varName = ctx.assignLHS().ident().getText();
       Variable var = getMostRecentBindingForVariable(varName);
       long varOffset = getAccumulativeOffsetForVariable(varName);
 
-      isAssigning = false;
       return storeToOffset(varOffset, var.getType(), ctx.assignRHS());
     } else if (ctx.assignLHS().arrayElem() != null) {
       InstructionList list = defaultResult();
       Register result = accMachine.peekFreeRegister();
       list.add(visitAssignRHS(ctx.assignRHS()));
       Register arrayElemAddr = accMachine.peekFreeRegister();
+      isAssigning = true;
       list.add(visitArrayElem(ctx.assignLHS().arrayElem()));
+      isAssigning = false;
       if (Type.isBool(ctx.assignLHS().arrayElem().returnType)
           || Type.isChar(ctx.assignLHS().arrayElem().returnType)) {
         list.add(accMachine.getInstructionList(InstructionType.STRB, result,
@@ -338,7 +339,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       accMachine.pushFreeRegister(arrayElemAddr);
       accMachine.pushFreeRegister(result);
 
-      isAssigning = false;
       return list;
     } else if (ctx.assignLHS().pairElem() != null) {
       InstructionList list = defaultResult();
@@ -346,7 +346,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register result = accMachine.peekFreeRegister();
       list.add(visitAssignRHS(ctx.assignRHS()));
       Register addr = accMachine.peekFreeRegister();
+      isAssigning = true;
       list.add(visitPairElem(ctx.assignLHS().pairElem()));
+      isAssigning = false;
       String varName = ctx.assignLHS().pairElem().ident().getText();
       Variable var = getMostRecentBindingForVariable(varName);
       Type varType = var.getType();
@@ -360,11 +362,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       accMachine.pushFreeRegister(addr);
       accMachine.pushFreeRegister(result);
 
-      isAssigning = false;
       return list;
     }
 
-    isAssigning = false;
     return visitChildren(ctx);
   }
 
