@@ -852,7 +852,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Long accSize = 0L;
     for (WACCParser.ExprContext exprCtx : ctx.expr()) {
       Long size = (long) exprCtx.returnType.getSize();
-      System.err.println(size);
       Register next = accMachine.peekFreeRegister();
       list.add(allocateSpaceForPairElem(malloc, exprCtx, size, next));
       accMachine.pushFreeRegister(next);
