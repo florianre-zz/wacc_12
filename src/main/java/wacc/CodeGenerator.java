@@ -342,14 +342,22 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     } else if (ctx.assignLHS().pairElem() != null) {
       InstructionList list = defaultResult();
 
-      Register reg = accMachine.popFreeRegister();
-      Register addr = accMachine.popFreeRegister();
+      Register result = accMachine.peekFreeRegister();
+      list.add(visitAssignRHS(ctx.assignRHS()));
+      Register addr = accMachine.peekFreeRegister();
+      list.add(visitPairElem(ctx.assignLHS().pairElem()));
+      String varName = ctx.assignLHS().pairElem().ident().getText();
+      Variable var = getMostRecentBindingForVariable(varName);
+      Type varType = var.getType();
+      if (Type.isBool(varType) || Type.isChar(varType)) {
+        list.add(accMachine.getInstructionList(InstructionType.STRB, result,
+            addr));
+      } else {
+        list.add(accMachine.getInstructionList(InstructionType.STR, result,
+            addr));
+      }
       accMachine.pushFreeRegister(addr);
-      accMachine.pushFreeRegister(reg);
-
-      list.add(visitAssignRHS(ctx.assignRHS()))
-          .add(visitPairElem(ctx.assignLHS().pairElem()))
-          .add(InstructionFactory.createStore(reg, addr, new Immediate(0L)));
+      accMachine.pushFreeRegister(result);
 
       isAssigning = false;
       return list;
@@ -954,12 +962,30 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     addRuntimeErrorFunctionsToHelpers(
       RuntimeErrorFunctions.checkNullPointer(data), data);
 
+    boolean isStoredByte;
+
+    Variable variable = getMostRecentBindingForVariable(ctx.ident().getText());
+    PairType pairT = (PairType) variable.getType();
+
     if (ctx.FST() != null) {
       list.add(InstructionFactory.createLoad(result, result,
                                               new Immediate(0L)));
+      // TODO: refactor to function
+      isStoredByte = Type.isBool(pairT.getFst()) || Type.isChar(pairT.getFst());
     } else {
       list.add(InstructionFactory
                  .createLoad(result, result, new Immediate(ADDRESS_SIZE)));
+      isStoredByte = Type.isBool(pairT.getSnd()) || Type.isChar(pairT.getSnd());
+    }
+
+    if (!isAssigning) {
+      if (isStoredByte) {
+        list.add(InstructionFactory.createLoadStoredByte(result,
+            result, new Immediate(0L)));
+      } else {
+        list.add(InstructionFactory.createLoad(result, result,
+            new Immediate(0L)));
+      }
     }
 
     return list;
