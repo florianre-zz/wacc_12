@@ -508,14 +508,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         String errorMsg = "String is one dimensional";
         errorHandler.complain(new TypeError(ctx, errorMsg));
       } else {
-        return new Type(Types.CHAR_T);
+        ctx.returnType = new Type(Types.CHAR_T);
+        return ctx.returnType;
       }
     } else if (ArrayType.isArray(type)) {
       ArrayType arrayType = (ArrayType) type;
       int totalDim = arrayType.getDimensionality();
       if (wantedDim <= totalDim) {
         int returnDim = totalDim - wantedDim;
-        return ArrayType.createArray(arrayType.getBase(), returnDim);
+        ctx.returnType = ArrayType.createArray(arrayType.getBase(), returnDim);
+        return ctx.returnType;
       } else {
         errorHandler.complain(new TypeError(ctx));
       }

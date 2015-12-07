@@ -1009,9 +1009,16 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           .add(InstructionFactory.createMove(ARM11Registers.R1, result))
           .add(InstructionFactory.createBranchLink(checkArrayBounds))
           .add(InstructionFactory.createAdd(result, result,
-              new Immediate(ADDRESS_SIZE)))
-          .add(InstructionFactory.createAdd(result, result, helper,
-              new Shift(Shift.Shifts.LSL, 2)));
+              new Immediate(ADDRESS_SIZE)));
+
+      if (Type.isChar(ctx.returnType)
+          || Type.isBool(ctx.returnType)) {
+        list.add(InstructionFactory.createAdd(result, result, helper));
+      } else {
+        list.add(InstructionFactory.createAdd(result, result, helper,
+                                              new Shift(Shift.Shifts.LSL, 2)));
+      }
+
       if (!isAssigning) {
         list.add(InstructionFactory.createLoad(result, new Address(result)));
       }
