@@ -9,7 +9,7 @@ public class RuntimeErrorFunctions {
 
     Label checkDivideByZerolabel = new Label("p_check_divide_by_zero");
     Label throwRuntimeErrorLabel = new Label("p_throw_runtime_error");
-    Label errMessage = data.addConstString("\"DivideByZeroError: divide or "
+    Label errMessage = data.addMessage("\"DivideByZeroError: divide or "
                                            + "modulo by zero\\n\\0\"");
 
     list.add(InstructionFactory.createLabel(checkDivideByZerolabel))
