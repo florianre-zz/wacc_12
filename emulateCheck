@@ -69,6 +69,7 @@ end
 
 puts "Starting Valid Emulate tests..."
 check()
+system( "say 'finished tests'" )
 puts "Finished tests."
 puts "#{@correct}/#{@numTests} Correct"
 
