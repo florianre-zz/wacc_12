@@ -327,10 +327,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(visitAssignRHS(ctx.assignRHS()));
       Register arrayElemAddr = accMachine.peekFreeRegister();
       list.add(visitArrayElem(ctx.assignLHS().arrayElem()));
-      String varName = ctx.assignLHS().arrayElem().ident().getText();
-      Variable var = getMostRecentBindingForVariable(varName);
-      Type varType = var.getType();
-      if (Type.isBool(varType) || Type.isChar(varType)) {
+      if (Type.isBool(ctx.assignLHS().arrayElem().returnType) || Type.isChar(ctx.assignLHS().arrayElem().returnType)) {
         list.add(accMachine.getInstructionList(InstructionType.STRB, result,
             arrayElemAddr));
       } else {
