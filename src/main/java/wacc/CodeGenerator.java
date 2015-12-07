@@ -547,9 +547,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   @Override
   public InstructionList visitAddOper(WACCParser.AddOperContext ctx) {
-    InstructionList list = defaultResult();
     Register dst1 = accMachine.peekFreeRegister();
-    list.add(visitMultOper(ctx.first));
+    InstructionList list = defaultResult().add(visitMultOper(ctx.first));
     if (!ctx.otherExprs.isEmpty()) {
       Register dst2;
       // for loop used instead of visitChildren so only 2 registers used up
