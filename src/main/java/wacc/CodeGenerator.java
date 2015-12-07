@@ -836,6 +836,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     addThrowRuntimeErrorFunctionsToHelpers(data);
 
     helperFunctions.add(freePair(data));
+
+    accMachine.pushFreeRegister(result);
     return list;
   }
 
