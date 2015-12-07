@@ -5,7 +5,7 @@ import bindings.NewScope;
 
 import java.util.*;
 
-public class SymbolTable<S, T> extends Hashtable<S, T> {
+public class SymbolTable<S, T> extends LinkedHashMap<S, T> {
 
   private String name;
   private SymbolTable<S, T> enclosingST;
@@ -43,32 +43,31 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
 
   @Override
   public String toString() {
-    List<SymbolTable<String, Binding>> list = new LinkedList<>();
+    List<SymbolTable<S, T>> list = new LinkedList<>();
     StringBuilder sb = new StringBuilder("SymbolTable {\n");
-    Enumeration<S> keys = this.keys();
-    while (keys.hasMoreElements()) {
-
+    Iterator<S> keys = this.keySet().iterator();
+    while (keys.hasNext()) {
       sb.append(getKeyElemPairString(list, keys));
     }
     sb.append("}\n");
-    for (SymbolTable<String, Binding> symTable:list) {
+    for (SymbolTable<S, T> symTable:list) {
       sb.append("\n").append(symTable.name).append(": ");
       sb.append(symTable);
     }
     return sb.toString();
   }
 
-  private String getKeyElemPairString(List<SymbolTable<String, Binding>> list,
-                                        Enumeration<S> keys) {
-    S element = keys.nextElement();
+  private String getKeyElemPairString(List<SymbolTable<S, T>> list,
+                                        Iterator<S> keys) {
+    S element = keys.next();
     StringBuilder sb = new StringBuilder();
     sb.append("\t");
     sb.append(element);
     sb.append(": ");
     if (this.get(element) instanceof NewScope) {
       NewScope newScope = (NewScope) this.get(element);
-      Dictionary<String, Binding> symbolTable = newScope.getSymbolTable();
-      list.add((SymbolTable<String, Binding>) symbolTable);
+      LinkedHashMap<String, Binding> symbolTable = newScope.getSymbolTable();
+      list.add((SymbolTable<S, T>) symbolTable);
       sb.append("SymbolTable");
     } else {
       sb.append(this.get(element));
@@ -76,4 +75,18 @@ public class SymbolTable<S, T> extends Hashtable<S, T> {
 
     return sb.append("\n").toString();
   }
+
+
+  public List<T> filterByClass(Class<?> c) {
+    Iterator<T> elements = this.values().iterator();
+    List<T> result = new ArrayList<>();
+    while (elements.hasNext()) {
+      T nextElement = elements.next();
+      if (c.isInstance(nextElement)) {
+        result.add(nextElement);
+      }
+    }
+    return result;
+  }
+
 }

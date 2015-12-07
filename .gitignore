@@ -7,14 +7,16 @@
 *.pdf
 
 #ignore junk files from latex output
-*.out
+/*.out
 *.log
 *.aux
 *.dvi
 *.ps
 
 #ignore junk files from running the WACC compiler
-*.s
+/*.s
+/src/test/output/*
+!/src/test/output/expected
 *.ast
 
 #ignore other junk files
@@ -37,3 +39,7 @@ target
 .settings
 .project
 .DS_Store
+
+
+#ignore windows specific files
+compileWindows

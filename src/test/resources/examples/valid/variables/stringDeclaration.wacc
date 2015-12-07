@@ -6,5 +6,6 @@
 # Program:
 
 begin
-  string s = "Hello World!"
+  string s = "Hello World!";
+  int i = len "Hello World!"
 end

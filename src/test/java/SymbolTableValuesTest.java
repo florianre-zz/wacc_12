@@ -10,6 +10,8 @@ import wacc.WACCSymbolTableFiller;
 import wacc.error.WACCErrorHandler;
 
 import java.util.Dictionary;
+import java.util.LinkedHashMap;
+
 public class SymbolTableValuesTest {
 
   private static SymbolTable<String, Binding> createTopSymbolTable() {
@@ -23,7 +25,7 @@ public class SymbolTableValuesTest {
     return top;
   }
 
-  Dictionary<String, Binding> symbolsInProgram(String inputString) {
+  LinkedHashMap<String, Binding> symbolsInProgram(String inputString) {
 
     ANTLRInputStream input = new ANTLRInputStream(inputString);
 
@@ -44,8 +46,8 @@ public class SymbolTableValuesTest {
         = new WACCSymbolTableFiller(top, errorHandler);
     buildSTVisitor.visit(tree);
 
-    Dictionary<String, Binding> zeroMainTable =
-        ((NewScope) top.get("0prog")).getSymbolTable();
+    LinkedHashMap<String, Binding> zeroMainTable =
+        ((NewScope) top.get("prog")).getSymbolTable();
 
     return zeroMainTable;
   }
@@ -68,7 +70,7 @@ public class SymbolTableValuesTest {
                      "  int i = 0" +
                      "end";
 
-    Dictionary<String, Binding> table = symbolsInProgram(program);
+    LinkedHashMap<String, Binding> table = symbolsInProgram(program);
   }
 
 }

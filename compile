@@ -1,17 +1,25 @@
 #!/usr/bin/ruby
 
 @file = ""
+@base = "src/test/output/"
 
 usage = "Usage: ./compile filename.wacc"
 
 if ARGV[0]
-  @file = "<" + ARGV[0]
+  @file = "<" + ARGV[0] + " >"
+  @base += File.basename(ARGV[0], ".wacc")
+  @file += @base + ".s"
+else
+  puts usage
+  exit
 end
 
 def compile()
-  result = `java -cp target/WACC-Compiler-0.2-BETA-jar-with-dependencies.jar wacc.WACCCompile #{@file}`
-  puts result.strip!
-  exit($?.exitstatus)
+  `java -jar target/WACC-Compiler-0.2-BETA-jar-with-dependencies.jar #{@file}`
+  exitcode = $?.exitstatus
+  if (exitcode != 0) then
+    exit(exitcode)
+  end
 end
 
 compile()

@@ -6,5 +6,6 @@ public interface ErrorHandler<T> {
   String toString();
   int getSemanticErrorCount();
   int getSyntacticErrorCount();
+  int getLexingErrorCount();
 
 }

@@ -10,7 +10,6 @@
 
 begin
 
-  int[] b = [1, 2, 3] ;
 	int[] a = [43, 2, 18, 1] ;
 	println a[5]
 end

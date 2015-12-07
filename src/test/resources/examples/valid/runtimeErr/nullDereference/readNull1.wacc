@@ -9,6 +9,6 @@
 # Program:
 
 begin
-	pair(int, int) p = null ;
+	pair(char, int) p = null ;
 	read fst p
 end

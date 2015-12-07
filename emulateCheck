@@ -1,0 +1,75 @@
+#!/usr/bin/ruby
+
+require "rest-client"
+require "json"
+require 'find'
+require 'shellwords'
+
+@emulationsFile = "emulations.log"
+@outputFolder = "src/test/output"
+@correct = 0
+@incorrect = 0
+
+open(@emulationsFile, 'w') { |f| f.print "" }
+
+@testFolder = "src/test/resources/examples/valid"
+@testFiles = []
+Find.find(@testFolder) do |path|
+  @testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+end
+@numTests = @testFiles.length
+
+def check()
+  i = 0
+  #@testFiles.delete_at(148)
+  @testFiles.slice!(145..150)
+  @testFiles.each do |file|
+    # compile
+    i += 1
+    print "Running Test: #{i}/#{@numTests}\r"
+    filename = File.basename(file, ".wacc")
+    $ourAsm = `./compile #{file} && cat #{@outputFolder}/#{filename}.s`
+    $ourOutput = ""
+
+    File.open("#{@outputFolder}/#{filename}.s", "w") {|f| f.write($ourAsm)}
+
+    # emulate
+    stdin = ""
+    inputFiles = []
+    Find.find(@testFolder) do |path|
+      inputFiles << (Shellwords.shellescape path) if path =~ /.*#{filename}\.in$/
+    end
+    if !inputFiles.empty?
+      stdin = File.open("#{inputFiles[0]}").read
+    end
+    RestClient.post("https://teaching.doc.ic.ac.uk/wacc_compiler/emulate.cgi",
+                      :stdin => stdin,
+                      :options => [],
+                      :testfile => File.new("#{@outputFolder}/#{filename}.s")
+                     ) do |response|
+      json = JSON.load(response)
+      $ourOutput = json['emulator_out']
+    end
+    # git diff
+    File.open("#{@outputFolder}/#{filename}.out", 'w') {|f| f.write($ourOutput) }
+    diff = `diff --suppress-common-lines #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
+    if diff != ""
+      open("#{@emulationsFile}", 'a') do |f|
+        output = `diff -Eby --suppress-common-lines  #{@outputFolder}/#{filename}.out #{@outputFolder}/expected/out/#{filename}.out`
+        f.puts "#{filename}:\n#{output}"
+      end
+      @incorrect += 1
+    else
+      @correct += 1
+    end
+  end
+  puts "\n\n"
+end
+
+puts "Starting Valid Emulate tests..."
+check()
+system( "say 'finished tests'" )
+puts "Finished tests."
+puts "#{@correct}/#{@numTests} Correct"
+
+puts `cat #{@emulationsFile}`

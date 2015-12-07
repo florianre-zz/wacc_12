@@ -1,0 +1,7 @@
+begin
+  int x = 42;
+  char char71 = chr 71;
+  bool b = true;
+  char a = 'a';
+  char alsoa = a
+end

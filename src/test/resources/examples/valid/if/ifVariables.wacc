@@ -1,0 +1,11 @@
+begin
+  int x = 1;
+  int a = x;
+  if x == 1 then
+    int z = x;
+    a = z + 1
+  else
+    skip
+  fi;
+  int y = x
+end

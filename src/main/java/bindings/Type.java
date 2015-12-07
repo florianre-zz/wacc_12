@@ -2,14 +2,18 @@ package bindings;
 
 public class Type extends Binding {
 
+  public static final int SIZE_OF_ADDRESS = 4;
   private Integer min, max;
 
-  public Type(String name) {
+  private int size;
+
+  protected Type(String name) {
     super(name);
   }
 
   public Type(Types type) {
     this(type.toString());
+    size = type.getSize();
   }
 
   public Type(Types type, int min, int max) {
@@ -24,6 +28,10 @@ public class Type extends Binding {
 
   public int getMax() {
     return max;
+  }
+
+  public int getSize() {
+    return size;
   }
 
   public static boolean isInt(Type type) {

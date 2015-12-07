@@ -1,0 +1,11 @@
+# simple boolean calculation
+
+# Output:
+# false
+
+# Program:
+
+begin
+  bool b1 = true ;
+  bool b2 = b1
+end
