@@ -327,7 +327,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(visitAssignRHS(ctx.assignRHS()));
       Register arrayElemAddr = accMachine.peekFreeRegister();
       list.add(visitArrayElem(ctx.assignLHS().arrayElem()));
-      if (Type.isBool(ctx.assignLHS().arrayElem().returnType) || Type.isChar(ctx.assignLHS().arrayElem().returnType)) {
+      if (Type.isBool(ctx.assignLHS().arrayElem().returnType)
+          || Type.isChar(ctx.assignLHS().arrayElem().returnType)) {
         list.add(accMachine.getInstructionList(InstructionType.STRB, result,
             arrayElemAddr));
       } else {
@@ -851,13 +852,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Long accSize = 0L;
     for (WACCParser.ExprContext exprCtx : ctx.expr()) {
       Long size = (long) exprCtx.returnType.getSize();
+      System.err.println(size);
       Register next = accMachine.peekFreeRegister();
       list.add(allocateSpaceForPairElem(malloc, exprCtx, size, next));
       accMachine.pushFreeRegister(next);
       list.add(InstructionFactory.createStore(ARM11Registers.R0,
                                               result,
                                               new Immediate(accSize)));
-      accSize += size;
+      accSize += ADDRESS_SIZE;
     }
 
     return list;
