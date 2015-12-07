@@ -284,28 +284,30 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label elseLabel = new Label("else_" + ifCount);
     Label continueLabel = new Label("fi_" + ifCount);
 
-    list.add(InstructionFactory.createBranchEqual(elseLabel));
-    String thenScope = Scope.THEN.toString() + ifCount;
-    changeWorkingSymbolTableTo(thenScope);
+    list.add(InstructionFactory.createBranchEqual(elseLabel))
+        .add(getInstructionsForIfBranch(Scope.THEN.toString(), ctx.thenStat))
+        .add(InstructionFactory.createBranch(continueLabel));
+
+    list.add(InstructionFactory.createLabel(elseLabel))
+        .add(getInstructionsForIfBranch(Scope.ELSE.toString(), ctx.elseStat))
+        .add(InstructionFactory.createLabel(continueLabel));
+
+    return list;
+  }
+
+  private InstructionList getInstructionsForIfBranch(String branchName,
+                                                     WACCParser
+                                                       .StatListContext ctx) {
+    InstructionList list = defaultResult();
+
+    String branchScope = branchName + ifCount;
+    changeWorkingSymbolTableTo(branchScope);
     pushEmptyVariableSet();
     list.add(allocateSpaceOnStack())
-        .add(visitStatList(ctx.thenStat))
+        .add(visitStatList(ctx))
         .add(deallocateSpaceOnStack());
     popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
-    list.add(InstructionFactory.createBranch(continueLabel));
-
-    list.add(InstructionFactory.createLabel(elseLabel));
-    String elseScope = Scope.ELSE.toString() + ifCount;
-    changeWorkingSymbolTableTo(elseScope);
-    pushEmptyVariableSet();
-    list.add(allocateSpaceOnStack())
-        .add(visitStatList(ctx.elseStat))
-        .add(deallocateSpaceOnStack());
-    popCurrentScopeVariableSet();
-    goUpWorkingSymbolTable();
-    list.add(InstructionFactory.createLabel(continueLabel));
-
     return list;
   }
 
