@@ -113,11 +113,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       }
     }
 
-    // TODO: deal with '4095', the max size... of something
+    // TODO: deal with '1024', the max size... of something
     if (stackSpaceVarSize > 0) {
-      Immediate imm = new Immediate(stackSpaceVarSize);
       Register sp = ARM11Registers.SP;
-      // CHECKED
+
+      Long i = stackSpaceVarSize;
+      Immediate imm;
+
+      while (i > 1024L) {
+        imm = new Immediate(1024L);
+        list.add(InstructionFactory.createSub(sp, sp, imm));
+        i -= 1024L;
+      }
+      imm = new Immediate(i);
       list.add(InstructionFactory.createSub(sp, sp, imm));
     }
 
@@ -199,9 +207,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     long stackSpaceSize = scope.getStackSpaceSize();
 
     if (stackSpaceSize > 0) {
-      Immediate imm = new Immediate(stackSpaceSize);
       Register sp = ARM11Registers.SP;
-      // CHECKED
+      Immediate imm;
+
+      Long i = stackSpaceSize;
+
+      while (i > 1024L) {
+        imm = new Immediate(1024L);
+        list.add(InstructionFactory.createAdd(sp, sp, imm));
+        i -= 1024L;
+      }
+      imm = new Immediate(i);
       list.add(InstructionFactory.createAdd(sp, sp, imm));
     }
 
@@ -597,7 +613,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           list.add(
             accMachine.getInstructionList(InstructionType.SMULL, dst1, dst2))
               .add(accMachine.getInstructionList(InstructionType.CMP,
-                dst2, dst1, new Shift(Shift.Shifts.ASR, 31)))
+                  dst2, dst1, new Shift(Shift.Shifts.ASR, 31)))
               .add(InstructionFactory.createBranchLinkNotEqual(
                 throwOverflowError));
 
@@ -1039,8 +1055,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           .add(InstructionFactory.createAdd(result, result,
               new Immediate(ADDRESS_SIZE)));
 
-      if (Type.isChar(ctx.returnType)
-          || Type.isBool(ctx.returnType)) {
+      if (Type.isChar(ctx.returnType) || Type.isBool(ctx.returnType)) {
         list.add(InstructionFactory.createAdd(result, result, helper));
       } else {
         list.add(InstructionFactory.createAdd(result, result, helper,
@@ -1048,7 +1063,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       }
 
       if (!isAssigning) {
-        list.add(InstructionFactory.createLoad(result, new Address(result)));
+        if (Type.isChar(ctx.returnType) || Type.isBool(ctx.returnType)) {
+          list.add(InstructionFactory.createLoadStoredByte(result, result,
+              new Immediate(0L)));
+        } else {
+          list.add(InstructionFactory.createLoad(result, new Address(result)));
+        }
       }
 
       addRuntimeErrorFunctionsToHelpers(
