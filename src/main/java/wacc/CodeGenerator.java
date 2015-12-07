@@ -3,10 +3,8 @@ package wacc;
 import antlr.WACCParser;
 import arm11.*;
 import bindings.*;
-
 import java.util.HashSet;
 import java.util.List;
-
 
 import static arm11.HeapFunctions.freePair;
 
@@ -112,23 +110,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         stackSpaceVarSize += v.getType().getSize();
       }
     }
-
-    // TODO: deal with '1024', the max size... of something
     if (stackSpaceVarSize > 0) {
-      Register sp = ARM11Registers.SP;
-
-      Long i = stackSpaceVarSize;
-      Immediate imm;
-
-      while (i > 1024L) {
-        imm = new Immediate(1024L);
-        list.add(InstructionFactory.createSub(sp, sp, imm));
-        i -= 1024L;
-      }
-      imm = new Immediate(i);
-      list.add(InstructionFactory.createSub(sp, sp, imm));
+      list.add(getAllocationInstructions(stackSpaceVarSize));
     }
-
     String scopeName = workingSymbolTable.getName();
     Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
     NewScope scope = (NewScope) scopeB;
@@ -163,6 +147,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       }
     }
     return offset;
+  }
+
+  private InstructionList getAllocationInstructions(long stackSpaceVarSize) {
+    InstructionList list = defaultResult();
+    Register sp = ARM11Registers.SP;
+    Immediate imm;
+    while (stackSpaceVarSize > 1024L) {
+      imm = new Immediate(1024L);
+      list.add(InstructionFactory.createSub(sp, sp, imm));
+      stackSpaceVarSize -= 1024L;
+    }
+    imm = new Immediate(stackSpaceVarSize);
+    return list.add(InstructionFactory.createSub(sp, sp, imm));
   }
 
   private InstructionList deallocateSpaceOnStackFromReturn() {
