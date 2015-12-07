@@ -764,7 +764,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       op = new Immediate(value);
       loadOrMove = accMachine.getInstructionList(InstructionType.LDR, reg, op);
     } else {
-      System.err.println(chr);
       if (chr.equals("'\\0'")) {
         op = new Immediate(0L);
       } else {
