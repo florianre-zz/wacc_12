@@ -571,12 +571,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
 	public Type visitUnaryOper(WACCParser.UnaryOperContext ctx) {
-    Type exprType = null;
-    if (ctx.ident() != null) {
-      exprType = visitIdent(ctx.ident());
-    } else if (ctx.expr() != null) {
-      exprType = visitExpr(ctx.expr());
-    }
+    Type exprType = getTypeFromUnaryOper(ctx);
     if (ctx.NOT() != null) {
       if (!Type.isBool(exprType)) {
         incorrectType(ctx, exprType, Types.BOOL_T.toString(), errorHandler);
@@ -590,7 +585,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     } else if (ctx.LEN() != null) {
       if (!ArrayType.isArray(exprType)) {
         incorrectType(ctx, exprType, Types.GENERIC_ARRAY_T.toString(),
-            errorHandler);
+                      errorHandler);
       }
       return getType(Types.INT_T);
     } else if (ctx.ORD() != null) {
@@ -598,6 +593,16 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         incorrectType(ctx, exprType, Types.CHAR_T.toString(), errorHandler);
       }
       return getType(Types.INT_T);
+    }
+    return exprType;
+  }
+
+  private Type getTypeFromUnaryOper(WACCParser.UnaryOperContext ctx) {
+    Type exprType = null;
+    if (ctx.ident() != null) {
+      exprType = visitIdent(ctx.ident());
+    } else if (ctx.expr() != null) {
+      exprType = visitExpr(ctx.expr());
     }
     return exprType;
   }
