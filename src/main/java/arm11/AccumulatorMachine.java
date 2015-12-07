@@ -6,9 +6,9 @@ public class AccumulatorMachine {
 
   private static final Register ACCUMULATOR = ARM11Registers.R10;
   private static final Register RESERVED = ARM11Registers.R11;
+  private static final boolean DEBUGGING = false;
   private int borrowedRegCount;
   private Stack<Register> freeRegisters;
-  private boolean debugging = false;
 
   public AccumulatorMachine() {
 
@@ -50,7 +50,7 @@ public class AccumulatorMachine {
     } else {
       register = freeRegisters.pop();
     }
-    if (debugging) {
+    if (DEBUGGING) {
       System.err.print("pop: ");
       freeRegisters.forEach(System.err::print);
       System.err.println();
@@ -68,7 +68,7 @@ public class AccumulatorMachine {
       }
       freeRegisters.push(register);
     }
-    if (debugging) {
+    if (DEBUGGING) {
       System.err.print("push: ");
       freeRegisters.forEach(System.err::print);
       System.err.println();

@@ -11,7 +11,8 @@ import java.util.List;
 import static arm11.HeapFunctions.freePair;
 
 public class CodeGenerator extends WACCVisitor<InstructionList> {
-  
+
+  private static final boolean DEBUGGING = false;
   private AccumulatorMachine accMachine;
 
   private static final long ADDRESS_SIZE = 4L;
@@ -216,10 +217,12 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitExitStat(WACCParser.ExitStatContext ctx) {
     Register result = accMachine.peekFreeRegister();
 
-    return defaultResult()
-        .add(visitExpr(ctx.expr()))
-        .add(InstructionFactory.createMove(ARM11Registers.R0, result))
+    InstructionList list = defaultResult()
+        .add(visitExpr(ctx.expr()));
+    accMachine.pushFreeRegister(result);
+    list.add(InstructionFactory.createMove(ARM11Registers.R0, result))
         .add(InstructionFactory.createBranchLink(new Label("exit")));
+    return list;
   }
 
   @Override
@@ -1132,6 +1135,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (ctx.paramList() != null) {
       visitParamList(ctx.paramList());
+    }
+
+    if (DEBUGGING) {
+      System.err.println(functionLabel);
     }
 
     list.add(InstructionFactory.createLabel(functionLabel));
