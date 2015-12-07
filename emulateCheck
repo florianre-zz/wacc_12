@@ -4,6 +4,7 @@ require "rest-client"
 require "json"
 require 'find'
 require 'shellwords'
+require 'parallel'
 
 @emulationsFile = "emulations.log"
 @outputFolder = "src/test/output"
@@ -21,8 +22,9 @@ end
 
 def check()
   i = 0
-  @testFiles.delete_at(148)
-  @testFiles.each do |file|
+  #@testFiles.delete_at(148)
+  @testFiles.slice!(140..150)
+  Parallel.each(@testFiles, :in_threads=>10) do |file|
     # compile
     i += 1
     print "Running Test: #{i}/#{@numTests}\r"
@@ -61,7 +63,6 @@ def check()
     else
       @correct += 1
     end
-    break if @incorrect >= 10
   end
   puts "\n\n"
 end
