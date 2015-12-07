@@ -115,6 +115,10 @@ public class AccumulatorMachine {
       } else if (inst.isStore()) {
         return storeInstructions(inst, dst, src, imm);
       }
+    } else if (op instanceof Shift) {
+      if (inst.isLogical()) {
+        return logicalInstructions(inst, dst, src, (Shift) op);
+      }
     }
     return result;
   }
@@ -235,6 +239,24 @@ public class AccumulatorMachine {
         break;
       case ORR:
         result.add(InstructionFactory.createOrr(dst, src1, src2));
+        break;
+      default:
+        break;
+    }
+    return result;
+  }
+
+  private InstructionList logicalInstructions(InstructionType inst,
+                                             Register src1, Register src2,
+                                             Shift shift) {
+    InstructionList result = new InstructionList();
+
+    if (inAccumulatorMode()) {
+      src1 = RESERVED;
+    }
+    switch (inst) {
+      case CMP:
+        result.add(InstructionFactory.createCompare(src1, src2, shift));
         break;
       default:
         break;

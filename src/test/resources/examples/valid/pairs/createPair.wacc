@@ -6,6 +6,5 @@
 # Program:
 
 begin
-  pair(int, int) p = newpair(10, 3);
-  fst p = 2
+  pair(int, int) p = newpair(10, 3)
 end
