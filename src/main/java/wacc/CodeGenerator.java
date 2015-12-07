@@ -597,7 +597,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           Label throwOverflowError = new Label("p_throw_overflow_error");
           list.add(
             accMachine.getInstructionList(InstructionType.SMULL, dst1, dst2))
-              .add(InstructionFactory.createCompare(
+              .add(accMachine.getInstructionList(InstructionType.CMP,
                 dst2, dst1, new Shift(Shift.Shifts.ASR, 31)))
               .add(InstructionFactory.createBranchLinkNotEqual(
                 throwOverflowError));
