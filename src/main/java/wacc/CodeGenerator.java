@@ -889,10 +889,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     list.add(visitExpr(exprCtx))
         .add(InstructionFactory.createLoad(ARM11Registers.R0,
                                            new Immediate(size)))
-        .add(InstructionFactory.createBranchLink(malloc))
-        .add(InstructionFactory.createStore(next,
-            ARM11Registers.R0,
-            new Immediate(0L)));
+        .add(InstructionFactory.createBranchLink(malloc));
+
+        if (size == 1) {
+          list.add(InstructionFactory.createStoreByte(next, ARM11Registers.R0,
+              new Immediate(0L)));
+        } else {
+          list.add(InstructionFactory.createStore(next,
+              ARM11Registers.R0,
+              new Immediate(0L)));
+        }
+
     return list;
   }
 
