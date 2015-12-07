@@ -22,7 +22,7 @@ end
 def check()
   i = 0
   #@testFiles.delete_at(148)
-  @testFiles.slice!(140..150)
+  @testFiles.slice!(145..150)
   @testFiles.each do |file|
     # compile
     i += 1
