@@ -630,6 +630,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     }
   }
 
+  /**
+   * visits relevant children of comparisonOpers
+   */
   @Override
   public Type visitComparisonOper(WACCParser.ComparisonOperContext ctx) {
     if (ctx.orderingOper() != null) {

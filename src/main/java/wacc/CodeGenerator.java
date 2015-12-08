@@ -42,12 +42,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return aggregate;
   }
 
-  private String getToken(int index){
-    String tokenName = WACCParser.tokenNames[index];
-    assert(tokenName.charAt(0) != '\'');
-    return tokenName.substring(1, tokenName.length() - 1);
-  }
-
+  /**
+   *
+   */
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
     accMachine.resetFreeRegisters();
@@ -60,19 +57,16 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       functions.add(visitFunc(function));
     }
     InstructionList main = visitMain(ctx.main());
-    program.add(data.getInstructionList());
-    // CHECKED
-    program.add(InstructionFactory.createText());
+    program.add(data.getInstructionList())
+           .add(InstructionFactory.createText());
     Label mainLabel = new Label(WACCVisitor.Scope.MAIN.toString());
-    // CHECKED
-    program.add(InstructionFactory.createGlobal(mainLabel));
 
-    program.add(functions).add(main);
+    program.add(InstructionFactory.createGlobal(mainLabel))
+           .add(functions)
+           .add(main);
 
     // Add the helper functions
-    for (InstructionList instructionList : helperFunctions) {
-      program.add(instructionList);
-    }
+    helperFunctions.forEach(program::add);
 
     goUpWorkingSymbolTable();
     return program;
@@ -488,7 +482,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
         list.add(visitComparisonOper(otherExpr));
 
-        if (ctx.ops.get(i).getText().equals(getToken(WACCParser.AND))){
+        if (ctx.ops.get(i).getText().equals(Utils.getToken(WACCParser.AND))){
           logicalInstr = accMachine.getInstructionList(AND,
                                                        dst1, dst1, dst2);
         } else {
@@ -577,7 +571,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         String op = ctx.ops.get(i).getText();
         list.add(visitMultOper(otherExpr));
         InstructionType opEnum;
-        opEnum = (op.equals(getToken(WACCParser.PLUS)) ? ADDS : SUBS);
+        opEnum = (op.equals(Utils.getToken(WACCParser.PLUS)) ? ADDS : SUBS);
         list.add(accMachine.getInstructionList(opEnum, dst1, dst1, dst2));
 
         Label throwOverflowError = new Label("p_throw_overflow_error");
@@ -606,7 +600,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         dst2 = accMachine.peekFreeRegister();
         String op = ctx.ops.get(i).getText();
         list.add(visitAtom(otherExpr));
-        if (op.equals(getToken(WACCParser.MUL))){
+        if (op.equals(Utils.getToken(WACCParser.MUL))){
           Label overflowError = new Label("p_throw_overflow_error");
           list.add(
             accMachine.getInstructionList(SMULL, dst1, dst2))
@@ -629,7 +623,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label checkDivideByZeroLabel = new Label("p_check_divide_by_zero");
     list.add(accMachine.getInstructionList(DIVMOD, dst1, dst2))
         .add(InstructionFactory.createBranchLink(checkDivideByZeroLabel));
-    if (op.equals(getToken(WACCParser.DIV))){
+    if (op.equals(Utils.getToken(WACCParser.DIV))){
       list.add(InstructionFactory.createDiv())
           .add(InstructionFactory.createMove(dst1, R0));
     } else {

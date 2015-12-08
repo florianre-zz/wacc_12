@@ -67,4 +67,10 @@ public class Utils {
     String errorMsg = sb.toString();
     errorHandler.complain(new DeclarationError(ctx, errorMsg));
   }
+
+  public static String getToken(int index){
+    String tokenName = WACCParser.tokenNames[index];
+    assert(tokenName.charAt(0) != '\'');
+    return tokenName.substring(1, tokenName.length() - 1);
+  }
 }
