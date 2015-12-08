@@ -11,6 +11,7 @@ import wacc.error.TypeAssignmentError;
 import java.util.HashSet;
 import java.util.List;
 
+import static arm11.ARM11Registers.R0;
 import static arm11.ARM11Registers.SP;
 import static arm11.InstructionType.*;
 
@@ -91,26 +92,15 @@ public class Utils {
       while (stackVarSize > MAX_IMM_SIZE) {
         imm = new Immediate(MAX_IMM_SIZE);
         stackVarSize -= MAX_IMM_SIZE;
-        mutateStackPointer(type, list, imm);
+        list.add(InstructionFactory.mutateStackPointer(type, imm));
       }
       imm = new Immediate(stackVarSize);
-      mutateStackPointer(type, list, imm);
+      list.add(InstructionFactory.mutateStackPointer(type, imm));
     }
     return list;
   }
 
-  private static void mutateStackPointer(InstructionType type,
-                                         InstructionList list, Immediate imm) {
-    switch (type) {
-      case ADD:
-        list.add(InstructionFactory.createAdd(SP, SP, imm)); break;
-      case SUB:
-        list.add(InstructionFactory.createSub(SP, SP, imm)); break;
-      default: break;
-    }
-  }
-
-  public static void addOffsetToParam(List<Binding> variables, long offset) {
+  public static void addOffsetToParams(List<Binding> variables, long offset) {
     offset += 4;
 
     for (Binding b : variables) {
@@ -154,13 +144,13 @@ public class Utils {
     scope.setStackSpaceSize(stackSpaceVarSize);
 
     long offset = Utils.addOffsetsToVariables(variables);
-    Utils.addOffsetToParam(variables, offset);
+    Utils.addOffsetToParams(variables, offset);
 
     return list;
   }
 
-  public static InstructionList deallocateSpaceOnStack
-      (SymbolTable<String, Binding> workingSymbolTable) {
+  public static InstructionList deallocateSpaceOnStack(
+      SymbolTable<String, Binding> workingSymbolTable) {
     InstructionList list = new InstructionList();
     String scopeName = workingSymbolTable.getName();
     Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
@@ -220,6 +210,60 @@ public class Utils {
     Label printLabel = new Label("p_print_ln");
     list.add(InstructionFactory.createBranchLink(printLabel));
     Utils.addFunctionToHelpers(PrintFunctions.printLn(data), helperFunctions);
+  }
+
+  public static Long totalListSize(
+                                List<? extends WACCParser.ExprContext> exprs) {
+    Long totalSize = 0L;
+    for (WACCParser.ExprContext exprCtx : exprs) {
+      totalSize += exprCtx.returnType.getSize();
+    }
+    return totalSize;
+  }
+
+  public static void addRuntimeErrorFunctionsToHelpers(InstructionList err,
+                                                       DataInstructions data,
+                                                       HashSet<InstructionList>
+                                                         helperFunctions) {
+    Utils.addFunctionToHelpers(err, helperFunctions);
+    addThrowRuntimeErrorFunctionsToHelpers(data, helperFunctions);
+  }
+
+  public static void addThrowRuntimeErrorFunctionsToHelpers(
+            DataInstructions data, HashSet<InstructionList> helperFunctions) {
+    Utils.addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data),
+        helperFunctions);
+    Utils.addFunctionToHelpers(PrintFunctions.printString(data),
+                               helperFunctions);
+  }
+
+  public static InstructionList storeLengthOfArray(long numberOfElems,
+                                             Register addressOfArray,
+                                             Register lengthOfArray) {
+
+    InstructionList list = new InstructionList();
+    list.add(InstructionFactory.createLoad(lengthOfArray,
+                                           new Immediate(numberOfElems)))
+        .add(InstructionFactory.createStore(lengthOfArray,
+                                            addressOfArray,
+                                            new Immediate(0L)));
+    return list;
+  }
+
+  public static InstructionList allocateArrayAddress(long bytesToAllocate,
+                                               Label malloc,
+                                               Register addressOfArray,
+                                               AccumulatorMachine accMachine) {
+    InstructionList list = new InstructionList();
+    list.add(InstructionFactory.createLoad(R0, new Immediate(bytesToAllocate)))
+        .add(InstructionFactory.createBranchLink(malloc))
+        .add(accMachine.getInstructionList(MOV, addressOfArray, R0));
+    return list;
+  }
+
+  public static long getTypeSize(WACCParser.ArrayLitrContext ctx) {
+    Type returnType = ctx.expr().get(0).returnType;
+    return returnType.getSize();
   }
 
 }
