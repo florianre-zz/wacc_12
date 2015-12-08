@@ -169,8 +169,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 
   @Override
   public Type visitAssignLHS(WACCParser.AssignLHSContext ctx) {
-
-    return super.visitAssignLHS(ctx);
+    Type returnType = super.visitAssignLHS(ctx);
+    if (ctx.pairElem() != null) {
+      String name = ctx.pairElem().ident().getText();
+      ctx.returnType = getMostRecentBindingForVariable(name).getType();
+    } else {
+      ctx.returnType = returnType;
+    }
+    return returnType;
   }
 
   /**
@@ -184,9 +190,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       errorHandler.complain(
           new ReadTypeAssignmentError(ctx, lhsType.toString()));
     }
-
-    ctx.assignLHS().returnType = visitAssignLHS(ctx.assignLHS());
-
     return lhsType;
   }
 

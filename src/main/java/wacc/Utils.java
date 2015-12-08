@@ -12,8 +12,11 @@ import java.util.HashSet;
 import java.util.List;
 
 import static arm11.ARM11Registers.SP;
+import static arm11.InstructionType.*;
 
 public class Utils {
+
+  private static final long MAX_IMM_SIZE = 1024L; // 2^10
 
   public static boolean isReadable(Type lhsType) {
     return Type.isInt(lhsType) || Type.isChar(lhsType);
@@ -80,21 +83,36 @@ public class Utils {
     return tokenName.substring(1, tokenName.length() - 1);
   }
 
-  public static InstructionList getAllocationInstructions(
-                                      long stackSpaceVarSize) {
+  public static InstructionList getAllocationInstructions(long stackVarSize,
+                                                         InstructionType type) {
     InstructionList list = new InstructionList();
-    Immediate imm;
-    while (stackSpaceVarSize > 1024L) {
-      imm = new Immediate(1024L);
-      list.add(InstructionFactory.createSub(SP, SP, imm));
-      stackSpaceVarSize -= 1024L;
+    if (stackVarSize > 0) {
+      Immediate imm;
+      while (stackVarSize > MAX_IMM_SIZE) {
+        imm = new Immediate(MAX_IMM_SIZE);
+        stackVarSize -= MAX_IMM_SIZE;
+        mutateStackPointer(type, list, imm);
+      }
+      imm = new Immediate(stackVarSize);
+      mutateStackPointer(type, list, imm);
     }
-    imm = new Immediate(stackSpaceVarSize);
-    return list.add(InstructionFactory.createSub(SP, SP, imm));
+    return list;
+  }
+
+  private static void mutateStackPointer(InstructionType type,
+                                         InstructionList list, Immediate imm) {
+    switch (type) {
+      case ADD:
+        list.add(InstructionFactory.createAdd(SP, SP, imm)); break;
+      case SUB:
+        list.add(InstructionFactory.createSub(SP, SP, imm)); break;
+      default: break;
+    }
   }
 
   public static void addOffsetToParam(List<Binding> variables, long offset) {
     offset += 4;
+
     for (Binding b : variables) {
       Variable v = (Variable) b;
       if (v.isParam()) {
@@ -129,9 +147,7 @@ public class Utils {
         stackSpaceVarSize += v.getType().getSize();
       }
     }
-    if (stackSpaceVarSize > 0) {
-      list.add(Utils.getAllocationInstructions(stackSpaceVarSize));
-    }
+    list.add(Utils.getAllocationInstructions(stackSpaceVarSize, SUB));
     String scopeName = workingSymbolTable.getName();
     Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
     NewScope scope = (NewScope) scopeB;
@@ -143,8 +159,23 @@ public class Utils {
     return list;
   }
 
+  public static InstructionList deallocateSpaceOnStack
+      (SymbolTable<String, Binding> workingSymbolTable) {
+    InstructionList list = new InstructionList();
+    String scopeName = workingSymbolTable.getName();
+    Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
+    NewScope scope = (NewScope) scopeB;
+
+    long stackSpaceSize = scope.getStackSpaceSize();
+
+    list.add(Utils.getAllocationInstructions(stackSpaceSize, ADD));
+
+    return list;
+  }
+
   private static long getAccumulativeStackSizeFromReturn(
                             SymbolTable<String, Binding> workingSymbolTable) {
+
     long accumulativeStackSize = 0;
     SymbolTable<String, Binding> currentSymbolTable = workingSymbolTable;
     while (currentSymbolTable != null) {
@@ -170,30 +201,6 @@ public class Utils {
       Operand imm = new Immediate(stackSpaceSize);
       Register sp = SP;
       list.add(InstructionFactory.createAdd(sp, sp, imm));
-    }
-
-    return list;
-  }
-
-  // TODO: look at making one deallocate function
-  public static InstructionList deallocateSpaceOnStack(
-    SymbolTable<String, Binding> workingSymbolTable) {
-    InstructionList list = new InstructionList();
-    String scopeName = workingSymbolTable.getName();
-    Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
-    NewScope scope = (NewScope) scopeB;
-
-    long stackSpaceSize = scope.getStackSpaceSize();
-    if (stackSpaceSize > 0) {
-      Immediate imm;
-      Long i = stackSpaceSize;
-      while (i > 1024L) {
-        imm = new Immediate(1024L);
-        list.add(InstructionFactory.createAdd(SP, SP, imm));
-        i -= 1024L;
-      }
-      imm = new Immediate(i);
-      list.add(InstructionFactory.createAdd(SP, SP, imm));
     }
 
     return list;
