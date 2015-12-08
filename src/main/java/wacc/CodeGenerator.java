@@ -89,7 +89,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(InstructionFactory.createLabel(new Label(Scope.MAIN.toString())))
         .add(InstructionFactory.createPush(LR))
-        .add(allocateSpaceOnStack())
+        .add(Utils.allocateSpaceOnStack(workingSymbolTable))
         .add(visitChildren(ctx))
         .add(deallocateSpaceOnStack())
         .add(InstructionFactory.createLoad(R0, new Immediate(0L)))
@@ -100,101 +100,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     popCurrentScopeVariableSet();
 
     return list;
-  }
-
-  private InstructionList allocateSpaceOnStack() {
-    InstructionList list = defaultResult();
-    List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
-    long stackSpaceVarSize = 0;
-
-    for (Binding b : variables) {
-      Variable v = (Variable) b;
-      if (!v.isParam()) {
-        stackSpaceVarSize += v.getType().getSize();
-      }
-    }
-    if (stackSpaceVarSize > 0) {
-      list.add(getAllocationInstructions(stackSpaceVarSize));
-    }
-    String scopeName = workingSymbolTable.getName();
-    Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
-    NewScope scope = (NewScope) scopeB;
-    scope.setStackSpaceSize(stackSpaceVarSize);
-
-    long offset = addOffsetsToVariables(variables);
-    addOffsetToParam(variables, offset);
-
-    return list;
-  }
-
-  private static void addOffsetToParam(List<Binding> variables, long offset) {
-    offset += 4;
-
-    for (Binding b : variables) {
-      Variable v = (Variable) b;
-      if (v.isParam()) {
-        v.setOffset(offset);
-        offset += v.getType().getSize();
-      }
-    }
-  }
-
-  private static long addOffsetsToVariables(List<Binding> variables) {
-    // First pass to add offsets to variables
-    long offset = 0;
-    for (int i = variables.size() - 1; i >= 0; i--) {
-      Variable v = (Variable) variables.get(i);
-      if (!v.isParam()) {
-        v.setOffset(offset);
-        offset += v.getType().getSize();
-      }
-    }
-    return offset;
-  }
-
-  private InstructionList getAllocationInstructions(long stackSpaceVarSize) {
-    InstructionList list = defaultResult();
-    Register sp = SP;
-    Immediate imm;
-    while (stackSpaceVarSize > 1024L) {
-      imm = new Immediate(1024L);
-      list.add(InstructionFactory.createSub(sp, sp, imm));
-      stackSpaceVarSize -= 1024L;
-    }
-    imm = new Immediate(stackSpaceVarSize);
-    return list.add(InstructionFactory.createSub(sp, sp, imm));
-  }
-
-  private InstructionList deallocateSpaceOnStackFromReturn() {
-    InstructionList list = defaultResult();
-
-    long stackSpaceSize = getAccumulativeStackSizeFromReturn();
-
-    if (stackSpaceSize > 0) {
-      Operand imm = new Immediate(stackSpaceSize);
-      Register sp = SP;
-      list.add(InstructionFactory.createAdd(sp, sp, imm));
-    }
-
-    return list;
-  }
-
-  private long getAccumulativeStackSizeFromReturn() {
-    long accumulativeStackSize = 0;
-
-    SymbolTable<String, Binding> currentSymbolTable = workingSymbolTable;
-    while (currentSymbolTable != null) {
-      String scopeName = currentSymbolTable.getName();
-      SymbolTable<String, Binding> parent = currentSymbolTable.getEnclosingST();
-      NewScope currentScope = (NewScope) parent.get(scopeName);
-      accumulativeStackSize += (currentScope).getStackSpaceSize();
-      if (currentScope instanceof Function) {
-        break;
-      }
-      currentSymbolTable = parent;
-    }
-
-    return accumulativeStackSize;
   }
 
   // TODO: look at making one deallocate function
@@ -256,7 +161,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(InstructionFactory.createBranch(predicate))
         .add(InstructionFactory.createLabel(body))
-        .add(allocateSpaceOnStack())
+        .add(Utils.allocateSpaceOnStack(workingSymbolTable))
         .add(visitStatList(ctx.statList()))
         .add(deallocateSpaceOnStack())
         .add(InstructionFactory.createLabel(predicate));
@@ -306,7 +211,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     String branchScope = branchName + ifCount;
     changeWorkingSymbolTableTo(branchScope);
     pushEmptyVariableSet();
-    list.add(allocateSpaceOnStack())
+    list.add(Utils.allocateSpaceOnStack(workingSymbolTable))
         .add(visitStatList(ctx))
         .add(deallocateSpaceOnStack());
     popCurrentScopeVariableSet();
@@ -417,7 +322,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register resultReg = accMachine.peekFreeRegister();
     list.add(visitExpr(ctx.expr()))
         .add(InstructionFactory.createMove(R0, resultReg))
-        .add(deallocateSpaceOnStackFromReturn())
+        .add(Utils.deallocateSpaceOnStackFromReturn(workingSymbolTable))
         .add(InstructionFactory.createPop(PC));
     accMachine.pushFreeRegister(resultReg);
 
@@ -912,7 +817,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     changeWorkingSymbolTableTo(beginScope);
     pushEmptyVariableSet();
 
-    list.add(allocateSpaceOnStack())
+    list.add(Utils.allocateSpaceOnStack(workingSymbolTable))
             .add(visitStatList(ctx.statList()))
             .add(deallocateSpaceOnStack());
 
@@ -1167,7 +1072,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(InstructionFactory.createLabel(functionLabel));
     list.add(InstructionFactory.createPush(LR))
-            .add(allocateSpaceOnStack())
+            .add(Utils.allocateSpaceOnStack(workingSymbolTable))
             .add(visitStatList(ctx.statList()))
             .add(InstructionFactory.createPop(PC))
             .add(InstructionFactory.createLTORG());
