@@ -160,21 +160,20 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
     InstructionList program = defaultResult();
-    // visit all the functions and add their instructions
+
     InstructionList functions = defaultResult();
     for (FuncContext function : ctx.func()) {
       functions.add(visitFunc(function));
     }
+
     InstructionList main = visitMain(ctx.main());
     program.add(data.getInstructionList())
            .add(createText());
     Label mainLabel = new Label(WACCVisitor.Scope.MAIN.toString());
-
     program.add(createGlobal(mainLabel))
            .add(functions)
            .add(main);
 
-    // Add the helper functions
     helperFunctions.forEach(program::add);
 
     goUpWorkingSymbolTable();
@@ -190,9 +189,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitMain(MainContext ctx) {
     InstructionList list = defaultResult();
     String scopeName = Scope.MAIN.toString();
+
     changeWorkingSymbolTableTo(scopeName);
     pushEmptyVariableSet();
-
     list.add(createLabel(new Label(Scope.MAIN.toString())))
         .add(createPush(LR))
         .add(Utils.allocateSpaceOnStack(workingSymbolTable))
@@ -201,7 +200,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(createLoad(R0, new Immediate(0L)))
         .add(createPop(PC))
         .add(createLTORG());
-
     goUpWorkingSymbolTable();
     popCurrentScopeVariableSet();
 
