@@ -534,7 +534,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   /**
-   *
+   * Allocate size on the heap for the pair elems
+   * Store the elements at the respective addresses in the heap
    */
   @Override
   public InstructionList visitNewPair(NewPairContext ctx) {
