@@ -8,6 +8,7 @@ import wacc.error.DeclarationError;
 import wacc.error.WACCErrorHandler;
 import wacc.error.TypeAssignmentError;
 
+import java.util.HashSet;
 import java.util.List;
 
 import static arm11.ARM11Registers.SP;
@@ -203,6 +204,22 @@ public class Utils {
     }
 
     return list;
+  }
+
+  public static void addFunctionToHelpers(InstructionList function,
+                                          HashSet<InstructionList>
+                                            helperFunctions) {
+    if (function != null) {
+      helperFunctions.add(function);
+    }
+  }
+
+
+  public static void printNewLine(InstructionList list, DataInstructions data,
+                                  HashSet<InstructionList> helperFunctions) {
+    Label printLabel = new Label("p_print_ln");
+    list.add(InstructionFactory.createBranchLink(printLabel));
+    Utils.addFunctionToHelpers(PrintFunctions.printLn(data), helperFunctions);
   }
 
 }
