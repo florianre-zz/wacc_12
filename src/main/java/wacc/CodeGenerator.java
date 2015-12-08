@@ -1060,6 +1060,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return returnType.getSize();
   }
 
+  /**
+   * Sets internal boolean (that informs us if a variable is a parameter) to
+   * true
+   */
   @Override
   public InstructionList visitParam(ParamContext ctx) {
     String name = ctx.name.getText();
@@ -1069,11 +1073,16 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return null;
   }
 
+  /**
+   * Sets up stack frame
+   * Gets instructions for each param
+   * Adds instructions of body
+   */
   @Override
   public InstructionList visitFunc(FuncContext ctx) {
     InstructionList list = defaultResult();
     changeWorkingSymbolTableTo(ScopeType.FUNCTION_SCOPE
-            + ctx.funcName.getText());
+                               + ctx.funcName.getText());
     pushEmptyVariableSet();
 
     Label functionLabel = new Label(ScopeType.FUNCTION_SCOPE
