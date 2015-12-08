@@ -159,8 +159,8 @@ public class Utils {
     return list;
   }
 
-  public static InstructionList deallocateSpaceOnStack
-      (SymbolTable<String, Binding> workingSymbolTable) {
+  public static InstructionList deallocateSpaceOnStack(
+      SymbolTable<String, Binding> workingSymbolTable) {
     InstructionList list = new InstructionList();
     String scopeName = workingSymbolTable.getName();
     Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
@@ -220,6 +220,56 @@ public class Utils {
     Label printLabel = new Label("p_print_ln");
     list.add(InstructionFactory.createBranchLink(printLabel));
     Utils.addFunctionToHelpers(PrintFunctions.printLn(data), helperFunctions);
+  }
+
+  public static Long totalListSize(
+                                List<? extends WACCParser.ExprContext> exprs) {
+    Long totalSize = 0L;
+    for (WACCParser.ExprContext exprCtx : exprs) {
+      totalSize += exprCtx.returnType.getSize();
+    }
+    return totalSize;
+  }
+
+  public static InstructionList getLoadInstructionForElem(boolean isStoredByte,
+                                                    Register result) {
+    InstructionList list = new InstructionList();
+    if (isStoredByte) {
+      list.add(InstructionFactory.createLoadStoredByte(result, result,
+                                                       new Immediate(0L)));
+    } else {
+      list.add(InstructionFactory.createLoad(result, result,
+                                             new Immediate(0L)));
+    }
+    return list;
+  }
+
+  public static InstructionList getAddInstruction(boolean isStoredByte,
+                                            Register result, Register helper) {
+    InstructionList list = new InstructionList();
+    if (isStoredByte) {
+      list.add(InstructionFactory.createAdd(result, result, helper));
+    } else {
+      list.add(InstructionFactory.createAdd(result, result, helper,
+                                            new Shift(Shift.Shifts.LSL, 2)));
+    }
+    return list;
+  }
+
+  public static void addRuntimeErrorFunctionsToHelpers(InstructionList err,
+                                                       DataInstructions data,
+                                                       HashSet<InstructionList>
+                                                         helperFunctions) {
+    Utils.addFunctionToHelpers(err, helperFunctions);
+    addThrowRuntimeErrorFunctionsToHelpers(data, helperFunctions);
+  }
+
+  public static void addThrowRuntimeErrorFunctionsToHelpers(
+            DataInstructions data, HashSet<InstructionList> helperFunctions) {
+    Utils.addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data),
+                               helperFunctions);
+    Utils.addFunctionToHelpers(PrintFunctions.printString(data),
+                               helperFunctions);
   }
 
 }
