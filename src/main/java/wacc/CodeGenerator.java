@@ -111,7 +111,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   /**
-   *
+   * Moves the exit code to the relevant register
+   * Calls for the exit procedure
    */
   @Override
   public InstructionList visitExitStat(WACCParser.ExitStatContext ctx) {
@@ -126,6 +127,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Increments while count
+   * Adds instructions for body
+   * Adds comparison for the condition for the while loop
+   */
   @Override
   public InstructionList visitWhileStat(WACCParser.WhileStatContext ctx) {
     ++whileCount;
@@ -158,6 +164,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Increments if count
+   * Adds comparison instructions for condition
+   * Adds relevant bodies and branches
+   */
   @Override
   public InstructionList visitIfStat(WACCParser.IfStatContext ctx) {
     ++ifCount;
@@ -183,6 +194,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Sets up stack frame for body
+   * Adds instructions for body
+   */
   private InstructionList getInstructionsForIfBranch(String branchName,
                                                      WACCParser
                                                        .StatListContext ctx) {
@@ -200,6 +215,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Gets offset for initialised Variable
+   * Adds instructions for storing to the variable
+   * Includes variable name to Variables declared in the scope
+   */
   @Override
   public InstructionList visitInitStat(WACCParser.InitStatContext ctx) {
     String varName = ctx.ident().getText();
@@ -271,6 +291,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     return visitChildren(ctx);
   }
+
 
   private InstructionList storeToOffset(long varOffset,
                                         Type varType,
