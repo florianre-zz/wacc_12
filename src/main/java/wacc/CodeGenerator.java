@@ -935,11 +935,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register sp = SP;
 
       if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
-        list.add(accMachine.getInstructionList(LDRSB, reg,
-                                               sp, offset));
+        list.add(accMachine.getInstructionList(LDRSB, reg, sp, offset));
       } else {
-        list.add(accMachine.getInstructionList(LDR, reg,
-                                               sp, offset));
+        list.add(accMachine.getInstructionList(LDR, reg, sp, offset));
       }
 
     return list;
@@ -1050,7 +1048,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
           .add(InstructionFactory.createMove(R1, result))
           .add(InstructionFactory.createBranchLink(checkArrayBounds))
           .add(InstructionFactory.createAdd(result, result,
-              new Immediate(ADDRESS_SIZE)));
+                                            new Immediate(ADDRESS_SIZE)));
 
       boolean isStoredByte
         = Type.isChar(ctx.returnType) || Type.isBool(ctx.returnType);
