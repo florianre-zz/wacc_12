@@ -8,6 +8,7 @@ import java.util.List;
 
 import static arm11.HeapFunctions.freePair;
 import static arm11.InstructionType.*;
+import static arm11.Shift.Shifts.*;
 
 public class CodeGenerator extends WACCVisitor<InstructionList> {
 
@@ -572,14 +573,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         WACCParser.MultOperContext otherExpr = ctx.otherExprs.get(i);
         dst2 = accMachine.peekFreeRegister();
         String op = ctx.ops.get(i).getText();
-
         list.add(visitMultOper(otherExpr));
         InstructionType opEnum;
-        if (op.equals(getToken(WACCParser.PLUS))) {
-          opEnum = ADDS;
-        } else {
-          opEnum = SUBS;
-        }
+        opEnum = (op.equals(getToken(WACCParser.PLUS)) ? ADDS : SUBS);
         list.add(accMachine.getInstructionList(opEnum, dst1, dst1, dst2));
 
         Label throwOverflowError = new Label("p_throw_overflow_error");
@@ -607,27 +603,22 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         WACCParser.AtomContext otherExpr = ctx.otherExprs.get(i);
         dst2 = accMachine.peekFreeRegister();
         String op = ctx.ops.get(i).getText();
-
         list.add(visitAtom(otherExpr));
         if (op.equals(getToken(WACCParser.MUL))){
-          Label throwOverflowError = new Label("p_throw_overflow_error");
+          Label overflowError = new Label("p_throw_overflow_error");
           list.add(
             accMachine.getInstructionList(SMULL, dst1, dst2))
-              .add(accMachine.getInstructionList(CMP,
-                                                 dst2, dst1, new Shift(Shift.Shifts.ASR, 31)))
-              .add(InstructionFactory.createBranchLinkNotEqual(
-                throwOverflowError));
-
+              .add(accMachine.getInstructionList(CMP, dst2, dst1,
+                                                 new Shift(ASR, 31)))
+              .add(InstructionFactory.createBranchLinkNotEqual(overflowError));
           addRuntimeErrorFunctionsToHelpers(
             RuntimeErrorFunctions.overflowError(data), data);
-
         } else {
           list.add(divMoves(dst1, dst2, op));
         }
         accMachine.pushFreeRegister(dst2);
       }
     }
-
     return list;
   }
 
