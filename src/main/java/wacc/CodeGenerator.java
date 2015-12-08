@@ -464,7 +464,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-
+  /**
+   * Gets instructions for first addOper
+   * If there is another operand, adds instructions to place the second
+   * operand and to evaluate the equality operation
+   */
   @Override
   public InstructionList visitEqualityOper(WACCParser.EqualityOperContext ctx) {
     InstructionList list = defaultResult();
@@ -487,6 +491,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Gets instructions for first multOper
+   * If there are more operands, adds instructions to place each subsequent
+   * operand and to evaluate the addition (or subtraction) operation
+   */
   @Override
   public InstructionList visitAddOper(WACCParser.AddOperContext ctx) {
     Register dst1 = accMachine.peekFreeRegister();
@@ -516,6 +525,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Gets instructions for first atom
+   * If there are more operands, adds instructions to place each subsequent
+   * operand and to evaluate the multiplication (or div/ mod) operation
+   */
   @Override
   public InstructionList visitMultOper(WACCParser.MultOperContext ctx) {
     InstructionList list = defaultResult();
@@ -547,6 +561,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Gets instructions to call for divide by zero procedure
+   * Adds Labels and relevant move instructions for a div or a mod operation
+   * given src registers
+   */
   private InstructionList divMoves(Register dst1, Register dst2, String op) {
     InstructionList list =  defaultResult();
     Label checkDivideByZeroLabel = new Label("p_check_divide_by_zero");
