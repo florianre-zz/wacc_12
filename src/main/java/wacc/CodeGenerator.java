@@ -4,6 +4,7 @@ import antlr.WACCParser;
 import arm11.*;
 import arm11.Shift.Shifts;
 import bindings.*;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -211,59 +212,40 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   // TODO: refactor
   @Override
   public InstructionList visitAssignStat(AssignStatContext ctx) {
+    InstructionList list = defaultResult();
     if (ctx.assignLHS().ident() != null) {
-
       String varName = ctx.assignLHS().ident().getText();
       Variable var = getMostRecentBindingForVariable(varName);
       long varOffset = getAccumulativeOffsetForVariable(varName);
-
       return storeToOffset(varOffset, var.getType(), ctx.assignRHS());
-    } else if (ctx.assignLHS().arrayElem() != null) {
-      InstructionList list = defaultResult();
-      Register result = accMachine.peekFreeRegister();
-      list.add(visitAssignRHS(ctx.assignRHS()));
-      Register arrayElemAddr = accMachine.peekFreeRegister();
-      isAssigning = true;
-      list.add(visitArrayElem(ctx.assignLHS().arrayElem()));
-      isAssigning = false;
-      if (Type.isBool(ctx.assignLHS().arrayElem().returnType)
-          || Type.isChar(ctx.assignLHS().arrayElem().returnType)) {
-        list.add(accMachine.getInstructionList(STRB, result,
-                                               arrayElemAddr));
-      } else {
-        list.add(accMachine.getInstructionList(STR, result,
-                                               arrayElemAddr));
-      }
-      accMachine.pushFreeRegister(arrayElemAddr);
-      accMachine.pushFreeRegister(result);
-
-      return list;
-    } else if (ctx.assignLHS().pairElem() != null) {
-      InstructionList list = defaultResult();
-
+    } else {
       Register result = accMachine.peekFreeRegister();
       list.add(visitAssignRHS(ctx.assignRHS()));
       Register addr = accMachine.peekFreeRegister();
-      isAssigning = true;
-      list.add(visitPairElem(ctx.assignLHS().pairElem()));
-      isAssigning = false;
-      String varName = ctx.assignLHS().pairElem().ident().getText();
-      Variable var = getMostRecentBindingForVariable(varName);
-      Type varType = var.getType();
+
+      visitAssignLHS(ctx.assignLHS());
+      Type varType = (Type)ctx.assignLHS().returnType;
+
       if (Type.isBool(varType) || Type.isChar(varType)) {
-        list.add(accMachine.getInstructionList(STRB, result,
-                                               addr));
+        list.add(accMachine.getInstructionList(STRB, result, addr));
       } else {
-        list.add(accMachine.getInstructionList(STR, result,
-                                               addr));
+        list.add(accMachine.getInstructionList(STR, result, addr));
       }
+
       accMachine.pushFreeRegister(addr);
       accMachine.pushFreeRegister(result);
-
-      return list;
     }
 
-    return visitChildren(ctx);
+    return list;
+  }
+
+  @Override
+  public InstructionList visitAssignLHS(@NotNull AssignLHSContext ctx) {
+    InstructionList list = defaultResult();
+    isAssigning = true;
+    list.add(visitChildren(ctx));
+    isAssigning = false;
+    return list;
   }
 
   private InstructionList storeToOffset(long varOffset,
