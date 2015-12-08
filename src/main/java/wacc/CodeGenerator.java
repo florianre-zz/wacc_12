@@ -352,24 +352,24 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     if (Type.isString(returnType)) {
       printLabel = new Label("p_print_string");
-      addFunctionToHelpers(PrintFunctions.printString(data));
+      Utils.addFunctionToHelpers(PrintFunctions.printString(data), helperFunctions);
     } else if (Type.isInt(returnType)) {
       printLabel = new Label("p_print_int");
-      addFunctionToHelpers(PrintFunctions.printInt(data));
+      Utils.addFunctionToHelpers(PrintFunctions.printInt(data), helperFunctions);
     } else if (Type.isChar(returnType)){
       printLabel = new Label("putchar");
     } else if (Type.isBool(returnType)) {
       printLabel = new Label("p_print_bool");
-      addFunctionToHelpers(PrintFunctions.printBool(data));
+      Utils.addFunctionToHelpers(PrintFunctions.printBool(data), helperFunctions);
     } else {
       printLabel = new Label("p_print_reference");
-      addFunctionToHelpers(PrintFunctions.printReference(data));
+      Utils.addFunctionToHelpers(PrintFunctions.printReference(data), helperFunctions);
     }
 
     Register result = accMachine.peekFreeRegister();
     list.add(printExpression(ctx.expr(), printLabel, result));
     if (ctx.PRINTLN() != null) {
-      printNewLine(list);
+    Utils.printNewLine(list, data, helperFunctions);
     }
     accMachine.pushFreeRegister(result);
 
@@ -389,15 +389,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createMove(R0, result))
         .add(InstructionFactory.createBranchLink(printLabel));
     return list;
-  }
-
-  /**
-   * Adds function to helper functions
-   */
-  private void addFunctionToHelpers(InstructionList function) {
-    if (function != null) {
-      helperFunctions.add(function);
-    }
   }
 
   /**
@@ -436,6 +427,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Gets instructions for first addOper
+   * If there is another operand, adds instructions to place the second
+   * operand and to evaluate the ordering operation
+   */
   @Override
   public InstructionList visitOrderingOper(WACCParser.OrderingOperContext ctx) {
     InstructionList list = defaultResult();
@@ -468,11 +464,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  private void printNewLine(InstructionList list) {
-    Label printLabel = new Label("p_print_ln");
-    list.add(InstructionFactory.createBranchLink(printLabel));
-    addFunctionToHelpers(PrintFunctions.printLn(data));
-  }
 
   @Override
   public InstructionList visitEqualityOper(WACCParser.EqualityOperContext ctx) {
@@ -1018,13 +1009,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private void addRuntimeErrorFunctionsToHelpers(InstructionList err,
                                                  DataInstructions data) {
-    addFunctionToHelpers(err);
+    Utils.addFunctionToHelpers(err, helperFunctions);
     addThrowRuntimeErrorFunctionsToHelpers(data);
   }
 
   private void addThrowRuntimeErrorFunctionsToHelpers(DataInstructions data) {
-    addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data));
-    addFunctionToHelpers(PrintFunctions.printString(data));
+    Utils.addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data),
+                         helperFunctions);
+    Utils.addFunctionToHelpers(PrintFunctions.printString(data), helperFunctions);
   }
 
   private InstructionList storeLengthOfArray(long numberOfElems,
