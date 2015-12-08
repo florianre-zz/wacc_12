@@ -79,8 +79,8 @@ public class Utils {
     return tokenName.substring(1, tokenName.length() - 1);
   }
 
-  public static InstructionList getAllocationInstructions
-                                      (long stackSpaceVarSize) {
+  public static InstructionList getAllocationInstructions(
+                                      long stackSpaceVarSize) {
     InstructionList list = new InstructionList();
     Immediate imm;
     while (stackSpaceVarSize > 1024L) {
@@ -116,8 +116,8 @@ public class Utils {
     return offset;
   }
 
-  public static InstructionList allocateSpaceOnStack
-                            (SymbolTable<String, Binding> workingSymbolTable) {
+  public static InstructionList allocateSpaceOnStack(
+                            SymbolTable<String, Binding> workingSymbolTable) {
     InstructionList list = new InstructionList();
     List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
     long stackSpaceVarSize = 0;
@@ -142,8 +142,8 @@ public class Utils {
     return list;
   }
 
-  private static long getAccumulativeStackSizeFromReturn
-                            (SymbolTable<String, Binding> workingSymbolTable) {
+  private static long getAccumulativeStackSizeFromReturn(
+                            SymbolTable<String, Binding> workingSymbolTable) {
     long accumulativeStackSize = 0;
     SymbolTable<String, Binding> currentSymbolTable = workingSymbolTable;
     while (currentSymbolTable != null) {
@@ -169,6 +169,30 @@ public class Utils {
       Operand imm = new Immediate(stackSpaceSize);
       Register sp = SP;
       list.add(InstructionFactory.createAdd(sp, sp, imm));
+    }
+
+    return list;
+  }
+
+  // TODO: look at making one deallocate function
+  public static InstructionList deallocateSpaceOnStack(
+    SymbolTable<String, Binding> workingSymbolTable) {
+    InstructionList list = new InstructionList();
+    String scopeName = workingSymbolTable.getName();
+    Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
+    NewScope scope = (NewScope) scopeB;
+
+    long stackSpaceSize = scope.getStackSpaceSize();
+    if (stackSpaceSize > 0) {
+      Immediate imm;
+      Long i = stackSpaceSize;
+      while (i > 1024L) {
+        imm = new Immediate(1024L);
+        list.add(InstructionFactory.createAdd(SP, SP, imm));
+        i -= 1024L;
+      }
+      imm = new Immediate(i);
+      list.add(InstructionFactory.createAdd(SP, SP, imm));
     }
 
     return list;

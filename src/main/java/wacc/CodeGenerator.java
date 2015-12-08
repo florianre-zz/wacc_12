@@ -91,7 +91,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createPush(LR))
         .add(Utils.allocateSpaceOnStack(workingSymbolTable))
         .add(visitChildren(ctx))
-        .add(deallocateSpaceOnStack())
+        .add(Utils.deallocateSpaceOnStack(workingSymbolTable))
         .add(InstructionFactory.createLoad(R0, new Immediate(0L)))
         .add(InstructionFactory.createPop(PC))
         .add(InstructionFactory.createLTORG());
@@ -102,47 +102,27 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  // TODO: look at making one deallocate function
-  private InstructionList deallocateSpaceOnStack() {
-    InstructionList list = defaultResult();
-    String scopeName = workingSymbolTable.getName();
-    Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
-    NewScope scope = (NewScope) scopeB;
-
-    long stackSpaceSize = scope.getStackSpaceSize();
-
-    if (stackSpaceSize > 0) {
-      Register sp = SP;
-      Immediate imm;
-
-      Long i = stackSpaceSize;
-
-      while (i > 1024L) {
-        imm = new Immediate(1024L);
-        list.add(InstructionFactory.createAdd(sp, sp, imm));
-        i -= 1024L;
-      }
-      imm = new Immediate(i);
-      list.add(InstructionFactory.createAdd(sp, sp, imm));
-    }
-
-    return list;
-  }
-
+  /**
+   * Skip statements have no instructions corresponding
+   */
   @Override
   public InstructionList visitSkipStat(WACCParser.SkipStatContext ctx) {
     return defaultResult();
   }
 
+  /**
+   *
+   */
   @Override
   public InstructionList visitExitStat(WACCParser.ExitStatContext ctx) {
-    Register result = accMachine.peekFreeRegister();
+    InstructionList list = defaultResult();
 
-    InstructionList list = defaultResult()
-        .add(visitExpr(ctx.expr()));
+    Register result = accMachine.peekFreeRegister();
+    list.add(visitExpr(ctx.expr()));
     accMachine.pushFreeRegister(result);
     list.add(InstructionFactory.createMove(R0, result))
         .add(InstructionFactory.createBranchLink(new Label("exit")));
+
     return list;
   }
 
@@ -163,7 +143,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createLabel(body))
         .add(Utils.allocateSpaceOnStack(workingSymbolTable))
         .add(visitStatList(ctx.statList()))
-        .add(deallocateSpaceOnStack())
+        .add(Utils.deallocateSpaceOnStack(workingSymbolTable))
         .add(InstructionFactory.createLabel(predicate));
 
     popCurrentScopeVariableSet();
@@ -213,9 +193,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     pushEmptyVariableSet();
     list.add(Utils.allocateSpaceOnStack(workingSymbolTable))
         .add(visitStatList(ctx))
-        .add(deallocateSpaceOnStack());
+        .add(Utils.deallocateSpaceOnStack(workingSymbolTable));
     popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
+
     return list;
   }
 
@@ -819,7 +800,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     list.add(Utils.allocateSpaceOnStack(workingSymbolTable))
             .add(visitStatList(ctx.statList()))
-            .add(deallocateSpaceOnStack());
+            .add(Utils.deallocateSpaceOnStack(workingSymbolTable));
 
     popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
@@ -966,7 +947,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         = Type.isChar(ctx.returnType) || Type.isBool(ctx.returnType);
       list.add(getAddInstruction(isStoredByte, result, helper));
       if (!isAssigning) {
-        getLoadInstructionForElem(isStoredByte, result);
+        list.add(getLoadInstructionForElem(isStoredByte, result));
       }
 
       addRuntimeErrorFunctionsToHelpers(
