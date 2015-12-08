@@ -19,10 +19,11 @@ import static arm11.Shift.Shifts.ASR;
 public class CodeGenerator extends WACCVisitor<InstructionList> {
 
   private static final boolean DEBUGGING = false;
-  private AccumulatorMachine accMachine;
 
   private static final long ADDRESS_SIZE = 4L;
   private static final long PAIR_SIZE = 2 * ADDRESS_SIZE;
+
+  private AccumulatorMachine accMachine;
   private DataInstructions data;
   private HashSet<InstructionList> helperFunctions;
   private boolean isAssigning;
@@ -104,14 +105,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     popCurrentScopeVariableSet();
 
     return list;
-  }
-
-  /**
-   * Skip statements have no instructions corresponding
-   */
-  @Override
-  public InstructionList visitSkipStat(SkipStatContext ctx) {
-    return defaultResult();
   }
 
   /**
@@ -237,7 +230,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  // TODO: refactor
   @Override
   public InstructionList visitAssignStat(AssignStatContext ctx) {
     InstructionList list = defaultResult();
