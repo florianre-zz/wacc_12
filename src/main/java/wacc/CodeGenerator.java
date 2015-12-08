@@ -251,8 +251,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(visitAssignRHS(ctx.assignRHS()));
       Register addr = accMachine.peekFreeRegister();
 
-      visitAssignLHS(ctx.assignLHS());
-      Type varType = (Type)ctx.assignLHS().returnType;
+      list.add(visitAssignLHS(ctx.assignLHS()));
+      Type varType = ctx.assignLHS().returnType;
 
       if (Type.isBool(varType) || Type.isChar(varType)) {
         list.add(accMachine.getInstructionList(STRB, result, addr));
