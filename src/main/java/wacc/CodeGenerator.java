@@ -101,11 +101,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register sp  = SP;
     Immediate offset = new Immediate(varOffset);
     if (Type.isBool(varType) || Type.isChar(varType)) {
-      storeInstr = accMachine.getInstructionList(STRB,
-                                                 reg, sp, offset);
+      storeInstr = accMachine.getInstructionList(STRB, reg, sp, offset);
     } else {
-      storeInstr = accMachine.getInstructionList(STR,
-                                                 reg, sp, offset);
+      storeInstr = accMachine.getInstructionList(STR, reg, sp, offset);
     }
 
     list.add(storeInstr);
