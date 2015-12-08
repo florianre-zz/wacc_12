@@ -159,8 +159,8 @@ public class Utils {
     return list;
   }
 
-  public static InstructionList deallocateSpaceOnStack
-      (SymbolTable<String, Binding> workingSymbolTable) {
+  public static InstructionList deallocateSpaceOnStack(
+      SymbolTable<String, Binding> workingSymbolTable) {
     InstructionList list = new InstructionList();
     String scopeName = workingSymbolTable.getName();
     Binding scopeB = workingSymbolTable.getEnclosingST().get(scopeName);
@@ -220,6 +220,14 @@ public class Utils {
     Label printLabel = new Label("p_print_ln");
     list.add(InstructionFactory.createBranchLink(printLabel));
     Utils.addFunctionToHelpers(PrintFunctions.printLn(data), helperFunctions);
+  }
+
+  public static Long totalListSize(List<? extends WACCParser.ExprContext> exprs) {
+    Long totalSize = 0L;
+    for (WACCParser.ExprContext exprCtx : exprs) {
+      totalSize += exprCtx.returnType.getSize();
+    }
+    return totalSize;
   }
 
 }
