@@ -1,5 +1,6 @@
 package arm11;
 
+import static arm11.ARM11Registers.SP;
 import static arm11.InstructionType.*;
 
 public class InstructionFactory {
@@ -245,4 +246,39 @@ public class InstructionFactory {
 
     return () -> BLCS + " " + label;
   }
+
+  public static Instruction getAddInstruction(boolean isStoredByte,
+                                              Register result,
+                                              Register helper) {
+    if (isStoredByte) {
+      return InstructionFactory.createAdd(result, result, helper);
+    } else {
+      Shift shift = new Shift(Shift.Shifts.LSL, 2);
+      return InstructionFactory.createAdd(result, result, helper, shift);
+    }
+  }
+
+  public static Instruction mutateStackPointer(InstructionType type,
+                                               Immediate imm) {
+    switch (type) {
+      case ADD:
+        return InstructionFactory.createAdd(SP, SP, imm);
+      case SUB:
+      default:
+        return InstructionFactory.createSub(SP, SP, imm);
+    }
+  }
+
+  public static Instruction getLoadInstructionForElem(boolean isStoredByte,
+                                                      Register dst,
+                                                      Register src,
+                                                      long offset) {
+    if (isStoredByte) {
+      return InstructionFactory.createLoadStoredByte(dst, src,
+          new Immediate(offset));
+    } else {
+      return InstructionFactory.createLoad(dst, src, new Immediate(offset));
+    }
+  }
+
 }
