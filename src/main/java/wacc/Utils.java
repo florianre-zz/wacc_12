@@ -134,8 +134,8 @@ public class Utils {
     return offset;
   }
 
-  public static InstructionList allocateSpaceOnStack
-      (SymbolTable<String, Binding> workingSymbolTable) {
+  public static InstructionList allocateSpaceOnStack(
+                            SymbolTable<String, Binding> workingSymbolTable) {
     InstructionList list = new InstructionList();
     List<Binding> variables = workingSymbolTable.filterByClass(Variable.class);
     long stackSpaceVarSize = 0;
@@ -172,8 +172,9 @@ public class Utils {
     return list;
   }
 
-  private static long getAccumulativeStackSizeFromReturn
-                            (SymbolTable<String, Binding> workingSymbolTable) {
+  private static long getAccumulativeStackSizeFromReturn(
+                            SymbolTable<String, Binding> workingSymbolTable) {
+
     long accumulativeStackSize = 0;
     SymbolTable<String, Binding> currentSymbolTable = workingSymbolTable;
     while (currentSymbolTable != null) {

@@ -106,23 +106,36 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Skip statements have no instructions corresponding
+   */
   @Override
   public InstructionList visitSkipStat(SkipStatContext ctx) {
     return defaultResult();
   }
 
+  /**
+   * Moves the exit code to the relevant register
+   * Calls for the exit procedure
+   */
   @Override
   public InstructionList visitExitStat(ExitStatContext ctx) {
-    Register result = accMachine.peekFreeRegister();
+    InstructionList list = defaultResult();
 
-    InstructionList list = defaultResult()
-        .add(visitExpr(ctx.expr()));
+    Register result = accMachine.peekFreeRegister();
+    list.add(visitExpr(ctx.expr()));
     accMachine.pushFreeRegister(result);
     list.add(InstructionFactory.createMove(R0, result))
         .add(InstructionFactory.createBranchLink(new Label("exit")));
+
     return list;
   }
 
+  /**
+   * Increments while count
+   * Adds instructions for body
+   * Adds comparison for the condition for the while loop
+   */
   @Override
   public InstructionList visitWhileStat(WhileStatContext ctx) {
     ++whileCount;
@@ -155,6 +168,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Increments if count
+   * Adds comparison instructions for condition
+   * Adds relevant bodies and branches
+   */
   @Override
   public InstructionList visitIfStat(IfStatContext ctx) {
     ++ifCount;
@@ -180,6 +198,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Sets up stack frame for body
+   * Adds instructions for body
+   */
   private InstructionList getInstructionsForIfBranch(String branchName,
                                                      StatListContext ctx) {
     InstructionList list = defaultResult();
@@ -192,9 +214,15 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(Utils.deallocateSpaceOnStack(workingSymbolTable));
     popCurrentScopeVariableSet();
     goUpWorkingSymbolTable();
+
     return list;
   }
 
+  /**
+   * Gets offset for initialised Variable
+   * Adds instructions for storing to the variable
+   * Includes variable name to Variables declared in the scope
+   */
   @Override
   public InstructionList visitInitStat(InitStatContext ctx) {
     String varName = ctx.ident().getText();
@@ -247,6 +275,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     isAssigning = false;
     return list;
   }
+
 
   private InstructionList storeToOffset(long varOffset,
                                         Type varType,
@@ -921,7 +950,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         = Type.isChar(ctx.returnType) || Type.isBool(ctx.returnType);
       list.add(getAddInstruction(isStoredByte, result, helper));
       if (!isAssigning) {
-        getLoadInstructionForElem(isStoredByte, result);
+        list.add(getLoadInstructionForElem(isStoredByte, result));
       }
 
       addRuntimeErrorFunctionsToHelpers(
