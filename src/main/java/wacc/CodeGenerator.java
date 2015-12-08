@@ -401,7 +401,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register result = accMachine.peekFreeRegister();
     list.add(visitExpr(ctx.expr()))
         .add(createMove(R0, result))
-        .add(createBranchLink(new Label("p_free_pair")));
+        .add(createBranchLink(new Label("p_free_pair")))
+        .add(createMove(result, new Immediate(0L)))
+        .add(createStore(result, SP, new Immediate(0L)));
 
     Utils.addThrowRuntimeErrorFunctionsToHelpers(data, helperFunctions);
     helperFunctions.add(freePair(data));
