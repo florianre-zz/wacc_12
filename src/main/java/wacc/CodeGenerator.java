@@ -334,7 +334,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label printLabel;
     InstructionList printInstructions = null;
     Type returnType = ctx.expr().returnType;
-
     if (Type.isString(returnType)) {
       printLabel = new Label("p_print_string");
       printInstructions = PrintFunctions.printString(data);
@@ -351,7 +350,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       printInstructions = PrintFunctions.printReference(data);
     }
     Utils.addFunctionToHelpers(printInstructions, helperFunctions);
-
     Register result = accMachine.peekFreeRegister();
     list.add(printExpression(ctx.expr(), printLabel, result));
     if (ctx.PRINTLN() != null) {
@@ -958,13 +956,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     long numberOfElems = ctx.expr().size();
 
     if (numberOfElems != 0) {
-      typeSize = getTypeSize(ctx);
+      typeSize = Utils.getTypeSize(ctx);
       bytesToAllocate += typeSize * numberOfElems;
     }
 
     Label malloc = new Label("malloc");
     Register addressOfArray = accMachine.popFreeRegister();
-    list.add(allocateArrayAddress(bytesToAllocate, malloc, addressOfArray));
+    list.add(Utils.allocateArrayAddress(bytesToAllocate, malloc, addressOfArray,
+                                  accMachine));
 
     long offset = ADDRESS_SIZE;
     for (ExprContext elem : ctx.expr()) {
@@ -975,7 +974,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     }
     
     Register lengthOfArray = accMachine.popFreeRegister();
-    list.add(storeLengthOfArray(numberOfElems, addressOfArray, lengthOfArray));
+    list.add(Utils.storeLengthOfArray(numberOfElems, addressOfArray,
+                                      lengthOfArray));
     accMachine.pushFreeRegister(lengthOfArray);
 
     return list;
@@ -1016,31 +1016,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  private InstructionList storeLengthOfArray(long numberOfElems,
-                                             Register addressOfArray,
-                                             Register lengthOfArray) {
-
-    InstructionList list = defaultResult();
-    list.add(InstructionFactory.createLoad(lengthOfArray,
-                                           new Immediate(numberOfElems)))
-        .add(InstructionFactory.createStore(lengthOfArray,
-                                            addressOfArray,
-                                            new Immediate(0L)));
-    return list;
-  }
-
-  private InstructionList allocateArrayAddress(long bytesToAllocate,
-                                               Label malloc,
-                                               Register addressOfArray) {
-    InstructionList list = defaultResult();
-    list.add(InstructionFactory.createLoad(R0,
-                                           new Immediate(bytesToAllocate)))
-        .add(InstructionFactory.createBranchLink(malloc))
-        .add(accMachine.getInstructionList(MOV, addressOfArray,
-                                           R0));
-    return list;
-  }
-
   private void storeArrayElem(InstructionList list,
                               Register addressOfArray,
                               long offset,
@@ -1053,11 +1028,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     } else {
       list.add(InstructionFactory.createStoreByte(result, addressOfArray, imm));
     }
-  }
-
-  private long getTypeSize(ArrayLitrContext ctx) {
-    Type returnType = ctx.expr().get(0).returnType;
-    return returnType.getSize();
   }
 
   /**

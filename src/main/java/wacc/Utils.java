@@ -11,6 +11,7 @@ import wacc.error.TypeAssignmentError;
 import java.util.HashSet;
 import java.util.List;
 
+import static arm11.ARM11Registers.R0;
 import static arm11.ARM11Registers.SP;
 import static arm11.InstructionType.*;
 
@@ -270,6 +271,35 @@ public class Utils {
                                helperFunctions);
     Utils.addFunctionToHelpers(PrintFunctions.printString(data),
                                helperFunctions);
+  }
+
+  public static InstructionList storeLengthOfArray(long numberOfElems,
+                                             Register addressOfArray,
+                                             Register lengthOfArray) {
+
+    InstructionList list = new InstructionList();
+    list.add(InstructionFactory.createLoad(lengthOfArray,
+                                           new Immediate(numberOfElems)))
+        .add(InstructionFactory.createStore(lengthOfArray,
+                                            addressOfArray,
+                                            new Immediate(0L)));
+    return list;
+  }
+
+  public static InstructionList allocateArrayAddress(long bytesToAllocate,
+                                               Label malloc,
+                                               Register addressOfArray,
+                                               AccumulatorMachine accMachine) {
+    InstructionList list = new InstructionList();
+    list.add(InstructionFactory.createLoad(R0, new Immediate(bytesToAllocate)))
+        .add(InstructionFactory.createBranchLink(malloc))
+        .add(accMachine.getInstructionList(MOV, addressOfArray, R0));
+    return list;
+  }
+
+  public static long getTypeSize(WACCParser.ArrayLitrContext ctx) {
+    Type returnType = ctx.expr().get(0).returnType;
+    return returnType.getSize();
   }
 
 }
