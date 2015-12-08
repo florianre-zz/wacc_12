@@ -2,7 +2,6 @@ package wacc;
 
 import antlr.WACCParser;
 import arm11.*;
-import arm11.Shift.Shifts;
 import bindings.Binding;
 import bindings.PairType;
 import bindings.Type;
@@ -502,8 +501,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         Label throwOverflowError = new Label("p_throw_overflow_error");
         list.add(InstructionFactory.createBranchLinkVS(throwOverflowError));
 
-        addRuntimeErrorFunctionsToHelpers(
-          RuntimeErrorFunctions.overflowError(data), data);
+        Utils.addRuntimeErrorFunctionsToHelpers(
+          RuntimeErrorFunctions.overflowError(data), data, helperFunctions);
 
         accMachine.pushFreeRegister(dst2);
       }
@@ -537,8 +536,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
               .add(accMachine.getInstructionList(CMP, dst2, dst1,
                                                  new Shift(ASR, 31)))
               .add(InstructionFactory.createBranchLinkNotEqual(overflowError));
-          addRuntimeErrorFunctionsToHelpers(
-            RuntimeErrorFunctions.overflowError(data), data);
+          Utils.addRuntimeErrorFunctionsToHelpers(
+            RuntimeErrorFunctions.overflowError(data), data, helperFunctions);
         } else {
           list.add(divMoves(dst1, dst2, op));
         }
@@ -565,8 +564,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createMod())
           .add(InstructionFactory.createMove(dst1, R1));
     }
-    addRuntimeErrorFunctionsToHelpers(
-      RuntimeErrorFunctions.divideByZero(data), data);
+    Utils.addRuntimeErrorFunctionsToHelpers(
+      RuntimeErrorFunctions.divideByZero(data), data, helperFunctions);
 
     return list;
   }
@@ -591,8 +590,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       list.add(InstructionFactory.createRSBS(dst, dst, new Immediate(0L)))
           .add(InstructionFactory.createBranchLinkVS(throwOverflowError));
 
-      addRuntimeErrorFunctionsToHelpers(
-          RuntimeErrorFunctions.overflowError(data), data);
+      Utils.addRuntimeErrorFunctionsToHelpers(
+        RuntimeErrorFunctions.overflowError(data), data, helperFunctions);
     } else if (ctx.LEN() != null) {
       list.add(InstructionFactory.createLoad(dst, dst, new Immediate(0L)));
     }
@@ -782,7 +781,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createMove(R0, result))
         .add(InstructionFactory.createBranchLink(new Label("p_free_pair")));
 
-    addThrowRuntimeErrorFunctionsToHelpers(data);
+    Utils.addThrowRuntimeErrorFunctionsToHelpers(data, helperFunctions);
     helperFunctions.add(freePair(data));
     accMachine.pushFreeRegister(result);
 
@@ -923,8 +922,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createBranchLink(
           new Label("p_check_null_pointer")));
 
-    addRuntimeErrorFunctionsToHelpers(
-      RuntimeErrorFunctions.checkNullPointer(data), data);
+    Utils.addRuntimeErrorFunctionsToHelpers(
+      RuntimeErrorFunctions.checkNullPointer(data), data, helperFunctions);
 
     Variable variable = getMostRecentBindingForVariable(ctx.ident().getText());
     PairType pairT = (PairType) variable.getType();
@@ -946,6 +945,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Gets instruction to allocate space for array
+   * Adds instructions to store each array elem
+   * Adds instructions to store length of array
+   */
   @Override
   public InstructionList visitArrayLitr(ArrayLitrContext ctx) {
     InstructionList list = defaultResult();
@@ -977,6 +981,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Gets instruction to put the address of the array in the register
+   * Adds instructions to check index is out of bound
+   * Adds instruction to store element in register
+   */
   @Override
   public InstructionList visitArrayElem(ArrayElemContext ctx) {
     InstructionList list = defaultResult();
@@ -995,41 +1004,16 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
       boolean isStoredByte
         = Type.isChar(ctx.returnType) || Type.isBool(ctx.returnType);
-      list.add(getAddInstruction(isStoredByte, result, helper));
+      list.add(Utils.getAddInstruction(isStoredByte, result, helper));
       if (!isAssigning) {
         list.add(Utils.getLoadInstructionForElem(isStoredByte, result));
       }
 
-      addRuntimeErrorFunctionsToHelpers(
-        RuntimeErrorFunctions.checkArrayBounds(data), data);
+      Utils.addRuntimeErrorFunctionsToHelpers(
+        RuntimeErrorFunctions.checkArrayBounds(data), data, helperFunctions);
       accMachine.pushFreeRegister(helper);
     }
     return list;
-  }
-
-  private InstructionList getAddInstruction(boolean isStoredByte,
-                                            Register result, Register helper) {
-    InstructionList list = defaultResult();
-    if (isStoredByte) {
-      list.add(InstructionFactory.createAdd(result, result, helper));
-    } else {
-      list.add(InstructionFactory.createAdd(result, result, helper,
-                                            new Shift(Shifts.LSL, 2)));
-    }
-    return list;
-  }
-
-  private void addRuntimeErrorFunctionsToHelpers(InstructionList err,
-                                                 DataInstructions data) {
-    Utils.addFunctionToHelpers(err, helperFunctions);
-    addThrowRuntimeErrorFunctionsToHelpers(data);
-  }
-
-  private void addThrowRuntimeErrorFunctionsToHelpers(DataInstructions data) {
-    Utils.addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data),
-                         helperFunctions);
-    Utils.addFunctionToHelpers(PrintFunctions.printString(data),
-                               helperFunctions);
   }
 
   private InstructionList storeLengthOfArray(long numberOfElems,

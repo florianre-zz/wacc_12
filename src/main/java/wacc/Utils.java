@@ -244,4 +244,32 @@ public class Utils {
     return list;
   }
 
+  public static InstructionList getAddInstruction(boolean isStoredByte,
+                                            Register result, Register helper) {
+    InstructionList list = new InstructionList();
+    if (isStoredByte) {
+      list.add(InstructionFactory.createAdd(result, result, helper));
+    } else {
+      list.add(InstructionFactory.createAdd(result, result, helper,
+                                            new Shift(Shift.Shifts.LSL, 2)));
+    }
+    return list;
+  }
+
+  public static void addRuntimeErrorFunctionsToHelpers(InstructionList err,
+                                                       DataInstructions data,
+                                                       HashSet<InstructionList>
+                                                         helperFunctions) {
+    Utils.addFunctionToHelpers(err, helperFunctions);
+    addThrowRuntimeErrorFunctionsToHelpers(data, helperFunctions);
+  }
+
+  public static void addThrowRuntimeErrorFunctionsToHelpers(
+            DataInstructions data, HashSet<InstructionList> helperFunctions) {
+    Utils.addFunctionToHelpers(RuntimeErrorFunctions.throwRuntimeError(data),
+                               helperFunctions);
+    Utils.addFunctionToHelpers(PrintFunctions.printString(data),
+                               helperFunctions);
+  }
+
 }
