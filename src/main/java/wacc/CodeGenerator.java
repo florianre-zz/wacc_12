@@ -292,7 +292,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return visitChildren(ctx);
   }
 
-
+  /**
+   * given an offset, variable type and an AssignRHS context
+   * returns instructions for storing the value of the RHS to that offset
+   */
   private InstructionList storeToOffset(long varOffset,
                                         Type varType,
                                         WACCParser.AssignRHSContext assignRHS) {
@@ -318,6 +321,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Generates instructions to move result value to result register
+   * Adds instructions to free stack space
+   * Adds pop PC
+   */
   @Override
   public InstructionList visitReturnStat(WACCParser.ReturnStatContext ctx) {
     InstructionList list = defaultResult();
@@ -331,6 +339,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Adds the correct print helper function for expression type
+   * Gets instructions which call the print procedure
+   * Adds print new line if necessary
+   */
   @Override
   public InstructionList visitPrintStat(WACCParser.PrintStatContext ctx) {
     InstructionList list = defaultResult();
@@ -363,6 +376,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Gets relevant instructions for expression to print
+   * Adds instruction to move the expression to relevant register
+   * Adds call for correct print procedure
+   */
   private InstructionList printExpression(WACCParser.ExprContext ctx,
                                           Label printLabel,
                                           Register result) {
@@ -373,12 +391,20 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Adds function to helper functions
+   */
   private void addFunctionToHelpers(InstructionList function) {
     if (function != null) {
       helperFunctions.add(function);
     }
   }
 
+  /**
+   * Gets instructions for first comparisonOper
+   * If there are more operands, adds instructions to place each subsequent
+   * operand and to evaluate the logical operation
+   */
   @Override
   public InstructionList visitLogicalOper(WACCParser.LogicalOperContext ctx) {
     InstructionList list = defaultResult();
