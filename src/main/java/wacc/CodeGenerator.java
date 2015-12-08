@@ -43,7 +43,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   }
 
   /**
-   *
+   * Gets the instructions of its children.
+   * Creates the global label
+   * Adds all the children's instructions together and the helper methods we
+   * use in the assembly code
    */
   @Override
   public InstructionList visitProg(WACCParser.ProgContext ctx) {
@@ -72,28 +75,30 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return program;
   }
 
+  /**
+   * Sets up stack frame
+   * Add instructions of its body
+   * Sets exit code to 0
+   */
   @Override
   public InstructionList visitMain(WACCParser.MainContext ctx) {
+    InstructionList list = defaultResult();
     String scopeName = Scope.MAIN.toString();
     changeWorkingSymbolTableTo(scopeName);
     pushEmptyVariableSet();
 
-    InstructionList list = defaultResult();
-
-    Label label = new Label(Scope.MAIN.toString());
-    Register r0 = R0;
-    Immediate imm = new Immediate((long) 0);
-    list.add(InstructionFactory.createLabel(label))
+    list.add(InstructionFactory.createLabel(new Label(Scope.MAIN.toString())))
         .add(InstructionFactory.createPush(LR))
         .add(allocateSpaceOnStack())
         .add(visitChildren(ctx))
         .add(deallocateSpaceOnStack())
-        .add(InstructionFactory.createLoad(r0, imm))
+        .add(InstructionFactory.createLoad(R0, new Immediate(0L)))
         .add(InstructionFactory.createPop(PC))
         .add(InstructionFactory.createLTORG());
 
     goUpWorkingSymbolTable();
     popCurrentScopeVariableSet();
+
     return list;
   }
 
