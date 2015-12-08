@@ -789,6 +789,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   *
+   */
   @Override
   public InstructionList visitNewPair(NewPairContext ctx) {
     InstructionList list = defaultResult();
@@ -820,12 +823,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         .add(InstructionFactory.createBranchLink(malloc));
 
     if (size == 1) {
-      list.add(InstructionFactory.createStoreByte(next, ARM11Registers.R0,
-                                                  new Immediate(0L)));
+      list.add(InstructionFactory.createStoreByte(next, R0, new Immediate(0L)));
     } else {
-      list.add(InstructionFactory.createStore(next,
-          ARM11Registers.R0,
-          new Immediate(0L)));
+      list.add(InstructionFactory.createStore(next, R0, new Immediate(0L)));
     }
 
     return list;
@@ -839,6 +839,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Get instructions to set stack frame
+   * Adds instructions for body
+   */
   @Override
   public InstructionList visitBeginStat(BeginStatContext ctx) {
     ++beginCount;
@@ -858,11 +862,15 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  /**
+   * Gets instructions for expr to read
+   * Adds instruction to move expr in r0
+   * Adds instruction to call for correct procedure
+   */
   @Override
   public InstructionList visitReadStat(ReadStatContext ctx) {
     InstructionList list = defaultResult();
     Register reg = accMachine.popFreeRegister();
-    Register dst = R0;
 
     if (ctx.assignLHS().ident() != null) {
       String name = ctx.assignLHS().ident().getText();
@@ -883,24 +891,29 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       helperFunctions.add(ReadFunctions.readChar(data));
     }
 
-    list.add(InstructionFactory.createMove(dst, reg))
+    list.add(InstructionFactory.createMove(R0, reg))
         .add(InstructionFactory.createBranchLink(readLabel));
     accMachine.pushFreeRegister(reg);
 
     return list;
   }
 
+  /**
+   * Gets instruction to load null into the required register
+   */
   @Override
   public InstructionList visitPairLitr(PairLitrContext ctx) {
+    InstructionList list = defaultResult();
     Register result = accMachine.popFreeRegister();
     Operand nullOp = new Immediate(0L);
-
-    return
-      defaultResult().add(accMachine.getInstructionList(LDR,
-                                                        result,
-                                                        nullOp));
+    return list.add(accMachine.getInstructionList(LDR, result, nullOp));
   }
 
+  /**
+   * Gets instructions of pair elems
+   * Adds instruction to call for check_null_pointer procedure
+   * Adds instruction to load elem in correct address (depending on fst or snd)
+   */
   @Override
   public InstructionList visitPairElem(PairElemContext ctx) {
     InstructionList list = defaultResult();
@@ -927,22 +940,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     }
 
     if (!isAssigning) {
-      list.add(getLoadInstructionForElem(isStoredByte, result));
+      list.add(Utils.getLoadInstructionForElem(isStoredByte, result));
     }
 
-    return list;
-  }
-
-  private InstructionList getLoadInstructionForElem(boolean isStoredByte,
-                                                    Register result) {
-    InstructionList list = defaultResult();
-    if (isStoredByte) {
-      list.add(InstructionFactory.createLoadStoredByte(result, result,
-                                                       new Immediate(0L)));
-    } else {
-      list.add(InstructionFactory.createLoad(result, result,
-                                             new Immediate(0L)));
-    }
     return list;
   }
 
@@ -997,7 +997,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
         = Type.isChar(ctx.returnType) || Type.isBool(ctx.returnType);
       list.add(getAddInstruction(isStoredByte, result, helper));
       if (!isAssigning) {
-        list.add(getLoadInstructionForElem(isStoredByte, result));
+        list.add(Utils.getLoadInstructionForElem(isStoredByte, result));
       }
 
       addRuntimeErrorFunctionsToHelpers(
