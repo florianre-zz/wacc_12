@@ -237,7 +237,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
-  // TODO: refactor
   @Override
   public InstructionList visitAssignStat(AssignStatContext ctx) {
     InstructionList list = defaultResult();
