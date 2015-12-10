@@ -37,19 +37,13 @@ public class Utils {
   }
 
   public static String getFuncNameWithTypes(WACCParser.FuncContext ctx,
-                                            WACCTypeCreator typeCreator) {
+                                            List<Variable> params) {
     StringBuilder sb = new StringBuilder(ctx.funcName.getText());
 
-    if (ctx.paramList() != null) {
-      List<? extends WACCParser.ParamContext> paramContexts =
-              ctx.paramList().param();
-
-      for (WACCParser.ParamContext paramContext : paramContexts) {
-        Type type = typeCreator.visitParam(paramContext);
-        sb.append(".").append(type.toString());
-      }
+    for (Variable p : params) {
+      sb.append(".").append(p.getType().toString());
     }
-    return sb.toString();
+    return sb.append(".").toString();
   }
 
   public static boolean checkTypesEqual(ParserRuleContext ctx,
