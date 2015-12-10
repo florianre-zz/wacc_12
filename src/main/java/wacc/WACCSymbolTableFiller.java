@@ -83,15 +83,16 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
     // Allows mutual recursion but does not allow overloading
     // TODO: make only 1 dummy
     Function dummy = new Function();
-    for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
+    for (WACCParser.FuncContext progFuncContext : progFuncContexts) {
       funcName = progFuncContext.funcName.getText();
       Binding checker = progSymbolTable.put(ScopeType.FUNCTION_SCOPE + funcName,
                                             dummy);
 
-      if (checker != null){
-        String errorMsg = "Function name " + funcName + " is already used";
-        errorHandler.complain(new DeclarationError(ctx, errorMsg));
-      }
+      // commented to cater for overloading
+//      if (checker != null){
+//        String errorMsg = "Function name " + funcName + " is already used";
+//        errorHandler.complain(new DeclarationError(ctx, errorMsg));
+//      }
     }
 
     return new NewScope(scopeName, progSymbolTable);

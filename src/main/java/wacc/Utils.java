@@ -36,6 +36,22 @@ public class Utils {
     );
   }
 
+  public static String getFuncNameWithTypes(WACCParser.FuncContext ctx,
+                                            WACCTypeCreator typeCreator) {
+    StringBuilder sb = new StringBuilder(ctx.funcName.getText());
+
+    if (ctx.paramList() != null) {
+      List<? extends WACCParser.ParamContext> paramContexts =
+              ctx.paramList().param();
+
+      for (WACCParser.ParamContext paramContext : paramContexts) {
+        Type type = typeCreator.visitParam(paramContext);
+        sb.append(".").append(type.toString());
+      }
+    }
+    return sb.toString();
+  }
+
   public static boolean checkTypesEqual(ParserRuleContext ctx,
                                         Type lhsType, Type rhsType,
                                         WACCErrorHandler errorHandler) {
