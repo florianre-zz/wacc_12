@@ -49,7 +49,12 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
     List<Binding> allFunctions
             = progScope.getSymbolTable().filterByClass(Function.class);
-    // TODO: Implement this
+    for (Binding binding : allFunctions) {
+      Function function = (Function) binding;
+      if (function.getName().startsWith(funcName)) {
+        functionScopes.add(function);
+      }
+    }
     return functionScopes;
   }
 
