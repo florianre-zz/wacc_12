@@ -1,0 +1,7 @@
+begin
+  bool f() is
+    println "Hello World";
+    return true
+  end
+  bool b = call f()
+end
