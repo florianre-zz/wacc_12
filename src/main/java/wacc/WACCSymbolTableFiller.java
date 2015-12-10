@@ -60,13 +60,24 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
       newScope
           = getFuncScope((WACCParser.FuncContext) ctx, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
-
+      // Only the function name (key) in the symbol table is edited with the
+      // prefix and Type suffixes
+      Function funcScope = (Function) newScope;
+      name += Utils.getFuncParamTypeSuffix((WACCParser.FuncContext) ctx,
+              funcScope.getParams());
     } else {
       newScope = new NewScope(name, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
     }
 
-    workingSymbolTable.put(name, newScope);
+    Binding scope = workingSymbolTable.put(name, newScope);
+    if (scope != null && scope instanceof Function) {
+      WACCParser.FuncContext funcContext = (WACCParser.FuncContext) ctx;
+      // TODO: print parameter types
+      String errorMsg = "Function " + funcContext.funcName.getText()
+              + " has already been declared with these parameter types";
+      errorHandler.complain(new DeclarationError(ctx, errorMsg));
+    }
 
     return fillNewSymbolTable(contextToVisit, newSymbolTable);
   }
@@ -106,29 +117,18 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
   private NewScope getFuncScope(WACCParser.FuncContext funcContext,
                                 SymbolTable<String, Binding>
                                     newScopeSymbolTable) {
-    List<Variable> funcParams = new ArrayList<>();
+    List<Variable> funcParams = Utils.getParamList(funcContext, typeCreator);
 
-    if (funcContext.paramList() != null) {
-      List<? extends WACCParser.ParamContext> paramContexts =
-          funcContext.paramList().param();
-
-      for (WACCParser.ParamContext paramContext : paramContexts) {
-        String name = paramContext.name.getText();
-        Type type = typeCreator.visitParam(paramContext);
-
-      /* Create param as a variable
-       * Store it in the function's list of params and in its symbolTable
-       */
-        Variable param = new Variable(name, type);
-        Binding binding = newScopeSymbolTable.put(name, param);
-        if (binding != null) {
-          String errorMsg = "parameter name " + name + " already exists";
-          errorHandler.complain(new DeclarationError(funcContext, errorMsg));
-        }
-        funcParams.add(param);
+    for (Variable param : funcParams) {
+      Binding binding = newScopeSymbolTable.put(param.getName(), param);
+      if (binding != null) {
+        String errorMsg = "parameter name " + param.getName()
+                + " already exists";
+        errorHandler.complain(new DeclarationError(funcContext, errorMsg));
       }
     }
 
+    // the name in the binding is the unedited function name
     return new Function(typeCreator.visitType(funcContext.type()),
                         funcContext.funcName.getText(),
                         funcParams,

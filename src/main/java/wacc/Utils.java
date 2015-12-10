@@ -8,6 +8,7 @@ import wacc.error.DeclarationError;
 import wacc.error.WACCErrorHandler;
 import wacc.error.TypeAssignmentError;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -36,9 +37,28 @@ public class Utils {
     );
   }
 
-  public static String getFuncNameWithTypes(WACCParser.FuncContext ctx,
+  public static List<Variable> getParamList(WACCParser.FuncContext ctx,
+                                            WACCTypeCreator typeCreator) {
+    List<Variable> funcParams = new ArrayList<>();
+
+    if (ctx.paramList() != null) {
+      List<? extends WACCParser.ParamContext> paramContexts =
+              ctx.paramList().param();
+
+      for (WACCParser.ParamContext paramContext : paramContexts) {
+        String name = paramContext.name.getText();
+        Type type = typeCreator.visitParam(paramContext);
+
+        Variable param = new Variable(name, type);
+        funcParams.add(param);
+      }
+    }
+    return funcParams;
+  }
+
+  public static String getFuncParamTypeSuffix(WACCParser.FuncContext ctx,
                                             List<Variable> params) {
-    StringBuilder sb = new StringBuilder(ctx.funcName.getText());
+    StringBuilder sb = new StringBuilder();
 
     for (Variable p : params) {
       sb.append(".").append(p.getType().toString());

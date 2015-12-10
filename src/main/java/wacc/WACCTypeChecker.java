@@ -53,6 +53,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitProg(WACCParser.ProgContext ctx) {
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
+
+
     visitChildren(ctx);
     goUpWorkingSymbolTable();
     return null;
@@ -96,7 +98,10 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   */
   @Override
   public Type visitFunc(WACCParser.FuncContext ctx) {
-    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
+    List<Variable> paramList
+            = Utils.getParamList(ctx, new WACCTypeCreator(top));
+    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText()
+            + Utils.getFuncParamTypeSuffix(ctx, paramList);
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
 
@@ -357,27 +362,30 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitCall(WACCParser.CallContext ctx) {
-    Function calledFunction = getCalledFunction(ctx);
-    WACCParser.ArgListContext argListContext = ctx.argList();
-    int expectedSize = calledFunction.getParams().size();
-    if (argListContext != null) {
-      int actualSize = argListContext.expr().size();
-      if (actualSize == expectedSize) {
-        for (int i = 0; i < actualSize; i++) {
-          WACCParser.ExprContext exprCtx = argListContext.expr(i);
-          Type actualType = visitExpr(exprCtx);
-          Type expectedType = calledFunction.getParams().get(i).getType();
-          Utils.checkTypesEqual(ctx, actualType, expectedType, errorHandler);
-        }
-      } else {
-        Utils.inconsistentParamCountError(ctx, expectedSize, actualSize,
-            errorHandler);
-      }
-    } else if (expectedSize > 0) {
-      Utils.inconsistentParamCountError(ctx, expectedSize, 0, errorHandler);
-    }
+    List<Function> overLoadedFunctions = getOverloads(ctx);
 
-    return calledFunction.getType();
+//    Function calledFunction = getCalledFunction(ctx);
+//    WACCParser.ArgListContext argListContext = ctx.argList();
+//    int expectedSize = calledFunction.getParams().size();
+//    if (argListContext != null) {
+//      int actualSize = argListContext.expr().size();
+//      if (actualSize == expectedSize) {
+//        for (int i = 0; i < actualSize; i++) {
+//          WACCParser.ExprContext exprCtx = argListContext.expr(i);
+//          Type actualType = visitExpr(exprCtx);
+//          Type expectedType = calledFunction.getParams().get(i).getType();
+//          Utils.checkTypesEqual(ctx, actualType, expectedType, errorHandler);
+//        }
+//      } else {
+//        Utils.inconsistentParamCountError(ctx, expectedSize, actualSize,
+//            errorHandler);
+//      }
+//    } else if (expectedSize > 0) {
+//      Utils.inconsistentParamCountError(ctx, expectedSize, 0, errorHandler);
+//    }
+//
+//    return calledFunction.getType();
+    return null;
   }
 
   /**
