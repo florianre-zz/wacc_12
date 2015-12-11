@@ -379,7 +379,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitCall(WACCParser.CallContext ctx) {
     List<Function> overloadedFunctions = getOverloads(ctx);
     List<Type> types = getArgTypes(ctx);
-    // TODO: Add types to parser
+    ctx.argTypes = types;
     String calledFunctionName = ScopeType.FUNCTION_SCOPE
             + ctx.funcName.getText() + Utils.getArgString(types);
 

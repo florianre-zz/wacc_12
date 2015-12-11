@@ -32,7 +32,10 @@ assignLHS returns [Type returnType]: (ident | arrayElem | pairElem) {Type
 returnType = null;};
 assignRHS: expr | arrayLitr | newPair | pairElem | call;
 newPair: NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS;
-call: CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS;
+call returns [List<Type> argTypes]: CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
+{
+  List<Type> argTypes = new ArrayList();
+};
 argList: expr (COMMA expr)*;
 type: nonArrayType | arrayType;
 nonArrayType: baseType | pairType;
