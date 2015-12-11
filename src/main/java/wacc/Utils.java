@@ -56,8 +56,17 @@ public class Utils {
     return funcParams;
   }
 
-  public static String getFuncParamTypeSuffix(WACCParser.FuncContext ctx,
-                                            List<Variable> params) {
+
+  public static String getArgString(List<Type> types) {
+    StringBuilder sb = new StringBuilder();
+
+    for (Type t : types) {
+      sb.append(".").append(t.toString());
+    }
+    return sb.append(".").toString();
+  }
+
+  public static String getFuncParamTypeSuffix(List<Variable> params) {
     StringBuilder sb = new StringBuilder();
 
     for (Variable p : params) {

@@ -11,7 +11,7 @@ public class Function extends NewScope {
   private List<Variable> params;
 
   public Function(Type type, String name, List<Variable> params,
-                  LinkedHashMap<String, Binding> symbolTable) {
+                  SymbolTable<String, Binding> symbolTable) {
     super(name, symbolTable);
     this.params = params;
     this.type = type;

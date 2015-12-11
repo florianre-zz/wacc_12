@@ -7,7 +7,7 @@ import wacc.error.DeclarationError;
 import wacc.error.SemanticError;
 import wacc.error.SyntaxError;
 import wacc.error.WACCErrorHandler;
-import java.util.ArrayList;
+
 import java.util.List;
 
 public class WACCSymbolTableFiller extends WACCVisitor<Void> {
@@ -63,7 +63,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
       // Only the function name (key) in the symbol table is edited with the
       // prefix and Type suffixes
       Function funcScope = (Function) newScope;
-      name += Utils.getFuncParamTypeSuffix((WACCParser.FuncContext) ctx,
+      name += Utils.getFuncParamTypeSuffix(
               funcScope.getParams());
     } else {
       newScope = new NewScope(name, newSymbolTable);

@@ -4,17 +4,20 @@ import antlr.WACCParser;
 import bindings.*;
 import wacc.error.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static wacc.Utils.incorrectType;
 
 public class WACCTypeChecker extends WACCVisitor<Type> {
 
+  private final WACCTypeCreator typeCreator;
   private Function currentFunction;
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          WACCErrorHandler errorHandler) {
     super(top, errorHandler);
+    typeCreator = new WACCTypeCreator(top);
   }
 
   /***************************** Helper Method *******************************/
@@ -40,6 +43,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         errorHandler.complain(new TypeError(expr));
       }
     }
+  }
+
+  private List<Type> getArgTypes(WACCParser.CallContext ctx) {
+    List<Type> types = new ArrayList<>();
+    WACCParser.ArgListContext argListContext = ctx.argList();
+    if (argListContext != null) {
+      int size = argListContext.expr().size();
+      for (WACCParser.ExprContext expr : argListContext.expr()) {
+        types.add(visitExpr(expr));
+      }
+    }
+    return types;
   }
   
   /************************** Visit Functions ****************************/
@@ -99,9 +114,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitFunc(WACCParser.FuncContext ctx) {
     List<Variable> paramList
-            = Utils.getParamList(ctx, new WACCTypeCreator(top));
+            = Utils.getParamList(ctx, typeCreator);
     String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText()
-            + Utils.getFuncParamTypeSuffix(ctx, paramList);
+            + Utils.getFuncParamTypeSuffix(paramList);
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
 
@@ -362,9 +377,25 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitCall(WACCParser.CallContext ctx) {
-    List<Function> overLoadedFunctions = getOverloads(ctx);
+    List<Function> overloadedFunctions = getOverloads(ctx);
+    List<Type> types = getArgTypes(ctx);
+    // TODO: Add types to parser
+    String calledFunctionName = ScopeType.FUNCTION_SCOPE
+            + ctx.funcName.getText() + Utils.getArgString(types);
 
-//    Function calledFunction = getCalledFunction(ctx);
+    Function calledFunction = null;
+    for (Function overload : overloadedFunctions) {
+      if (overload.getName().equals(calledFunctionName)) {
+        calledFunction = overload;
+      }
+    }
+    if (calledFunction == null) {
+      // TODO: ERROR: the function does not exist with these argument types
+      errorHandler.complain(new TypeError(ctx,
+              "the function does not exist with these argument types"));
+      return getType(Types.INT_T);
+    }
+
 //    WACCParser.ArgListContext argListContext = ctx.argList();
 //    int expectedSize = calledFunction.getParams().size();
 //    if (argListContext != null) {
@@ -384,8 +415,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 //      Utils.inconsistentParamCountError(ctx, expectedSize, 0, errorHandler);
 //    }
 //
-//    return calledFunction.getType();
-    return null;
+    return calledFunction.getType();
   }
 
   /**
