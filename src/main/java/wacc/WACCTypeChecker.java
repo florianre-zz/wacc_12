@@ -388,6 +388,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       }
     }
     if (calledFunction == null) {
+      System.err.println("Called :" + calledFunctionName);
       // TODO: ERROR: the function does not exist with these argument types
       errorHandler.complain(new TypeError(ctx,
               "the function does not exist with these argument types"));

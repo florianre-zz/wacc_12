@@ -64,18 +64,25 @@ public class Utils {
     StringBuilder sb = new StringBuilder();
 
     for (Type t : types) {
-      sb.append(".").append(t.toString());
+      sb.append(".").append(getNameForLabel(t));
     }
     return sb.append(".").toString();
   }
 
-  public static String getFuncParamTypeSuffix(List<Variable> params) {
-    StringBuilder sb = new StringBuilder();
-
-    for (Variable p : params) {
-      sb.append(".").append(p.getType().toString());
+  // TODO: create toLabel in Type
+  private static String getNameForLabel(Type t) {
+    if ((Type.isString(t))) {
+      return Types.CHAR_T.name();
     }
-    return sb.append(".").toString();
+    return t.getName();
+  }
+
+  public static String getFuncParamTypeSuffix(List<Variable> params) {
+    List<Type> types = new ArrayList<>();
+    for (Variable v : params) {
+      types.add(v.getType());
+    }
+    return getArgString(types);
   }
 
   public static boolean checkTypesEqual(ParserRuleContext ctx,

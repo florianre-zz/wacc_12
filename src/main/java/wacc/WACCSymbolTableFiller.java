@@ -61,11 +61,8 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
       newScope
           = getFuncScope((WACCParser.FuncContext) ctx, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
-      // Only the function name (key) in the symbol table is edited with the
-      // prefix and Type suffixes
-      Function funcScope = (Function) newScope;
-      name += Utils.getFuncParamTypeSuffix(
-              funcScope.getParams());
+      name += Utils.getParamString(((WACCParser.FuncContext) ctx).paramTypes);
+      System.err.println("Function name : " + name);
     } else {
       newScope = new NewScope(name, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
@@ -134,9 +131,11 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
       }
     }
 
-    // the name in the binding is the unedited function name
+    String funcName = ScopeType.FUNCTION_SCOPE + funcContext.funcName.getText()
+            + Utils.getFuncParamTypeSuffix(funcParams);
+
     return new Function(typeCreator.visitType(funcContext.type()),
-                        funcContext.funcName.getText(),
+                        funcName,
                         funcParams,
                         newScopeSymbolTable);
   }
