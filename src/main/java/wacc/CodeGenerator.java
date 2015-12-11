@@ -8,6 +8,8 @@ import bindings.PairType;
 import bindings.Type;
 import bindings.Variable;
 import java.util.HashSet;
+import java.util.List;
+
 import static antlr.WACCParser.*;
 import static arm11.ARM11Registers.*;
 import static arm11.HeapFunctions.freePair;
@@ -214,12 +216,13 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitFunc(FuncContext ctx) {
     InstructionList list = defaultResult();
-    changeWorkingSymbolTableTo(ScopeType.FUNCTION_SCOPE
-                               + ctx.funcName.getText());
+    List<Variable> params = Utils.getParamList(ctx, new WACCTypeCreator(top));
+    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText()
+            + Utils.getFuncParamTypeSuffix(params);
+    changeWorkingSymbolTableTo(funcName);
     pushEmptyVariableSet();
 
-    Label functionLabel = new Label(ScopeType.FUNCTION_SCOPE
-                                    + ctx.funcName.getText());
+    Label functionLabel = new Label(funcName);
 
     if (ctx.paramList() != null) {
       visitParamList(ctx.paramList());
@@ -287,7 +290,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
       Register addr = accMachine.peekFreeRegister();
 
       list.add(visitAssignLHS(ctx.assignLHS()));
-      Type varType = ctx.assignLHS().returnType;
+      Type varType = (Type) ctx.assignLHS().returnType;
 
       if (Type.isBool(varType) || Type.isChar(varType)) {
         list.add(accMachine.getInstructionList(STRB, result, addr));
@@ -332,7 +335,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     }
 
     Label readLabel;
-    if (Type.isInt(ctx.assignLHS().returnType)) {
+    if (Type.isInt((Type) ctx.assignLHS().returnType)) {
       readLabel = new Label("p_read_int");
       helperFunctions.add(ReadFunctions.readInt(data));
     } else {
