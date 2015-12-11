@@ -113,10 +113,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   */
   @Override
   public Type visitFunc(WACCParser.FuncContext ctx) {
-    List<Variable> paramList
-            = Utils.getParamList(ctx, typeCreator);
     String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText()
-            + Utils.getFuncParamTypeSuffix(paramList);
+            + Utils.getParamString(ctx.paramTypes);
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
 

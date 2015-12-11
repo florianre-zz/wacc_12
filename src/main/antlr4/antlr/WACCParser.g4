@@ -10,7 +10,10 @@ options {
 
 prog: BEGIN func* main END EOF;
 main: statList;
-func: type funcName=ident OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END;
+func returns [List<Type> paramTypes]: type funcName=ident OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END
+{
+  List<Type> paramTypes = new ArrayList();
+};
 paramList: param (COMMA param)*;
 param: type name=ident;
 statList: stat (SEMICOLON stat)*;

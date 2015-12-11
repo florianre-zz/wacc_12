@@ -56,6 +56,9 @@ public class Utils {
     return funcParams;
   }
 
+  public static String getParamString(List<Type> types) {
+    return getArgString(types);
+  }
 
   public static String getArgString(List<Type> types) {
     StringBuilder sb = new StringBuilder();

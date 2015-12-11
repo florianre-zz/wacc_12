@@ -8,6 +8,7 @@ import wacc.error.SemanticError;
 import wacc.error.SyntaxError;
 import wacc.error.WACCErrorHandler;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class WACCSymbolTableFiller extends WACCVisitor<Void> {
@@ -118,6 +119,11 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
                                 SymbolTable<String, Binding>
                                     newScopeSymbolTable) {
     List<Variable> funcParams = Utils.getParamList(funcContext, typeCreator);
+    List<Type> paramTypes = new ArrayList<>();
+    for (Variable v : funcParams) {
+      paramTypes.add(v.getType());
+    }
+    funcContext.paramTypes = paramTypes;
 
     for (Variable param : funcParams) {
       Binding binding = newScopeSymbolTable.put(param.getName(), param);
