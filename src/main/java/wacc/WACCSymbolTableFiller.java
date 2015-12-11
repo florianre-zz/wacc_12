@@ -90,7 +90,6 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
     String funcName;
 
     // Allows mutual recursion but does not allow overloading
-    // TODO: make only 1 dummy
     Function dummy = new Function();
     for (WACCParser.FuncContext progFuncContext : progFuncContexts) {
       funcName = progFuncContext.funcName.getText();
