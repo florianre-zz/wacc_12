@@ -565,7 +565,8 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   @Override
   public InstructionList visitCall(CallContext ctx) {
     InstructionList list = defaultResult();
-    String functionName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
+    String functionName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText()
+            + Utils.getArgString(ctx.argTypes);
     Label functionLabel = new Label(functionName);
 
     if (ctx.argList() != null) {
