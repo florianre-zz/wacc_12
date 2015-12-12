@@ -1006,8 +1006,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label malloc = new Label("malloc");
     Register addressOfArray = accMachine.popFreeRegister();
     list.add(Utils.allocateArrayAddress(bytesToAllocate, malloc, addressOfArray,
-                                  accMachine));
-
+                                        accMachine));
     long offset = ADDRESS_SIZE;
     for (ExprContext elem : ctx.expr()) {
       Register result = accMachine.peekFreeRegister();

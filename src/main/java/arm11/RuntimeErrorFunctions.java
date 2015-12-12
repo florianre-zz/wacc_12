@@ -2,7 +2,8 @@ package arm11;
 
 public class RuntimeErrorFunctions {
 
-    public static final Label P_PRINT_STRING_LABEL = new Label("p_print_string");
+    public static final Label P_PRINT_STRING_LABEL
+            = new Label("p_print_string");
     public static final Label EXIT_LABEL = new Label("exit");
 
     public enum Error {
@@ -10,8 +11,8 @@ public class RuntimeErrorFunctions {
                 "\"DivideByZeroError: divide or modulo by zero\\n\\0\""),
         THROW_RUNTIME_ERROR("p_throw_runtime_error", ""),
         THROW_OVERFLOW_ERROR("p_throw_overflow_error",
-                "\"OverflowError: the result is too small/large to store in " +
-                        "a 4-byte signed-integer.\\n\""),
+                "\"OverflowError: the result is too small/large to store in "
+                        + "a 4-byte signed-integer.\\n\""),
         CHECK_ARRAY_BOUNDS_NEG_ERROR("p_check_array_bounds",
                 "\"ArrayIndexOutOfBoundsError: negative index\\n\\0\""),
         CHECK_ARRAY_BOUNDS_TOO_LARGE_ERROR("p_check_array_bounds",
