@@ -276,12 +276,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     goUpWorkingSymbolTable();
     popCurrentScopeVariableSet();
 
-    scopeName = Scope.ELSE.toString() + ifCount;
-    changeWorkingSymbolTableTo(scopeName);
-    pushEmptyVariableSet();
-    visitStatList(ctx.elseStat);
-    goUpWorkingSymbolTable();
-    popCurrentScopeVariableSet();
+    if (ctx.ELSE() != null) {
+      scopeName = Scope.ELSE.toString() + ifCount;
+      changeWorkingSymbolTableTo(scopeName);
+      pushEmptyVariableSet();
+      visitStatList(ctx.elseStat);
+      goUpWorkingSymbolTable();
+      popCurrentScopeVariableSet();
+    }
 
     return null;
   }

@@ -495,14 +495,17 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
 
     Label elseLabel = new Label("else_" + ifCount);
     Label continueLabel = new Label("fi_" + ifCount);
-
-    list.add(createBranchEqual(elseLabel))
-        .add(getInstructionsForIfBranch(Scope.THEN.toString(), ctx.thenStat))
-        .add(createBranch(continueLabel));
-
-    list.add(createLabel(elseLabel))
-        .add(getInstructionsForIfBranch(Scope.ELSE.toString(), ctx.elseStat))
-        .add(createLabel(continueLabel));
+    if (ctx.ELSE() != null) {
+      list.add(createBranchEqual(elseLabel))
+          .add(getInstructionsForIfBranch(Scope.THEN.toString(), ctx.thenStat))
+          .add(createBranch(continueLabel))
+          .add(createLabel(elseLabel))
+          .add(getInstructionsForIfBranch(Scope.ELSE.toString(), ctx.elseStat));
+    } else {
+      list.add(createBranchEqual(continueLabel))
+          .add(getInstructionsForIfBranch(Scope.THEN.toString(), ctx.thenStat));
+    }
+    list.add(createLabel(continueLabel));
 
     return list;
   }
