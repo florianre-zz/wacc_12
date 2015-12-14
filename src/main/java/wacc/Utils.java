@@ -312,4 +312,17 @@ public class Utils {
     return returnType.getSize();
   }
 
+
+  public static String getPossibleTypesForOverloading(
+          List<Function> overloadedFunctions) {
+    StringBuilder sb = new StringBuilder();
+    for (Function f : overloadedFunctions) {
+      sb.append('\n');
+      List<Variable> params = f.getParams();
+      for (Variable p : params) {
+        
+      }
+    }
+    return sb.toString();
+  }
 }
