@@ -39,7 +39,7 @@ nonArrayType: baseType | pairType;
 baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
-pairElemType: baseType | arrayType | PAIR;
+pairElemType: baseType | arrayType | pairType | PAIR;
 expr returns [Type returnType]: binaryOper {Type returnType = null;};
 sign: MINUS | PLUS;
 binaryOper: logicalOper;
