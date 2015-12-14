@@ -23,11 +23,9 @@ public class PairType extends Type {
       return super.toString();
     }
 
-    String fstString = (fst instanceof PairType
-        ? Types.PAIR_T.toString() : fst.toString());
+    String fstString = fst.toString();
 
-    String sndString = (snd instanceof PairType
-        ? Types.PAIR_T.toString() : snd.toString());
+    String sndString = snd.toString();
 
     return super.toString() + "(" + fstString + ", " + sndString + ")";
   }
@@ -56,12 +54,6 @@ public class PairType extends Type {
     }
     if (o == null || getClass() != o.getClass()) {
       return false;
-    }
-
-    PairType type = (PairType) o;
-
-    if(type.generic || generic) {
-      return true;
     }
 
     return super.equals(o);

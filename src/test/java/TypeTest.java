@@ -2,9 +2,7 @@ import bindings.*;
 import org.junit.Test;
 
 import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
 public class TypeTest {
 
@@ -92,7 +90,7 @@ public class TypeTest {
     PairType outerPair
         = new PairType(fstInnerPair, sndInnerPair);
 
-    String type = "pair(pair, pair)";
+    String type = "pair(pair(int, string), pair(string, int))";
     assertThat(outerPair.toString(), is(type));
   }
 
@@ -125,14 +123,13 @@ public class TypeTest {
   @Test
   public void testGenericPairsAreEqualToAnyPair() {
     Type baseType = new Type(Types.INT_T);
-    assertEquals(new PairType(), new PairType(baseType, baseType));
+    assertNotEquals(new PairType(), new PairType(baseType, baseType));
   }
 
   @Test
   public void testGenericPairsAreEqualToAnyPairWithGenericSubtypes() {
     PairType pairType = new PairType();
-    assertEquals(new PairType(), new PairType(pairType, pairType));
-    assertEquals(new PairType(pairType, pairType), new PairType());
+    assertNotEquals(new PairType(), new PairType(pairType, pairType));
   }
 
   @Test
@@ -158,8 +155,7 @@ public class TypeTest {
     ArrayType genericPairArrayType = new ArrayType(genericPair);
     PairType intPair = new PairType(intType, intType);
     ArrayType pairIntArrayType = new ArrayType(intPair);
-    assertEquals(pairIntArrayType, genericPairArrayType);
-    assertEquals(genericPairArrayType, pairIntArrayType);
+    assertNotEquals(pairIntArrayType, genericPairArrayType);
   }
 
 }
