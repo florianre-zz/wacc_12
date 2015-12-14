@@ -69,12 +69,9 @@ public class Utils {
     return sb.append(".").toString();
   }
 
-  // TODO: create toLabel in Type
   private static String getNameForLabel(Type t) {
-    if ((Type.isString(t))) {
-      return Types.CHAR_T.name();
-    }
-    return t.getName();
+//    System.err.println("Label: " + t.toLabel());
+    return t.toLabel();
   }
 
   public static String getFuncParamTypeSuffix(List<Variable> params) {

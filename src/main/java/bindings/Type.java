@@ -59,6 +59,13 @@ public class Type extends Binding {
     return getName();
   }
 
+  public String toLabel() {
+    if(Type.isString(this)) {
+      return Types.CHAR_T.toString() + TypeLabels.ARRAY_L;
+    }
+    return getName();
+  }
+
   @Override
   public boolean equals(Object o) {
 

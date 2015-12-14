@@ -62,7 +62,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
           = getFuncScope((WACCParser.FuncContext) ctx, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
       name += Utils.getParamString(((WACCParser.FuncContext) ctx).paramTypes);
-      System.err.println("Function name : " + name);
+//      System.err.println("Function name : " + name);
     } else {
       newScope = new NewScope(name, newSymbolTable);
       contextToVisit = getStatListContext(ctx);

@@ -32,6 +32,17 @@ public class PairType extends Type {
     return super.toString() + "(" + fstString + ", " + sndString + ")";
   }
 
+  @Override
+  public String toLabel() {
+    String fstLabel = (fst instanceof PairType
+            ? TypeLabels.PAIR_L.toString() : fst.toLabel());
+
+    String sndLabel = (snd instanceof PairType
+            ? TypeLabels.PAIR_L.toString() : snd.toLabel());
+
+    return TypeLabels.PAIR_L.toString() + "_" + fstLabel + "_" + sndLabel;
+  }
+
   public Type getFst() {
     return fst;
   }
