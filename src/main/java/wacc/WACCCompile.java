@@ -74,6 +74,7 @@ public class WACCCompile {
     top.put(Types.CHAR_T.toString(), new Type(Types.CHAR_T, 0, 255));
     top.put(Types.STRING_T.toString(), new Type(Types.STRING_T));
     top.put(Types.PAIR_T.toString(), new PairType());
+    top.put(Types.UNDEFINED_T.toString(), new Type(Types.UNDEFINED_T));
     return top;
   }
 
