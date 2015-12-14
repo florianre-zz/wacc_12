@@ -1,0 +1,27 @@
+begin
+  # no parameters
+  char f() is
+    return 'e'
+  end
+  string f() is
+    return "e"
+  end
+
+  # same param types
+  int f(string s) is
+    return 1
+  end
+  bool f(string s) is
+    return false
+  end
+
+  # semantically equivalent param types
+  bool g(char[][] carr) is
+    return true
+  end
+  bool g(string[] s) is
+    return true
+  end
+
+  skip
+end
