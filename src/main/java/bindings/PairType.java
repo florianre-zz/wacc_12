@@ -18,7 +18,6 @@ public class PairType extends Type {
 
   @Override
   public String toString() {
-
     if (generic) {
       return super.toString();
     }
@@ -39,7 +38,7 @@ public class PairType extends Type {
   }
 
   public static boolean isPair(Type type) {
-    return type != null && type.equals(new PairType());
+    return type != null && (type instanceof PairType);
   }
 
   @Override
@@ -56,7 +55,16 @@ public class PairType extends Type {
       return false;
     }
 
-    return super.equals(o);
+    PairType p = (PairType) o;
+
+    if (!this.generic) {
+      if (this.fst != p.fst && this.snd != p.snd) {
+        return false;
+      }
+    }
+
+
+    return true;
   }
 
   @Override
