@@ -23,5 +23,5 @@ begin
     return true
   end
 
-  skip
+  int i = call f('c')
 end

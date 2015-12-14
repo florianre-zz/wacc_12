@@ -391,11 +391,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
 //      System.err.println("Called :" + calledFunctionName);
       // TODO: ERROR: the function does not exist with these argument types
       StringBuilder errorMsgBuilder = new StringBuilder();
-      errorMsgBuilder.append("the function does not exist ")
-              .append("with these argument types:\n");
-              // list types
-      errorMsgBuilder.append(
-              Utils.getPossibleTypesForOverloading(overloadedFuncs));
+      errorMsgBuilder.append("Function ")
+          .append(ctx.funcName.getText())
+          .append(" does not exist with these argument types:\n")
+          .append(Utils.listTypes(types)).append("\n\n")
+          .append("Perhaps you meant any of these lists of types:").append("\n")
+          .append(Utils.getPossibleTypesForOverloading(overloadedFuncs));
       errorHandler.complain(new TypeError(ctx, errorMsgBuilder.toString()));
       return getType(Types.UNDEFINED_T);
     }

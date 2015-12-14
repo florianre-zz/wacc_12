@@ -319,10 +319,22 @@ public class Utils {
     for (Function f : overloadedFunctions) {
       sb.append('\n');
       List<Variable> params = f.getParams();
-      for (Variable p : params) {
-        
+      if (params.isEmpty()) {
+        sb.append("(no parameters) ");
+      } else {
+        for (Variable p : params) {
+          sb.append(p.getType().toString()).append(" ");
+        }
       }
     }
-    return sb.toString();
+    return sb.deleteCharAt(sb.length() - 1).toString();
+  }
+
+  public static String listTypes(List<Type> types) {
+    StringBuilder sb = new StringBuilder();
+    for (Type t : types) {
+      sb.append(t.toString()).append(" ");
+    }
+    return sb.deleteCharAt(sb.length() - 1).toString();
   }
 }
