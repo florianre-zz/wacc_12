@@ -123,13 +123,13 @@ public class TypeTest {
   @Test
   public void testGenericPairsAreEqualToAnyPair() {
     Type baseType = new Type(Types.INT_T);
-    assertNotEquals(new PairType(), new PairType(baseType, baseType));
+    assertEquals(new PairType(), new PairType(baseType, baseType));
   }
 
   @Test
   public void testGenericPairsAreEqualToAnyPairWithGenericSubtypes() {
     PairType pairType = new PairType();
-    assertNotEquals(new PairType(), new PairType(pairType, pairType));
+    assertEquals(new PairType(), new PairType(pairType, pairType));
   }
 
   @Test
@@ -155,7 +155,7 @@ public class TypeTest {
     ArrayType genericPairArrayType = new ArrayType(genericPair);
     PairType intPair = new PairType(intType, intType);
     ArrayType pairIntArrayType = new ArrayType(intPair);
-    assertNotEquals(pairIntArrayType, genericPairArrayType);
+    assertEquals(pairIntArrayType, genericPairArrayType);
   }
 
 }
