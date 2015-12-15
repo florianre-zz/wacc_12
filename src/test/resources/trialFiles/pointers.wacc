@@ -1,5 +1,7 @@
 begin
     int i = 10;
     int *iptr = &i;
-    int **dblpointer = &iptr
+    int **dblpointer = &iptr;
+    int *derefptr = *dblpointer;
+    int deref = *iptr
 end
