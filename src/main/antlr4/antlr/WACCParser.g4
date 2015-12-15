@@ -15,7 +15,7 @@ paramList: param (COMMA param)*;
 param: type name=ident;
 statList: stat (SEMICOLON stat)*;
 stat: SKIP                                                       # SkipStat
-      | type (MUL)* ident EQUALS assignRHS                         # InitStat
+      | type ident EQUALS assignRHS                              # InitStat
       | assignLHS EQUALS assignRHS                               # AssignStat
       | READ assignLHS                                           # ReadStat
       | FREE expr                                                # FreeStat
@@ -36,7 +36,7 @@ call: CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS;
 argList: expr (COMMA expr)*;
 type: nonArrayType | arrayType;
 nonArrayType: baseType | pairType;
-baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
+baseType: (INT_T | BOOL_T | CHAR_T | STRING_T) (MUL)*;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
 pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
 pairElemType: baseType | arrayType | pairType | PAIR;
