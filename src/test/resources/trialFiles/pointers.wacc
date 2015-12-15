@@ -1,0 +1,5 @@
+begin
+    int i = 10;
+    int *iptr = &i;
+    int **dblpointer = &iptr
+end

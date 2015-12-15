@@ -15,7 +15,7 @@ paramList: param (COMMA param)*;
 param: type name=ident;
 statList: stat (SEMICOLON stat)*;
 stat: SKIP                                                       # SkipStat
-      | type ident EQUALS assignRHS                              # InitStat
+      | type (MUL)* ident EQUALS assignRHS                         # InitStat
       | assignLHS EQUALS assignRHS                               # AssignStat
       | READ assignLHS                                           # ReadStat
       | FREE expr                                                # FreeStat
@@ -28,7 +28,7 @@ stat: SKIP                                                       # SkipStat
       | BEGIN statList END                                       # BeginStat
       ;
 
-assignLHS returns [Type returnType]: (ident | arrayElem | pairElem) {Type
+assignLHS returns [Type returnType]: ((MUL)* ident | arrayElem | pairElem) {Type
 returnType = null;};
 assignRHS: expr | arrayLitr | newPair | pairElem | call;
 newPair: NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS;
@@ -78,7 +78,7 @@ bool: (NOT)? boolLitr;
 character: (ORD)? CHARACTER;
 array: (LEN)? arrayElem;
 string: (LEN)? STRING;
-unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
+unaryOper: (NOT | MINUS | LEN | ORD | CHR | ADDR)? ((MUL)* ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
 pairElem: (FST | SND) ident;
 arrayElem returns [Type returnType]: varName=ident (OPEN_BRACKET expr
 CLOSE_BRACKET)+ {Type returnType = null;};
