@@ -60,11 +60,7 @@ public class ArrayType extends Type {
 
   @Override
   public String toLabel() {
-    StringBuilder sb = new StringBuilder(base.toLabel());
-    for (int i = 1; i <= dimensionality; i++) {
-      sb.append(TypeLabels.ARRAY_L);
-    }
-    return sb.toString();
+    return TypeLabels.ARRAY_L.toString();
   }
 
   public int getDimensionality() {

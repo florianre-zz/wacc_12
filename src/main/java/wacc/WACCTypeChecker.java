@@ -378,26 +378,29 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     List<Function> overloadedFuncs = getOverloads(ctx);
     List<Type> types = getArgTypes(ctx);
     ctx.argTypes = types;
-    String calledFunctionName = ScopeType.FUNCTION_SCOPE
-            + ctx.funcName.getText() + Utils.getArgString(types);
 
     Function calledFunction = null;
     for (Function overload : overloadedFuncs) {
-      if (overload.getName().equals(calledFunctionName)) {
+      boolean match = true;
+      if (types.size() != overload.getParams().size()) {
+        match = false;
+      } else {
+        for (int i = 0; i < types.size(); i++) {
+          Type actualType = types.get(i);
+          Type expectedType = overload.getParams().get(i).getType();
+          if (!actualType.equals(expectedType)) {
+            match = false;
+          }
+        }
+      }
+      if (match) {
         calledFunction = overload;
+        break;
       }
     }
     if (calledFunction == null) {
 //      System.err.println("Called :" + calledFunctionName);
-      // TODO: ERROR: the function does not exist with these argument types
-      StringBuilder errorMsgBuilder = new StringBuilder();
-      errorMsgBuilder.append("Function ")
-          .append(ctx.funcName.getText())
-          .append(" does not exist with these argument types:\n")
-          .append(Utils.listTypes(types)).append("\n\n")
-          .append("Perhaps you meant any of these lists of types:").append("\n")
-          .append(Utils.getPossibleTypesForOverloading(overloadedFuncs));
-      errorHandler.complain(new TypeError(ctx, errorMsgBuilder.toString()));
+      Utils.complainAboutOverloads(ctx, overloadedFuncs, types, errorHandler);
       return getType(Types.UNDEFINED_T);
     }
 

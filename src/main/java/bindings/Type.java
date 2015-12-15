@@ -61,7 +61,7 @@ public class Type extends Binding {
 
   public String toLabel() {
     if(Type.isString(this)) {
-      return Types.CHAR_T.toString() + TypeLabels.ARRAY_L;
+      return TypeLabels.ARRAY_L.toString();
     }
     return getName();
   }

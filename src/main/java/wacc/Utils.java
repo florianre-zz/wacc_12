@@ -4,9 +4,7 @@ import antlr.WACCParser;
 import arm11.*;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
-import wacc.error.DeclarationError;
-import wacc.error.WACCErrorHandler;
-import wacc.error.TypeAssignmentError;
+import wacc.error.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -337,4 +335,19 @@ public class Utils {
     }
     return sb.deleteCharAt(sb.length() - 1).toString();
   }
+
+  public static void complainAboutOverloads(WACCParser.CallContext ctx,
+                                            List<Function> overloadedFuncs,
+                                            List<Type> types,
+                                            ErrorHandler errorHandler) {
+    StringBuilder errorMsgBuilder = new StringBuilder();
+    errorMsgBuilder.append("Function ")
+            .append(ctx.funcName.getText())
+            .append(" does not exist with these argument types:\n")
+            .append(Utils.listTypes(types)).append("\n\n")
+            .append("Perhaps you meant any of these lists of types:").append("\n")
+            .append(Utils.getPossibleTypesForOverloading(overloadedFuncs));
+    errorHandler.complain(new TypeError(ctx, errorMsgBuilder.toString()));
+  }
+
 }
