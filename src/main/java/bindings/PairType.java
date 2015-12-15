@@ -34,6 +34,7 @@ public class PairType extends Type {
 
   @Override
   public String toLabel() {
+    System.err.println("Fst: " + fst);
     String fstLabel = (fst instanceof PairType
             ? TypeLabels.PAIR_L.toString() : fst.toLabel());
 
