@@ -23,7 +23,7 @@ stat: SKIP                                                       # SkipStat
       | RETURN expr                                              # ReturnStat
       | PRINT expr                                               # PrintStat
       | PRINTLN expr                                             # PrintStat
-      | IF expr THEN thenStat=statList ELSE elseStat=statList FI # IfStat
+      | IF expr THEN thenStat=statList (ELSE elseStat=statList)? FI # IfStat
       | WHILE expr DO statList DONE                              # WhileStat
       | BEGIN statList END                                       # BeginStat
       ;

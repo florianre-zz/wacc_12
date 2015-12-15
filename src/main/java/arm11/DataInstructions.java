@@ -13,13 +13,13 @@ public class DataInstructions {
 
   public DataInstructions() {
     this.instructionList = new InstructionList();
-    instructionList.add(InstructionFactory.createData());
     this.printFormattersMap = new HashMap<>();
     this.messagesMap = new HashMap<>();
     this.labelCounter = EMPTY;
+    instructionList.add(InstructionFactory.createData());
   }
 
-  public Label addMessage(String message) {
+  public Label addUniqueString(String message) {
     if (!messagesMap.containsKey(message)) {
       labelCounter++;
       Label label = new Label("msg_" + labelCounter);

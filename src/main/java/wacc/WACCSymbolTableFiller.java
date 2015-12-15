@@ -144,12 +144,16 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
 
     setIfBranchScope(Scope.THEN, ctx.thenStat);
 
-    boolean thenHasReturn = hasReturnStat;
-    boolean thenHasExit = hasExitStat;
-    setIfBranchScope(Scope.ELSE, ctx.elseStat);
+    boolean ifHasReturn = hasReturnStat;
+    boolean ifHasExit = hasExitStat;
+    if (ctx.ELSE() != null) {
+      setIfBranchScope(Scope.ELSE, ctx.elseStat);
+      ifHasReturn = ifHasReturn && hasReturnStat;
+      ifHasExit = ifHasExit && hasReturnStat;
+    }
 
-    hasReturnStat = (hasReturnStat && thenHasReturn) || hasReturnBeforehand;
-    hasExitStat = (hasExitStat && thenHasExit) || hasExitBeforehand;
+    hasReturnStat = ifHasReturn || hasReturnBeforehand;
+    hasExitStat = ifHasExit || hasExitBeforehand;
 
     return null;
   }
