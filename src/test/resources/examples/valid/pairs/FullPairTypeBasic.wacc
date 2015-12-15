@@ -1,0 +1,6 @@
+begin
+  pair(int, string) p1 = newpair(1, "Hello");
+  pair(int, pair(int, string)) p2 = newpair(1, null);
+  pair(int, string) s = snd p2;
+  println s
+end

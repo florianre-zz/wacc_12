@@ -49,6 +49,8 @@ public class WACCTypeCreator extends WACCVisitor<Type> {
       return visitBaseType(ctx.baseType());
     } else if (ctx.arrayType() != null) {
       return visitArrayType(ctx.arrayType());
+    } else if (ctx.pairType() != null) {
+      return visitPairType(ctx.pairType());
     } else {
       return new PairType();
     }
