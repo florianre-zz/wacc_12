@@ -173,6 +173,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     if (ctx.pairElem() != null) {
       String name = ctx.pairElem().ident().getText();
       ctx.returnType = getMostRecentBindingForVariable(name).getType();
+    } else if (ctx.MUL() != null) {
+      return new PointerType(visitIdent(ctx.ident()), ctx.MUL().size());
     } else {
       ctx.returnType = returnType;
     }
@@ -598,6 +600,11 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         incorrectType(ctx, exprType, Types.CHAR_T.toString(), errorHandler);
       }
       return getType(Types.INT_T);
+    } else if (ctx.ADDR() != null) {
+      if (ArrayType.isArray(exprType) || PairType.isPair(exprType)) {
+        incorrectType(ctx, exprType, "Not Array or Pair", errorHandler);
+      }
+      return new PointerType(exprType);
     }
     return exprType;
   }
@@ -606,6 +613,17 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     Type exprType = null;
     if (ctx.ident() != null) {
       exprType = visitIdent(ctx.ident());
+      if (PointerType.isPointer(exprType)) {
+        PointerType pointerType = (PointerType) exprType;
+        int totalDim = pointerType.getDimensionality();
+        int wantedDim = ctx.MUL().size();
+        if (wantedDim <= totalDim) {
+          int returnDim = totalDim - wantedDim;
+          return PointerType.createPointer(pointerType.getBase(), returnDim);
+        } else {
+          errorHandler.complain(new TypeError(ctx));
+        }
+      }
     } else if (ctx.expr() != null) {
       exprType = visitExpr(ctx.expr());
     }
