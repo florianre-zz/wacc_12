@@ -124,7 +124,7 @@ public class Utils {
 
   public static String getToken(int index){
     String tokenName = WACCParser.tokenNames[index];
-    assert(tokenName.charAt(0) != '\'');
+    assert(tokenName.charAt(0) == '\'');
     return tokenName.substring(1, tokenName.length() - 1);
   }
 
