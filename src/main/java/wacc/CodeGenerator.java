@@ -808,15 +808,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register dst = accMachine.peekFreeRegister();
     if (ctx.ident() != null) {
       if (ctx.ADDR() != null) {
-        Immediate offset = new Immediate(getAccumulativeOffsetForVariable(
-            ctx.ident().getText()));
-        Register result = accMachine.popFreeRegister();
-        Register value = accMachine.popFreeRegister();
-
-        list.add(createAdd(value, SP, offset));
-        list.add(accMachine.getInstructionList(LDR, result, new Address(value)));
-
-        accMachine.pushFreeRegister(value);
+        list.add(visitAddress(ctx));
       } else {
         list.add(visitIdent(ctx.ident()));
       }
@@ -835,6 +827,21 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     } else if (ctx.LEN() != null) {
       list.add(createLoad(dst, dst, new Immediate(0L)));
     }
+
+    return list;
+  }
+
+  private InstructionList visitAddress(UnaryOperContext ctx) {
+    InstructionList list = defaultResult();
+    Immediate offset = new Immediate(getAccumulativeOffsetForVariable(
+        ctx.ident().getText()));
+    Register result = accMachine.popFreeRegister();
+    Register value = accMachine.popFreeRegister();
+
+    list.add(createAdd(value, SP, offset));
+    list.add(accMachine.getInstructionList(LDR, result, new Address(value)));
+
+    accMachine.pushFreeRegister(value);
 
     return list;
   }
