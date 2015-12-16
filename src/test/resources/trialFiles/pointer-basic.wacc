@@ -1,8 +1,9 @@
 begin
   int i = 10;
   int *p = &i;
-  int **pp = &p;
   println *p;
-  println *pp;
-  println **pp;
+  *p = 4;
+  println *p;
+  i = 7; 
+  println *p;
 end
