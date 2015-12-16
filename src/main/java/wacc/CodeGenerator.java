@@ -265,9 +265,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Variable var = (Variable) workingSymbolTable.get(varName);
     long varOffset = var.getOffset();
 
-
-    InstructionList list = storeToOffset(varOffset,
-                                         var.getType(),
+    InstructionList list = storeToOffset(varOffset, var.getType(),
                                          ctx.assignRHS());
     addVariableToCurrentScope(varName);
     return list;
