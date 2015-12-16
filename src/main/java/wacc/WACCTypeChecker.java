@@ -2,6 +2,7 @@ package wacc;
 
 import antlr.WACCParser;
 import bindings.*;
+import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
 import java.util.List;
@@ -173,9 +174,10 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     if (ctx.pairElem() != null) {
       String name = ctx.pairElem().ident().getText();
       ctx.returnType = getMostRecentBindingForVariable(name).getType();
-    } else if (ctx.MUL() != null) {
+    } else if (ctx.pointer() != null) {
       if (PointerType.isPointer(returnType)) {
-         return dereferencePointer(returnType, ctx.MUL().size());
+        ctx.returnType = dereferencePointer(returnType, ctx.pointer().MUL().size());
+        return ctx.returnType;
       }
     } else {
       ctx.returnType = returnType;
@@ -580,7 +582,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
 	public Type visitUnaryOper(WACCParser.UnaryOperContext ctx) {
-    Type exprType = getTypeFromUnaryOper(ctx);
+    Type exprType = visitChildren(ctx);
     if (ctx.NOT() != null) {
       if (!Type.isBool(exprType)) {
         incorrectType(ctx, exprType, Types.BOOL_T.toString(), errorHandler);
@@ -611,17 +613,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return exprType;
   }
 
-  private Type getTypeFromUnaryOper(WACCParser.UnaryOperContext ctx) {
-    Type exprType = null;
-    if (ctx.ident() != null) {
-      exprType = visitIdent(ctx.ident());
-      if (PointerType.isPointer(exprType)) {
-        exprType = dereferencePointer(exprType, ctx.MUL().size());
-      }
-    } else if (ctx.expr() != null) {
-      exprType = visitExpr(ctx.expr());
-    }
-    return exprType;
+  @Override
+  public Type visitPointer(@NotNull WACCParser.PointerContext ctx) {
+    return dereferencePointer(visitIdent(ctx.ident()), ctx.MUL().size());
   }
 
   public Type dereferencePointer(Type exprType, int wantedDim) {
