@@ -36,7 +36,14 @@ public class WACCTypeCreator extends WACCVisitor<Type> {
   public Type visitPairType(WACCParser.PairTypeContext ctx) {
     Type fstType = visitPairElemType(ctx.firstType);
     Type sndType = visitPairElemType(ctx.secondType);
-    return new PairType(fstType, sndType);
+
+    Type base = new PairType(fstType, sndType);
+
+    if (!ctx.MUL().isEmpty()) {
+      base = new PointerType(base,ctx.MUL().size());
+    }
+
+    return base;
   }
 
   /**
