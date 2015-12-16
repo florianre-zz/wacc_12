@@ -72,9 +72,11 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
     if (scope != null && scope instanceof Function) {
       WACCParser.FuncContext funcContext = (WACCParser.FuncContext) ctx;
       // TODO: print parameter types
-      String errorMsg = "Function " + funcContext.funcName.getText()
-              + " has already been declared with these parameter types";
-      errorHandler.complain(new DeclarationError(ctx, errorMsg));
+      StringBuilder errorMsg = new StringBuilder("Function ")
+              .append(funcContext.funcName.getText())
+              .append(" has already been declared with these parameter types\n")
+              .append(Utils.listTypes(funcContext.paramTypes));
+      errorHandler.complain(new DeclarationError(ctx, errorMsg.toString()));
     }
 
     return fillNewSymbolTable(contextToVisit, newSymbolTable);

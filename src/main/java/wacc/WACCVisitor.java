@@ -51,7 +51,7 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
             = progScope.getSymbolTable().filterByClass(Function.class);
     for (Binding binding : allFunctions) {
       Function function = (Function) binding;
-      if (function.getName().startsWith(funcName)) {
+      if (function.getName().startsWith(funcName + ".")) {
         functionScopes.add(function);
       }
     }

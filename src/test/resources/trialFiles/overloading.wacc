@@ -11,7 +11,7 @@ begin
     println "3/5";
     return true
   end
-  int[] f(char[] s, pair(int, int) p) is
+  int[] f() is
     println "4/5";
     int[] iarr = [1, 2];
     return iarr
@@ -20,6 +20,16 @@ begin
     println "5/5";
     return 'c'
   end
+
+  bool g(char[] carr) is
+    println "This should print second";
+    return true
+  end
+  bool g(int[][] iarrarr) is
+    println "This should print first";
+    return false
+  end
+
   pair(int, int) p = newpair(2, 3) ;
   pair(int, pair) q = newpair(1, p);
   int i = call f("H", q);
@@ -27,6 +37,11 @@ begin
   int[] iarr = [i];
   int[][] iarrarr = [iarr];
   bool b = call f(i, iarrarr);
-  iarr = call f("H", p);
-  char c = call f("H", q, i)
+  iarr = call f();
+  char c = call f("H", q, i);
+
+  int[][] iarrarr2 = [];
+  char[] carr = [];
+  b = call g(iarrarr2);
+  b = call g(carr)
 end

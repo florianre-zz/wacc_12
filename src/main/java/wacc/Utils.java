@@ -329,9 +329,16 @@ public class Utils {
   }
 
   public static String listTypes(List<Type> types) {
+    if (types.isEmpty()) {
+      return "(no parameters)";
+    }
     StringBuilder sb = new StringBuilder();
     for (Type t : types) {
-      sb.append(t.toString()).append(" ");
+      if (t instanceof PairType) {
+        sb.append(Types.PAIR_T).append(" ");
+      } else {
+        sb.append(t.toString()).append(" ");
+      }
     }
     return sb.deleteCharAt(sb.length() - 1).toString();
   }

@@ -395,7 +395,6 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       }
       if (match) {
         calledFunction = overload;
-        break;
       }
     }
     if (calledFunction == null) {
