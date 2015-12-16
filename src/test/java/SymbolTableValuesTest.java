@@ -64,13 +64,13 @@ public class SymbolTableValuesTest {
 //    //    assertEquals(representationOfSymbolTableWithInput(program), expected);
 //  }
 
-  @Test
-  public void testSingleIntAssignment() throws Exception {
-    String program = "begin" +
-                     "  int i = 0" +
-                     "end";
-
-    LinkedHashMap<String, Binding> table = symbolsInProgram(program);
-  }
+//  @Test
+//  public void testSingleIntAssignment() throws Exception {
+//    String program = "begin" +
+//                     "  int i = 0" +
+//                     "end";
+//
+//    LinkedHashMap<String, Binding> table = symbolsInProgram(program);
+//  }
 
 }

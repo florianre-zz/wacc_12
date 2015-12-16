@@ -7,6 +7,7 @@ import wacc.error.DeclarationError;
 import wacc.error.SemanticError;
 import wacc.error.SyntaxError;
 import wacc.error.WACCErrorHandler;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -60,13 +61,23 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
       newScope
           = getFuncScope((WACCParser.FuncContext) ctx, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
-
+      name += Utils.getParamString(((WACCParser.FuncContext) ctx).paramTypes);
+//      System.err.println("Function name : " + name);
     } else {
       newScope = new NewScope(name, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
     }
 
-    workingSymbolTable.put(name, newScope);
+    Binding scope = workingSymbolTable.put(name, newScope);
+    if (scope != null && scope instanceof Function) {
+      WACCParser.FuncContext funcContext = (WACCParser.FuncContext) ctx;
+      // TODO: print parameter types
+      StringBuilder errorMsg = new StringBuilder("Function ")
+              .append(funcContext.funcName.getText())
+              .append(" has already been declared with these parameter types\n")
+              .append(Utils.listTypes(funcContext.paramTypes));
+      errorHandler.complain(new DeclarationError(ctx, errorMsg.toString()));
+    }
 
     return fillNewSymbolTable(contextToVisit, newSymbolTable);
   }
@@ -81,17 +92,17 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
     String funcName;
 
     // Allows mutual recursion but does not allow overloading
-    // TODO: make only 1 dummy
     Function dummy = new Function();
-    for (WACCParser.FuncContext progFuncContext:progFuncContexts) {
+    for (WACCParser.FuncContext progFuncContext : progFuncContexts) {
       funcName = progFuncContext.funcName.getText();
       Binding checker = progSymbolTable.put(ScopeType.FUNCTION_SCOPE + funcName,
                                             dummy);
 
-      if (checker != null){
-        String errorMsg = "Function name " + funcName + " is already used";
-        errorHandler.complain(new DeclarationError(ctx, errorMsg));
-      }
+      // commented to cater for overloading
+//      if (checker != null){
+//        String errorMsg = "Function name " + funcName + " is already used";
+//        errorHandler.complain(new DeclarationError(ctx, errorMsg));
+//      }
     }
 
     return new NewScope(scopeName, progSymbolTable);
@@ -105,31 +116,27 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
   private NewScope getFuncScope(WACCParser.FuncContext funcContext,
                                 SymbolTable<String, Binding>
                                     newScopeSymbolTable) {
-    List<Variable> funcParams = new ArrayList<>();
+    List<Variable> funcParams = Utils.getParamList(funcContext, typeCreator);
+    List<Type> paramTypes = new ArrayList<>();
+    for (Variable v : funcParams) {
+      paramTypes.add(v.getType());
+    }
+    funcContext.paramTypes = paramTypes;
 
-    if (funcContext.paramList() != null) {
-      List<? extends WACCParser.ParamContext> paramContexts =
-          funcContext.paramList().param();
-
-      for (WACCParser.ParamContext paramContext : paramContexts) {
-        String name = paramContext.name.getText();
-        Type type = typeCreator.visitParam(paramContext);
-
-      /* Create param as a variable
-       * Store it in the function's list of params and in its symbolTable
-       */
-        Variable param = new Variable(name, type);
-        Binding binding = newScopeSymbolTable.put(name, param);
-        if (binding != null) {
-          String errorMsg = "parameter name " + name + " already exists";
-          errorHandler.complain(new DeclarationError(funcContext, errorMsg));
-        }
-        funcParams.add(param);
+    for (Variable param : funcParams) {
+      Binding binding = newScopeSymbolTable.put(param.getName(), param);
+      if (binding != null) {
+        String errorMsg = "parameter name " + param.getName()
+                + " already exists";
+        errorHandler.complain(new DeclarationError(funcContext, errorMsg));
       }
     }
 
+    String funcName = ScopeType.FUNCTION_SCOPE + funcContext.funcName.getText()
+            + Utils.getFuncParamTypeSuffix(funcParams);
+
     return new Function(typeCreator.visitType(funcContext.type()),
-                        funcContext.funcName.getText(),
+                        funcName,
                         funcParams,
                         newScopeSymbolTable);
   }

@@ -1,19 +1,21 @@
 package bindings;
 
+import wacc.SymbolTable;
+
 import java.util.LinkedHashMap;
 
 public class NewScope extends Binding {
 
-  private LinkedHashMap<String, Binding> symbolTable;
+  private SymbolTable<String, Binding> symbolTable;
   // TODO: make final?
   private long stackSpaceSize;
 
-  public NewScope(String name, LinkedHashMap<String, Binding> symbolTable) {
+  public NewScope(String name, SymbolTable<String, Binding> symbolTable) {
     super(name);
     this.symbolTable = symbolTable;
   }
 
-  public LinkedHashMap<String, Binding> getSymbolTable() {
+  public SymbolTable<String, Binding> getSymbolTable() {
     return symbolTable;
   }
 

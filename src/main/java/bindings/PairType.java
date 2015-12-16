@@ -29,6 +29,11 @@ public class PairType extends Type {
     return super.toString() + "(" + fstString + ", " + sndString + ")";
   }
 
+  @Override
+  public String toLabel() {
+    return TypeLabels.PAIR_L.toString();
+  }
+
   public Type getFst() {
     return fst;
   }

@@ -10,7 +10,10 @@ options {
 
 prog: BEGIN func* main END EOF;
 main: statList;
-func: type funcName=ident OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END;
+func returns [List<Type> paramTypes]: type funcName=ident OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END
+{
+  List<Type> paramTypes = new ArrayList();
+};
 paramList: param (COMMA param)*;
 param: type name=ident;
 statList: stat (SEMICOLON stat)*;
@@ -32,7 +35,10 @@ assignLHS returns [Type returnType]: (ident | arrayElem | pairElem) {Type
 returnType = null;};
 assignRHS: expr | arrayLitr | newPair | pairElem | call;
 newPair: NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS;
-call: CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS;
+call returns [List<Type> argTypes]: CALL funcName=ident OPEN_PARENTHESIS (argList)? CLOSE_PARENTHESIS
+{
+  List<Type> argTypes = new ArrayList();
+};
 argList: expr (COMMA expr)*;
 type: nonArrayType | arrayType;
 nonArrayType: baseType | pairType;
