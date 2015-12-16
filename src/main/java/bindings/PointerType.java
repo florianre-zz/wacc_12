@@ -58,7 +58,7 @@ public class PointerType extends Type {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof Type)) {
+    if (!(o instanceof PointerType)) {
       return false;
     }
     PointerType that = (PointerType) o;
