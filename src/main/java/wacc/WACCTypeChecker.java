@@ -174,7 +174,9 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       String name = ctx.pairElem().ident().getText();
       ctx.returnType = getMostRecentBindingForVariable(name).getType();
     } else if (ctx.MUL() != null) {
-      return new PointerType(visitIdent(ctx.ident()), ctx.MUL().size());
+      if (PointerType.isPointer(returnType)) {
+         return dereferencePointer(returnType, ctx.MUL().size());
+      }
     } else {
       ctx.returnType = returnType;
     }
@@ -614,19 +616,21 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     if (ctx.ident() != null) {
       exprType = visitIdent(ctx.ident());
       if (PointerType.isPointer(exprType)) {
-        PointerType pointerType = (PointerType) exprType;
-        int totalDim = pointerType.getDimensionality();
-        int wantedDim = ctx.MUL().size();
-        if (wantedDim <= totalDim) {
-          int returnDim = totalDim - wantedDim;
-          return PointerType.createPointer(pointerType.getBase(), returnDim);
-        } else {
-          errorHandler.complain(new TypeError(ctx));
-        }
+        exprType = dereferencePointer(exprType, ctx.MUL().size());
       }
     } else if (ctx.expr() != null) {
       exprType = visitExpr(ctx.expr());
     }
+    return exprType;
+  }
+
+  public Type dereferencePointer(Type exprType, int wantedDim) {
+      PointerType pointerType = (PointerType) exprType;
+      int totalDim = pointerType.getDimensionality();
+      if (wantedDim <= totalDim) {
+        int returnDim = totalDim - wantedDim;
+        return PointerType.createPointer(pointerType.getBase(), returnDim);
+      }
     return exprType;
   }
 
