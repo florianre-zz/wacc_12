@@ -4,6 +4,8 @@ import antlr.WACCParser;
 import arm11.*;
 import arm11.Shift.Shifts;
 import bindings.*;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import static antlr.WACCParser.*;
@@ -307,6 +309,29 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     return list;
   }
 
+  @Override
+  public InstructionList visitPointer(PointerContext ctx) {
+    InstructionList list = defaultResult();
+    Immediate offset = new Immediate(getAccumulativeOffsetForVariable(
+        ctx.ident().getText()));
+    Register result = accMachine.popFreeRegister();
+    Register value = accMachine.popFreeRegister();
+
+    if (isAssigning) {
+      list.add(createAdd(value, SP, offset));
+      list.add(accMachine.getInstructionList(MOV, result, value));
+    } else {
+      list.add(createLoad(result, SP, offset));
+    }
+
+    for (int i = 0; i < ctx.MUL().size(); i++) {
+      list.add(createLoad(result, new Address(result)));
+    }
+
+    accMachine.pushFreeRegister(value);
+    return list;
+  }
+
   /**
    * Gets instructions for expr to read
    * Adds instruction to move expr in r0
@@ -354,7 +379,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label printLabel;
     InstructionList printInstructions = null;
     Type returnType = ctx.expr().returnType;
-    if (Type.isString(returnType)) {
+    if (PointerType.isPointer(returnType)) {
+      printLabel = new Label("p_print_reference");
+      printInstructions = PrintFunctions.printReference(data);
+    } else if (Type.isString(returnType)) {
       printLabel = new Label("p_print_string");
       printInstructions = PrintFunctions.printString(data);
     } else if (Type.isInt(returnType)) {
@@ -804,7 +832,9 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitUnaryOper(UnaryOperContext ctx) {
     InstructionList list = defaultResult();
     Register dst = accMachine.peekFreeRegister();
-    if (ctx.ident() != null) {
+    if (ctx.pointer() != null) {
+      list.add(visitPointer(ctx.pointer()));
+    } else if (ctx.ident() != null) {
       if (ctx.ADDR() != null) {
         list.add(visitAddress(ctx));
       } else {
@@ -950,11 +980,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register reg = accMachine.popFreeRegister();
     Register sp = SP;
 
-      if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
-        list.add(accMachine.getInstructionList(LDRSB, reg, sp, offset));
-      } else {
-        list.add(accMachine.getInstructionList(LDR, reg, sp, offset));
-      }
+    if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
+      list.add(accMachine.getInstructionList(LDRSB, reg, sp, offset));
+    } else {
+      list.add(accMachine.getInstructionList(LDR, reg, sp, offset));
+    }
 
     return list;
   }
