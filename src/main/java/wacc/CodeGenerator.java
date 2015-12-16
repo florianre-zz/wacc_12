@@ -320,7 +320,6 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (isAssigning) {
       list.add(createAdd(value, SP, offset));
       list.add(accMachine.getInstructionList(MOV, result, value));
-      list.add(createLoad(result, new Address(result)));
     } else {
       list.add(createLoad(result, SP, offset));
     }
@@ -1010,8 +1009,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitPairElem(PairElemContext ctx) {
     InstructionList list = defaultResult();
     Register result = accMachine.peekFreeRegister();
-    list.add(visitChildren(ctx))
-        .add(createMove(R0, result))
+    list.add(visitChildren(ctx));
+    if (ctx.pointer() != null && isAssigning) {
+      list.add(createLoad(result, new Address(result)));
+    }
+    list.add(createMove(R0, result))
         .add(createBranchLink(new Label("p_check_null_pointer")));
 
     Utils.addRuntimeErrorFunctionsToHelpers(

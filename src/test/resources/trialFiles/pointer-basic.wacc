@@ -4,6 +4,6 @@ begin
   println *p;
   *p = 4;
   println *p;
-  i = 7; 
+  i = 7;
   println *p;
 end
