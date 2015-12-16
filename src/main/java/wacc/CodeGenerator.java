@@ -320,6 +320,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     if (isAssigning) {
       list.add(createAdd(value, SP, offset));
       list.add(accMachine.getInstructionList(MOV, result, value));
+      list.add(createLoad(result, new Address(result)));
     } else {
       list.add(createLoad(result, SP, offset));
     }
@@ -1016,8 +1017,28 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Utils.addRuntimeErrorFunctionsToHelpers(
       RuntimeErrorFunctions.checkNullPointer(data), data, helperFunctions);
 
-    Variable variable = getMostRecentBindingForVariable(ctx.ident().getText());
-    PairType pairT = (PairType) variable.getType();
+    String varName;
+    if (ctx.ident() != null) {
+      varName = ctx.ident().getText();
+    } else {
+      varName = ctx.pointer().ident().getText();
+    }
+
+    Variable variable = getMostRecentBindingForVariable(varName);
+
+    Type exprType = variable.getType();
+
+    if (ctx.pointer() != null) {
+      PointerType pointerType = (PointerType) exprType;
+      int totalDim = pointerType.getDimensionality();
+      int wantedDim = ctx.pointer().MUL().size();
+      if (wantedDim <= totalDim) {
+        int returnDim = totalDim - wantedDim;
+        exprType = PointerType.createPointer(pointerType.getBase(), returnDim);
+      }
+    }
+
+    PairType pairT = (PairType) exprType;
     boolean isStoredByte;
     if (ctx.FST() != null) {
       list.add(createLoad(result, result, new Immediate(0L)));
