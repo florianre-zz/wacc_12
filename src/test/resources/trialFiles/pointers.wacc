@@ -1,7 +1,9 @@
 begin
     int i = 10;
+    int x = 5;
     int *iptr = &i;
+    iptr = &x;
     int **dblpointer = &iptr;
     int *derefptr = *dblpointer;
-    int deref = *iptr
+    char deref = chr *iptr
 end

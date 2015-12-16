@@ -1,0 +1,4 @@
+begin
+  int *iptr = 42;
+  int **idblPtr = iptr
+end
