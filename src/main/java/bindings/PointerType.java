@@ -8,9 +8,9 @@ public class PointerType extends Type {
   public PointerType(Type base) {
     super(base.getName());
     this.dimensionality = 1;
-    if (this.base instanceof PointerType) {
-      this.dimensionality += ((PointerType) this.base).getDimensionality();
-      this.base = ((PointerType) this.base).base;
+    if (base instanceof PointerType) {
+      this.dimensionality += ((PointerType) base).getDimensionality();
+      this.base = ((PointerType) base).base;
     } else {
       this.base = base;
     }
@@ -33,7 +33,7 @@ public class PointerType extends Type {
   }
 
   public static boolean isPointer(Type type) {
-    return type != null && type instanceof ArrayType;
+    return type != null && type instanceof PointerType;
   }
 
   public static Type createPointer(Type base, int dimensionality) {
@@ -51,13 +51,18 @@ public class PointerType extends Type {
   }
 
   @Override
+  public int getSize() {
+    return SIZE_OF_ADDRESS;
+  }
+
+  @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (!(o instanceof PointerType)) return false;
-    if (!super.equals(o)) return false;
-
+    if (!(o instanceof Type)) {
+      return false;
+    }
     PointerType that = (PointerType) o;
-    return !(base != that.base || dimensionality != that.dimensionality);
+    return this.base.equals(that.base) && this.dimensionality == that.dimensionality;
   }
 
   @Override
