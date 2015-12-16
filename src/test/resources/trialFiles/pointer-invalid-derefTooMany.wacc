@@ -1,0 +1,4 @@
+begin
+  int *p = 42;
+  int i = **p
+end

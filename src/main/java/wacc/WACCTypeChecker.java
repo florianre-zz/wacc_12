@@ -189,8 +189,20 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitAssignLHS(WACCParser.AssignLHSContext ctx) {
     Type returnType = super.visitAssignLHS(ctx);
     if (ctx.pairElem() != null) {
-      String name = ctx.pairElem().ident().getText();
-      ctx.returnType = getMostRecentBindingForVariable(name).getType();
+      if (ctx.pairElem().pointer() != null) {
+        if (PointerType.isPointer(returnType)) {
+          ctx.returnType = dereferencePointer(returnType, ctx.pairElem().pointer().MUL().size());
+          return ctx.returnType;
+        }
+      } else {
+        String name = ctx.pairElem().ident().getText();
+        ctx.returnType = getMostRecentBindingForVariable(name).getType();
+      }
+    } else if (ctx.pointer() != null) {
+      if (PointerType.isPointer(returnType)) {
+        ctx.returnType = dereferencePointer(returnType, ctx.pointer().MUL().size());
+        return ctx.returnType;
+      }
     } else {
       ctx.returnType = returnType;
     }
@@ -588,8 +600,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitPairElem(WACCParser.PairElemContext ctx) {
-    Type varType = visitIdent(ctx.ident());
-
+    Type varType = visitChildren(ctx);
     Type returnType = null;
 
     if (Utils.checkTypesEqual(ctx, new PairType(), varType, errorHandler)) {
@@ -621,7 +632,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
 	public Type visitUnaryOper(WACCParser.UnaryOperContext ctx) {
-    Type exprType = getTypeFromUnaryOper(ctx);
+    Type exprType = visitChildren(ctx);
     if (ctx.NOT() != null) {
       if (!Type.isBool(exprType)) {
         incorrectType(ctx, exprType, Types.BOOL_T.toString(), errorHandler);
@@ -643,17 +654,27 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         incorrectType(ctx, exprType, Types.CHAR_T.toString(), errorHandler);
       }
       return getType(Types.INT_T);
+    } else if (ctx.ADDR() != null) {
+      if (ArrayType.isArray(exprType)) {
+        incorrectType(ctx, exprType, "Not Array", errorHandler);
+      }
+      return new PointerType(exprType);
     }
     return exprType;
   }
 
-  private Type getTypeFromUnaryOper(WACCParser.UnaryOperContext ctx) {
-    Type exprType = null;
-    if (ctx.ident() != null) {
-      exprType = visitIdent(ctx.ident());
-    } else if (ctx.expr() != null) {
-      exprType = visitExpr(ctx.expr());
-    }
+  @Override
+  public Type visitPointer(WACCParser.PointerContext ctx) {
+    return dereferencePointer(visitIdent(ctx.ident()), ctx.MUL().size());
+  }
+
+  public Type dereferencePointer(Type exprType, int wantedDim) {
+    PointerType pointerType = (PointerType) exprType;
+      int totalDim = pointerType.getDimensionality();
+      if (wantedDim <= totalDim) {
+        int returnDim = totalDim - wantedDim;
+        return PointerType.createPointer(pointerType.getBase(), returnDim);
+      }
     return exprType;
   }
 
@@ -779,14 +800,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitAddOper(WACCParser.AddOperContext ctx) {
     if (!ctx.otherExprs.isEmpty()) {
+      Type returnType = getType(Types.INT_T);
       for (WACCParser.MultOperContext multOperContext : ctx.multOper()) {
         Type type = visitMultOper(multOperContext);
-        if (!Type.isInt(type)) {
+        if (!(Type.isInt(type) || PointerType.isPointer(type))) {
           incorrectType(multOperContext, type, Types.INT_T.toString(),
               errorHandler);
         }
+        if (PointerType.isPointer(type)) {
+          returnType = type;
+        }
       }
-      return getType(Types.INT_T);
+      return returnType;
     } else {
       return visitChildren(ctx);
     }

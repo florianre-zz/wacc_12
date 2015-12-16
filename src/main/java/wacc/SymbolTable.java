@@ -50,7 +50,7 @@ public class SymbolTable<S, T> extends LinkedHashMap<S, T> {
       sb.append(getKeyElemPairString(list, keys));
     }
     sb.append("}\n");
-    for (SymbolTable<S, T> symTable:list) {
+    for (SymbolTable<S, T> symTable : list) {
       sb.append("\n").append(symTable.name).append(": ");
       sb.append(symTable);
     }

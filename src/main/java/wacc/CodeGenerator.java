@@ -3,10 +3,10 @@ package wacc;
 import antlr.WACCParser;
 import arm11.*;
 import arm11.Shift.Shifts;
-import bindings.Binding;
-import bindings.PairType;
-import bindings.Type;
-import bindings.Variable;
+import bindings.*;
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.misc.NotNull;
+
 import java.util.HashSet;
 import java.util.List;
 
@@ -268,9 +268,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Variable var = (Variable) workingSymbolTable.get(varName);
     long varOffset = var.getOffset();
 
-
-    InstructionList list = storeToOffset(varOffset,
-                                         var.getType(),
+    InstructionList list = storeToOffset(varOffset, var.getType(),
                                          ctx.assignRHS());
     addVariableToCurrentScope(varName);
     return list;
@@ -311,6 +309,29 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     isAssigning = true;
     list.add(visitChildren(ctx));
     isAssigning = false;
+    return list;
+  }
+
+  @Override
+  public InstructionList visitPointer(PointerContext ctx) {
+    InstructionList list = defaultResult();
+    Immediate offset = new Immediate(getAccumulativeOffsetForVariable(
+        ctx.ident().getText()));
+    Register result = accMachine.popFreeRegister();
+    Register value = accMachine.popFreeRegister();
+
+    if (isAssigning) {
+      list.add(createAdd(value, SP, offset));
+      list.add(accMachine.getInstructionList(MOV, result, value));
+    } else {
+      list.add(createLoad(result, SP, offset));
+    }
+
+    for (int i = 0; i < ctx.MUL().size(); i++) {
+      list.add(createLoad(result, new Address(result)));
+    }
+
+    accMachine.pushFreeRegister(value);
     return list;
   }
 
@@ -361,7 +382,10 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label printLabel;
     InstructionList printInstructions = null;
     Type returnType = ctx.expr().returnType;
-    if (Type.isString(returnType)) {
+    if (PointerType.isPointer(returnType)) {
+      printLabel = new Label("p_print_reference");
+      printInstructions = PrintFunctions.printReference(data);
+    } else if (Type.isString(returnType)) {
       printLabel = new Label("p_print_string");
       printInstructions = PrintFunctions.printString(data);
     } else if (Type.isInt(returnType)) {
@@ -812,8 +836,14 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitUnaryOper(UnaryOperContext ctx) {
     InstructionList list = defaultResult();
     Register dst = accMachine.peekFreeRegister();
-    if (ctx.ident() != null) {
-      list.add(visitIdent(ctx.ident()));
+    if (ctx.pointer() != null) {
+      list.add(visitPointer(ctx.pointer()));
+    } else if (ctx.ident() != null) {
+      if (ctx.ADDR() != null) {
+        list.add(visitAddress(ctx));
+      } else {
+        list.add(visitIdent(ctx.ident()));
+      }
     } else if (ctx.expr() != null) {
       list.add(visitExpr(ctx.expr()));
     }
@@ -829,6 +859,21 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     } else if (ctx.LEN() != null) {
       list.add(createLoad(dst, dst, new Immediate(0L)));
     }
+
+    return list;
+  }
+
+  private InstructionList visitAddress(UnaryOperContext ctx) {
+    InstructionList list = defaultResult();
+    Immediate offset = new Immediate(getAccumulativeOffsetForVariable(
+        ctx.ident().getText()));
+    Register result = accMachine.popFreeRegister();
+    Register value = accMachine.popFreeRegister();
+
+    list.add(createAdd(value, SP, offset));
+    list.add(accMachine.getInstructionList(MOV, result, value));
+
+    accMachine.pushFreeRegister(value);
 
     return list;
   }
@@ -939,11 +984,11 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register reg = accMachine.popFreeRegister();
     Register sp = SP;
 
-      if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
-        list.add(accMachine.getInstructionList(LDRSB, reg, sp, offset));
-      } else {
-        list.add(accMachine.getInstructionList(LDR, reg, sp, offset));
-      }
+    if (Type.isBool(variable.getType()) || Type.isChar(variable.getType())) {
+      list.add(accMachine.getInstructionList(LDRSB, reg, sp, offset));
+    } else {
+      list.add(accMachine.getInstructionList(LDR, reg, sp, offset));
+    }
 
     return list;
   }
@@ -968,15 +1013,38 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
   public InstructionList visitPairElem(PairElemContext ctx) {
     InstructionList list = defaultResult();
     Register result = accMachine.peekFreeRegister();
-    list.add(visitChildren(ctx))
-        .add(createMove(R0, result))
+    list.add(visitChildren(ctx));
+    if (ctx.pointer() != null && isAssigning) {
+      list.add(createLoad(result, new Address(result)));
+    }
+    list.add(createMove(R0, result))
         .add(createBranchLink(new Label("p_check_null_pointer")));
 
     Utils.addRuntimeErrorFunctionsToHelpers(
       RuntimeErrorFunctions.checkNullPointer(data), data, helperFunctions);
 
-    Variable variable = getMostRecentBindingForVariable(ctx.ident().getText());
-    PairType pairT = (PairType) variable.getType();
+    String varName;
+    if (ctx.ident() != null) {
+      varName = ctx.ident().getText();
+    } else {
+      varName = ctx.pointer().ident().getText();
+    }
+
+    Variable variable = getMostRecentBindingForVariable(varName);
+
+    Type exprType = variable.getType();
+
+    if (ctx.pointer() != null) {
+      PointerType pointerType = (PointerType) exprType;
+      int totalDim = pointerType.getDimensionality();
+      int wantedDim = ctx.pointer().MUL().size();
+      if (wantedDim <= totalDim) {
+        int returnDim = totalDim - wantedDim;
+        exprType = PointerType.createPointer(pointerType.getBase(), returnDim);
+      }
+    }
+
+    PairType pairT = (PairType) exprType;
     boolean isStoredByte;
     if (ctx.FST() != null) {
       list.add(createLoad(result, result, new Immediate(0L)));

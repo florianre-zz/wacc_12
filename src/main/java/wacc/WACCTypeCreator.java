@@ -2,7 +2,6 @@ package wacc;
 
 import antlr.WACCParser;
 import bindings.*;
-import org.antlr.v4.runtime.misc.NotNull;
 
 public class WACCTypeCreator extends WACCVisitor<Type> {
 
@@ -14,7 +13,7 @@ public class WACCTypeCreator extends WACCVisitor<Type> {
    * Get type of parameter by visiting its type context
    */
   @Override
-  public Type visitParam(@NotNull WACCParser.ParamContext ctx) {
+  public Type visitParam(WACCParser.ParamContext ctx) {
     return visitType(ctx.type());
   }
 
@@ -23,7 +22,7 @@ public class WACCTypeCreator extends WACCVisitor<Type> {
    * arrayType
    */
   @Override
-  public Type visitArrayType(@NotNull WACCParser.ArrayTypeContext ctx) {
+  public Type visitArrayType(WACCParser.ArrayTypeContext ctx) {
     Type base = visitNonArrayType(ctx.nonArrayType());
     int dimensionality = ctx.OPEN_BRACKET().size();
     return new ArrayType(base, dimensionality);
@@ -34,17 +33,24 @@ public class WACCTypeCreator extends WACCVisitor<Type> {
    * a pairType
    */
   @Override
-  public Type visitPairType(@NotNull WACCParser.PairTypeContext ctx) {
+  public Type visitPairType(WACCParser.PairTypeContext ctx) {
     Type fstType = visitPairElemType(ctx.firstType);
     Type sndType = visitPairElemType(ctx.secondType);
-    return new PairType(fstType, sndType);
+
+    Type base = new PairType(fstType, sndType);
+
+    if (!ctx.MUL().isEmpty()) {
+      base = new PointerType(base,ctx.MUL().size());
+    }
+
+    return base;
   }
 
   /**
    * Get type of an element of a pair
    */
   @Override
-  public Type visitPairElemType(@NotNull WACCParser.PairElemTypeContext ctx) {
+  public Type visitPairElemType(WACCParser.PairElemTypeContext ctx) {
     if (ctx.baseType() != null) {
       return visitBaseType(ctx.baseType());
     } else if (ctx.arrayType() != null) {
@@ -60,15 +66,22 @@ public class WACCTypeCreator extends WACCVisitor<Type> {
    * Get the type of the BaseTypeContext
    */
   @Override
-  public Type visitBaseType(@NotNull WACCParser.BaseTypeContext ctx) {
+  public Type visitBaseType(WACCParser.BaseTypeContext ctx) {
+    Type base;
     if (ctx.INT_T() != null) {
-      return getType(Types.INT_T);
+      base = getType(Types.INT_T);
     } else if (ctx.BOOL_T() != null) {
-      return getType(Types.BOOL_T);
+      base =  getType(Types.BOOL_T);
     } else if(ctx.CHAR_T() != null) {
-      return getType(Types.CHAR_T);
+      base =  getType(Types.CHAR_T);
     } else {
-      return getType(Types.STRING_T);
+      base =  getType(Types.STRING_T);
     }
+
+    if (!ctx.MUL().isEmpty()) {
+      base = new PointerType(base,ctx.MUL().size());
+    }
+
+    return base;
   }
 }

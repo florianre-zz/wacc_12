@@ -1,0 +1,13 @@
+begin
+  pair(int, string) pi = newpair(1, "hello");
+  pair(int, string) *p_pair = &pi;
+  int i = 100;
+  i = fst *p_pair;
+  println i;
+  fst pi = 3;
+  i = fst pi;
+  println i;
+  fst *p_pair = 2;
+  i = fst *p_pair;
+  println i;
+end

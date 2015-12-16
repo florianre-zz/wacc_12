@@ -1,0 +1,9 @@
+begin
+  char c = 'c';
+  char *s = &c;
+  println c;
+  println s;
+  println *s;
+  *s = 's';
+  println *s;
+end

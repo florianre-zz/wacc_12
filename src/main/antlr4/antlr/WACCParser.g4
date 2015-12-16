@@ -16,7 +16,7 @@ func returns [List<Type> paramTypes]: type funcName=ident OPEN_PARENTHESIS (para
 };
 paramList: param (COMMA param)*;
 param: type name=ident;
-statList: stat (SEMICOLON stat)*;
+statList: stat (SEMICOLON stat)* (SEMICOLON)?;
 stat: SKIP                                                       # SkipStat
       | type ident EQUALS assignRHS                              # InitStat
       | assignLHS EQUALS assignRHS                               # AssignStat
@@ -31,7 +31,7 @@ stat: SKIP                                                       # SkipStat
       | BEGIN statList END                                       # BeginStat
       ;
 
-assignLHS returns [Type returnType]: (ident | arrayElem | pairElem) {Type
+assignLHS returns [Type returnType]: (pointer | ident | arrayElem | pairElem) {Type
 returnType = null;};
 assignRHS: expr | arrayLitr | newPair | pairElem | call;
 newPair: NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS;
@@ -42,9 +42,9 @@ call returns [List<Type> argTypes]: CALL funcName=ident OPEN_PARENTHESIS (argLis
 argList: expr (COMMA expr)*;
 type: nonArrayType | arrayType;
 nonArrayType: baseType | pairType;
-baseType: INT_T | BOOL_T | CHAR_T | STRING_T;
+baseType: (INT_T | BOOL_T | CHAR_T | STRING_T) (MUL)*;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
-pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
+pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS (MUL)*;
 pairElemType: baseType | arrayType | pairType | PAIR;
 expr returns [Type returnType]: binaryOper {Type returnType = null;};
 sign: MINUS | PLUS;
@@ -84,11 +84,12 @@ bool: (NOT)? boolLitr;
 character: (ORD)? CHARACTER;
 array: (LEN)? arrayElem;
 string: (LEN)? STRING;
-unaryOper: (NOT | MINUS | LEN | ORD | CHR)? (ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
-pairElem: (FST | SND) ident;
+unaryOper: (NOT | MINUS | LEN | ORD | CHR | ADDR)? (pointer | ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
+pairElem: (FST | SND) (pointer | ident);
 arrayElem returns [Type returnType]: varName=ident (OPEN_BRACKET expr
 CLOSE_BRACKET)+ {Type returnType = null;};
 boolLitr: TRUE | FALSE;
 arrayLitr: OPEN_BRACKET (expr (COMMA expr)*)? CLOSE_BRACKET;
 pairLitr: NULL;
+pointer: (MUL)+ ident;
 ident: IDENT;
