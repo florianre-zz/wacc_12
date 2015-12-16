@@ -807,7 +807,19 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     InstructionList list = defaultResult();
     Register dst = accMachine.peekFreeRegister();
     if (ctx.ident() != null) {
-      list.add(visitIdent(ctx.ident()));
+      if (ctx.ADDR() != null) {
+        Immediate offset = new Immediate(getAccumulativeOffsetForVariable(
+            ctx.ident().getText()));
+        Register result = accMachine.popFreeRegister();
+        Register value = accMachine.popFreeRegister();
+
+        list.add(createAdd(value, SP, offset));
+        list.add(accMachine.getInstructionList(LDR, result, new Address(value)));
+
+        accMachine.pushFreeRegister(value);
+      } else {
+        list.add(visitIdent(ctx.ident()));
+      }
     } else if (ctx.expr() != null) {
       list.add(visitExpr(ctx.expr()));
     }
