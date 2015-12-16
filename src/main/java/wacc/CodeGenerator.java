@@ -3,10 +3,8 @@ package wacc;
 import antlr.WACCParser;
 import arm11.*;
 import arm11.Shift.Shifts;
-import bindings.Binding;
-import bindings.PairType;
-import bindings.Type;
-import bindings.Variable;
+import bindings.*;
+
 import java.util.HashSet;
 import static antlr.WACCParser.*;
 import static arm11.ARM11Registers.*;
@@ -839,7 +837,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Register value = accMachine.popFreeRegister();
 
     list.add(createAdd(value, SP, offset));
-    list.add(accMachine.getInstructionList(LDR, result, new Address(value)));
+    list.add(accMachine.getInstructionList(MOV, result, value));
 
     accMachine.pushFreeRegister(value);
 

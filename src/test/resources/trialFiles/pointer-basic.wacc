@@ -2,4 +2,7 @@ begin
   int i = 10;
   int *p = &i;
   int **pp = &p;
+  println *p;
+  println *pp;
+  println **pp;
 end
