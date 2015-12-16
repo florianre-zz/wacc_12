@@ -2,7 +2,6 @@ package wacc;
 
 import antlr.WACCParser;
 import bindings.*;
-import org.antlr.v4.runtime.misc.NotNull;
 import wacc.error.*;
 
 import java.util.List;
@@ -172,8 +171,15 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitAssignLHS(WACCParser.AssignLHSContext ctx) {
     Type returnType = super.visitAssignLHS(ctx);
     if (ctx.pairElem() != null) {
-      String name = ctx.pairElem().ident().getText();
-      ctx.returnType = getMostRecentBindingForVariable(name).getType();
+      if (ctx.pairElem().pointer() != null) {
+        if (PointerType.isPointer(returnType)) {
+          ctx.returnType = dereferencePointer(returnType, ctx.pairElem().pointer().MUL().size());
+          return ctx.returnType;
+        }
+      } else {
+        String name = ctx.pairElem().ident().getText();
+        ctx.returnType = getMostRecentBindingForVariable(name).getType();
+      }
     } else if (ctx.pointer() != null) {
       if (PointerType.isPointer(returnType)) {
         ctx.returnType = dereferencePointer(returnType, ctx.pointer().MUL().size());
@@ -549,8 +555,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitPairElem(WACCParser.PairElemContext ctx) {
-    Type varType = visitIdent(ctx.ident());
-
+    Type varType = visitChildren(ctx);
     Type returnType = null;
 
     if (Utils.checkTypesEqual(ctx, new PairType(), varType, errorHandler)) {
@@ -605,8 +610,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       }
       return getType(Types.INT_T);
     } else if (ctx.ADDR() != null) {
-      if (ArrayType.isArray(exprType) || PairType.isPair(exprType)) {
-        incorrectType(ctx, exprType, "Not Array or Pair", errorHandler);
+      if (ArrayType.isArray(exprType)) {
+        incorrectType(ctx, exprType, "Not Array", errorHandler);
       }
       return new PointerType(exprType);
     }
@@ -614,12 +619,12 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   }
 
   @Override
-  public Type visitPointer(@NotNull WACCParser.PointerContext ctx) {
+  public Type visitPointer(WACCParser.PointerContext ctx) {
     return dereferencePointer(visitIdent(ctx.ident()), ctx.MUL().size());
   }
 
   public Type dereferencePointer(Type exprType, int wantedDim) {
-      PointerType pointerType = (PointerType) exprType;
+    PointerType pointerType = (PointerType) exprType;
       int totalDim = pointerType.getDimensionality();
       if (wantedDim <= totalDim) {
         int returnDim = totalDim - wantedDim;
