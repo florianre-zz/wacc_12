@@ -13,7 +13,7 @@ main: statList;
 func: type funcName=ident OPEN_PARENTHESIS (paramList)? CLOSE_PARENTHESIS IS statList END;
 paramList: param (COMMA param)*;
 param: type name=ident;
-statList: stat (SEMICOLON stat)*;
+statList: stat (SEMICOLON stat)* (SEMICOLON)?;
 stat: SKIP                                                       # SkipStat
       | type ident EQUALS assignRHS                              # InitStat
       | assignLHS EQUALS assignRHS                               # AssignStat
