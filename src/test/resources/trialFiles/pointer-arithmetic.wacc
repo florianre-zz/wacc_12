@@ -1,0 +1,9 @@
+begin
+  int x = 10;
+  int y = 11;
+  int *px = &x;
+  int *py = &y;
+  py = py + 4;
+  println px;
+  println py;
+end

@@ -750,14 +750,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitAddOper(WACCParser.AddOperContext ctx) {
     if (!ctx.otherExprs.isEmpty()) {
+      Type returnType = getType(Types.INT_T);
       for (WACCParser.MultOperContext multOperContext : ctx.multOper()) {
         Type type = visitMultOper(multOperContext);
-        if (!Type.isInt(type)) {
+        if (!(Type.isInt(type) || PointerType.isPointer(type))) {
           incorrectType(multOperContext, type, Types.INT_T.toString(),
               errorHandler);
         }
+        if (PointerType.isPointer(type)) {
+          returnType = type;
+        }
       }
-      return getType(Types.INT_T);
+      return returnType;
     } else {
       return visitChildren(ctx);
     }
