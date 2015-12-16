@@ -38,7 +38,7 @@ type: nonArrayType | arrayType;
 nonArrayType: baseType | pairType;
 baseType: (INT_T | BOOL_T | CHAR_T | STRING_T) (MUL)*;
 arrayType: nonArrayType (OPEN_BRACKET CLOSE_BRACKET)+;
-pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS;
+pairType: PAIR OPEN_PARENTHESIS firstType=pairElemType COMMA secondType=pairElemType CLOSE_PARENTHESIS (MUL)*;
 pairElemType: baseType | arrayType | pairType | PAIR;
 expr returns [Type returnType]: binaryOper {Type returnType = null;};
 sign: MINUS | PLUS;
@@ -79,7 +79,7 @@ character: (ORD)? CHARACTER;
 array: (LEN)? arrayElem;
 string: (LEN)? STRING;
 unaryOper: (NOT | MINUS | LEN | ORD | CHR | ADDR)? (pointer | ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
-pairElem: (FST | SND) ident;
+pairElem: (FST | SND) (pointer | ident);
 arrayElem returns [Type returnType]: varName=ident (OPEN_BRACKET expr
 CLOSE_BRACKET)+ {Type returnType = null;};
 boolLitr: TRUE | FALSE;
