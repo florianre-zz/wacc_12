@@ -28,7 +28,7 @@ stat: SKIP                                                       # SkipStat
       | BEGIN statList END                                       # BeginStat
       ;
 
-assignLHS returns [Type returnType]: ((MUL)* ident | arrayElem | pairElem) {Type
+assignLHS returns [Type returnType]: (pointer | ident | arrayElem | pairElem) {Type
 returnType = null;};
 assignRHS: expr | arrayLitr | newPair | pairElem | call;
 newPair: NEW_PAIR OPEN_PARENTHESIS first=expr COMMA second=expr CLOSE_PARENTHESIS;
@@ -78,11 +78,12 @@ bool: (NOT)? boolLitr;
 character: (ORD)? CHARACTER;
 array: (LEN)? arrayElem;
 string: (LEN)? STRING;
-unaryOper: (NOT | MINUS | LEN | ORD | CHR | ADDR)? ((MUL)* ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
+unaryOper: (NOT | MINUS | LEN | ORD | CHR | ADDR)? (pointer | ident | (OPEN_PARENTHESIS expr CLOSE_PARENTHESIS));
 pairElem: (FST | SND) ident;
 arrayElem returns [Type returnType]: varName=ident (OPEN_BRACKET expr
 CLOSE_BRACKET)+ {Type returnType = null;};
 boolLitr: TRUE | FALSE;
 arrayLitr: OPEN_BRACKET (expr (COMMA expr)*)? CLOSE_BRACKET;
 pairLitr: NULL;
+pointer: (MUL)+ ident;
 ident: IDENT;
