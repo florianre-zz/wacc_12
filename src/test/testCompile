@@ -61,10 +61,14 @@ def runCompileWithDir(folder)
 
 end
 
-puts "Given tests"
+puts "Given tests:"
+puts "\n"
 runCompileWithDir("examples")
 puts "Finished given tests"
+puts "\n"
 
-puts "Own tests"
+puts "Own tests:"
+puts "\n"
 runCompileWithDir("trialFiles")
 puts "Finished own tests"
+puts "\n"

@@ -1,0 +1,17 @@
+# particular overload does not exist
+
+begin
+  char f() is
+    return 'e'
+  end
+
+  int f(string s) is
+    return 1
+  end
+
+  bool f(char c, int i, int j) is
+    return false
+  end
+
+  int i = call f('c')
+end

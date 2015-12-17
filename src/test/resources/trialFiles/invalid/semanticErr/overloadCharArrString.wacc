@@ -1,0 +1,11 @@
+begin
+  # semantically equivalent param types
+  bool g(char[][] carr) is
+    return true
+  end
+  bool g(string[] s) is
+    return true
+  end
+
+  skip
+end

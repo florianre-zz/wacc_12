@@ -1,4 +1,4 @@
-# if missing else clause
+# no return after fi
 
 # Output:
 # #syntax_error#
@@ -15,8 +15,6 @@ begin
     then
       x = x + 1;
       return x;
-    else
-      x = x - 1;
     fi;
   end
 

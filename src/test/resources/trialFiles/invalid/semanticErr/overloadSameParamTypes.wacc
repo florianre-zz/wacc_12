@@ -1,0 +1,11 @@
+begin
+  # same param types
+  int f(string s, char c, int i) is
+    return 1
+  end
+  bool f(string str, char k, int j) is
+    return false
+  end
+
+  skip
+end
