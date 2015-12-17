@@ -56,13 +56,11 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
       newScope
           = setProgScope((WACCParser.ProgContext) ctx, name, newSymbolTable);
       contextToVisit = ctx;
-
     } else if (ctx instanceof WACCParser.FuncContext) {
       newScope
           = getFuncScope((WACCParser.FuncContext) ctx, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
       name += Utils.getParamString(((WACCParser.FuncContext) ctx).paramTypes);
-//      System.err.println("Function name : " + name);
     } else {
       newScope = new NewScope(name, newSymbolTable);
       contextToVisit = getStatListContext(ctx);
@@ -71,7 +69,6 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
     Binding scope = workingSymbolTable.put(name, newScope);
     if (scope != null && scope instanceof Function) {
       WACCParser.FuncContext funcContext = (WACCParser.FuncContext) ctx;
-      // TODO: print parameter types
       StringBuilder errorMsg = new StringBuilder("Function ")
               .append(funcContext.funcName.getText())
               .append(" has already been declared with these parameter types\n")
@@ -154,7 +151,8 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
       boolean ifHasReturnOrExit = hasReturnOrExitStat;
       hasReturnOrExitStat = false;
       setIfBranchScope(Scope.ELSE, ctx.elseStat);
-      hasReturnOrExitStat = ifHasReturnOrExit && hasReturnOrExitStat || hasReturnOrExitBefore;
+      hasReturnOrExitStat = ifHasReturnOrExit && hasReturnOrExitStat
+          || hasReturnOrExitBefore;
     } else {
       hasReturnOrExitStat = hasReturnOrExitBefore;
     }

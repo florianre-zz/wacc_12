@@ -40,7 +40,7 @@ public class WACCTypeCreator extends WACCVisitor<Type> {
     Type base = new PairType(fstType, sndType);
 
     if (!ctx.MUL().isEmpty()) {
-      base = new PointerType(base,ctx.MUL().size());
+      base = new PointerType(base, ctx.MUL().size());
     }
 
     return base;
@@ -79,7 +79,7 @@ public class WACCTypeCreator extends WACCVisitor<Type> {
     }
 
     if (!ctx.MUL().isEmpty()) {
-      base = new PointerType(base,ctx.MUL().size());
+      base = new PointerType(base, ctx.MUL().size());
     }
 
     return base;
