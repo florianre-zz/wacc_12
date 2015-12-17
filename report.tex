@@ -38,7 +38,7 @@
 
 \begin{document}
 \title{WACC Compiler Group Project}
-\author{Elliot Greenwood, Elyas Addo, Florian Emile, Jonathan King}
+\author{Elyas Addo, Florian Emile, Elliot Greenwood, Jonathan King}
 
 \maketitle
 
@@ -155,5 +155,9 @@ We used redirection in our compile script to allow our input file to be passed i
 
 \section{Beyond the Specification}
 \label{sec:Beyond the Specification}
+For our extension, we implemented language extensions. We allow function overloading: we can make functions which have the same name but a different paramList. We extended the WACC language with a C-style pointer type: we can now access a variable using its memory address using '*' followed by the pointer name. To get the address of a variable we created an address operator: '&' (we need this to initialise pointers). If statements without an else case are now valid. We extended WACC language with a full typing system for pairs that does not lose type information for nested pairs.
+To make sure our extensions were working properly we wrote new valid and invalid tests in WACC and created a script that notifies us if the compiler is not behaving the way it should.
+
+If we would have had more time, we would have liked to implement some optimisations on our assembly code such as efficient register allocation and array-bound analysis. We were also quite keen on making WACC object oriented: so we would have liked to implement classes, inheritance, the advanced features of classes such as multiple-inheritance, overriding and class constructors.
 
 \end{document}
