@@ -14,7 +14,7 @@ import java.util.List;
 public class WACCSymbolTableFiller extends WACCVisitor<Void> {
 
   private WACCTypeCreator typeCreator;
-  private boolean hasReturnStat, hasExitStat;
+  private boolean hasReturnStat, hasReturnOrExitStat;
 
   public WACCSymbolTableFiller(SymbolTable<String, Binding> top,
                                WACCErrorHandler errorHandler) {
@@ -146,24 +146,17 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
    * Notify if return statement is reached in branches
    */
   private Void setIfStatScope(WACCParser.IfStatContext ctx) {
-    boolean hasReturnBeforehand = hasReturnStat;
-    boolean hasExitBeforehand = hasExitStat;
+    boolean hasReturnOrExitBefore = hasReturnOrExitStat;
 
     setIfBranchScope(Scope.THEN, ctx.thenStat);
 
-    boolean ifHasReturn = hasReturnStat;
-    boolean ifHasExit = hasExitStat;
     if (ctx.ELSE() != null) {
-      hasReturnStat = false;
-      hasExitStat = false;
+      boolean ifHasReturnOrExit = hasReturnOrExitStat;
+      hasReturnOrExitStat = false;
       setIfBranchScope(Scope.ELSE, ctx.elseStat);
-      ifHasReturn = ifHasReturn && hasReturnStat;
-      ifHasExit = ifHasExit && hasReturnStat;
-      hasReturnStat = ifHasReturn || hasReturnBeforehand;
-      hasExitStat = ifHasExit || hasExitBeforehand;
+      hasReturnOrExitStat = ifHasReturnOrExit && hasReturnOrExitStat || hasReturnOrExitBefore;
     } else {
-      hasReturnStat = hasReturnBeforehand;
-      hasExitStat = hasExitBeforehand;
+      hasReturnOrExitStat = hasReturnOrExitBefore;
     }
 
     return null;
@@ -271,12 +264,12 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
    */
   @Override
   public Void visitFunc(WACCParser.FuncContext ctx) {
-    hasReturnStat = false;
-    hasExitStat = false;
+    hasReturnOrExitStat = false;
     String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
     setANewScope(ctx, funcName);
-    if (!hasReturnStat && !hasExitStat) {
-      String errorMsg = "Return statement required in body of " + funcName;
+    if (!hasReturnOrExitStat) {
+      String errorMsg = "Return or exit statement required in body of "
+              + funcName;
       errorHandler.complain(new SyntaxError(ctx, errorMsg));
     }
     return null;
@@ -381,6 +374,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
   @Override
   public Void visitReturnStat(WACCParser.ReturnStatContext ctx) {
     hasReturnStat = true;
+    hasReturnOrExitStat = true;
     return super.visitReturnStat(ctx);
   }
 
@@ -389,7 +383,7 @@ public class WACCSymbolTableFiller extends WACCVisitor<Void> {
    */
   @Override
   public Void visitExitStat(WACCParser.ExitStatContext ctx) {
-    hasExitStat = true;
+    hasReturnOrExitStat = true;
     return super.visitExitStat(ctx);
   }
 }
