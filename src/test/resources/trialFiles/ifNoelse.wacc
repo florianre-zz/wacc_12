@@ -1,0 +1,25 @@
+# if missing else clause
+
+# Output:
+# #syntax_error#
+
+# Exit:
+# 100
+
+# Program:
+
+begin
+  int f() is
+    int x = 3;
+    if x == 3
+    then
+      x = x + 1;
+      return x;
+    else
+      x = x - 1;
+    fi;
+  end
+
+  int i = call f();
+  print i
+end
