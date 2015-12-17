@@ -1,4 +1,0 @@
-begin
-  int i = 42;
-  int **p = &&i
-end

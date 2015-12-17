@@ -1,4 +1,0 @@
-begin
-  char *cp = 'a';
-  int *ip = cp
-end

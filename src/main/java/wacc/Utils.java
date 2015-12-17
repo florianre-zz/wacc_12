@@ -23,8 +23,7 @@ public class Utils {
   }
 
   public static boolean isFreeable(Type exprType) {
-    return ArrayType.isArray(exprType) || PairType.isPair(exprType)
-           || PointerType.isPointer(exprType);
+    return ArrayType.isArray(exprType) || PairType.isPair(exprType);
   }
 
   public static void incorrectType(ParserRuleContext ctx,

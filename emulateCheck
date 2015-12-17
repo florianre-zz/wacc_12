@@ -20,7 +20,7 @@ open(@emulationsFile, 'w') { |f| f.print "" }
   end
 end
 @numTests = @testFiles.length
-
+puts @testFiles
 def check()
   i = 0
   #@testFiles.delete_at(148)

@@ -2,8 +2,9 @@ begin
   int x = 10;
   int y = 11;
   int *px = &x;
-  int *py = &y;
-  py = py + 4;
   println px;
+  int *py = &y;
+  println py;
+  py = py + 4;
   println py;
 end
