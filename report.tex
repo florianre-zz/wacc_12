@@ -143,8 +143,8 @@ If we to do this lab exercise again...
 
 \subsection{Visitor}
 \label{sub:Visitor}
-We used the visitor pattern four times in our project. We used it for our front when getting the type of expressions to add in our symbol tables, creating the symbol tables and checking the type of expressions. We use it in back end as well to generate the correct assembly code. We used this pattern because it gives us the flexibility to modify our parser mid-work such as if we want to make a new rule. It is also much neater and more maintainable as we do not need 
-to type-test every context in one method.
+[UPDATE THIS SECION IF WE FINISH THE TREE]\\
+We used the visitor pattern four times in our project. We used it for our front end create types for variables to add to our symbol tables, creating the symbol tables and checking the type of expressions and statements etc. were valid according to the WACC specification. We used it in back end as well to generate the correct assembly code. We used this pattern because it gives us the flexibility to have one tree which we then can then walk over and do different tasks, otherwise each node would have to know what to do for each task and to add a knew task you would need to edit all of the node class files. This is especially undesirable as running \texttt{make} will rebuild the ANTLR files thereby removing any custom code we had added.
 
 \subsection{Factory}
 \label{sub:Factory}
@@ -156,7 +156,7 @@ We used redirection in our compile script to allow our input file to be passed i
 
 \section{Beyond the Specification}
 \label{sec:Beyond the Specification}
-For our extension, we implemented language extensions. We allow function overloading: we can make functions which have the same name but a different paramList. We extended the WACC language with a C-style pointer type: we can now access a variable using its memory address using '*' followed by the pointer name. To get the address of a variable we created an address operator: '&' (we need this to initialise pointers). If statements without an else case are now valid. We extended WACC language with a full typing system for pairs that does not lose type information for nested pairs.
+For our extension, we implemented language extensions. We allow function overloading: we can make functions which have the same name but a different \texttt{paramList}. We extended the WACC language with a C-style pointer type: we can now access a variable using its memory address using \texttt{*} followed by the pointer name. To get the address of a variable we created an address operator: \texttt{\&} (we need this to initialise pointers). If statements without an else case are now valid. We extended WACC language with a full typing system for pairs that does not lose type information for nested pairs.
 To make sure our extensions were working properly we wrote new valid and invalid tests in WACC and created a script that notifies us if the compiler is not behaving the way it should.
 
 If we would have had more time, we would have liked to implement some optimisations on our assembly code such as efficient register allocation and array-bound analysis. We were also quite keen on making WACC object oriented: so we would have liked to implement classes, inheritance, the advanced features of classes such as multiple-inheritance, overriding and class constructors.
