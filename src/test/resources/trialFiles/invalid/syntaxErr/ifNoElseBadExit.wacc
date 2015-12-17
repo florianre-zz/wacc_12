@@ -1,0 +1,22 @@
+# no exit after fi
+
+# Output:
+# #syntax_error#
+
+# Exit:
+# 100
+
+# Program:
+
+begin
+  int f() is
+    int x = 3;
+    if x == 3
+    then
+      exit 4;
+    fi;
+  end
+
+  int i = call f();
+  print i
+end
