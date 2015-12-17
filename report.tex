@@ -1,0 +1,159 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage{fullpage}
+\usepackage{rotating}
+\usepackage{amsmath, amssymb, amsthm}
+\usepackage{mathpartir}
+\usepackage{tikz}
+\usepackage{verbatim}
+\usepackage{url}
+\usepackage{enumitem}
+\usepackage{accents}
+
+\usepackage{listings}
+\usepackage{color}
+
+\definecolor{dkgreen}{rgb}{0,0.6,0}
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82}
+
+\lstset{frame=tb,
+  language=Java,
+  aboveskip=3mm,
+  belowskip=3mm,
+  showstringspaces=false,
+  columns=flexible,
+  basicstyle={\small\ttfamily},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  keywordstyle=\color{blue},
+  commentstyle=\color{dkgreen},
+  stringstyle=\color{mauve},
+  breaklines=true,
+  breakatwhitespace=true,
+  tabsize=3
+}
+
+\usetikzlibrary{trees}
+
+\begin{document}
+\title{WACC Compiler Group Project}
+\author{Elliot Greenwood, Elyas Addo, Florian Emile, Jonathan King}
+
+\maketitle
+
+\section{The Product}
+\label{sec:The Product}
+
+\subsection{Functionality}
+\label{sub:Functionality}
+
+The functionality for our front end was correct, according to our testing. We were correctly allowing valid wacc files through to the code generation stage, and preventing any files with syntactical or semantic errors through - as well as outputing useful errors with line and column number followed by a message outlining the error with snippets of their code for context against the expected value.
+
+For the code generation milestone our compiler was functionally correct, according to our testing, except for cases where there is a pair or array that is freed more than once (without being reinitilised). We should be throwing a runtime exception and exiting with status code 134. However we throw a null reference exception.
+
+\subsection{Extensibilty}
+\label{subs:Extensibilty}
+
+Whilst implementing our compiler we kept in mind the design, we wanted to make sure that our code could easily be adapted in the future, perhaps with addional languages features or compiling into a different language.
+
+As we knew we would have to do an extension the ability to easily change the compiler was very important. Due to the fact all of our visitor functions only knew about their context we would only ever have to add code to be able to add language features (such as pointers, which we added as part of our extension), there are a few exceptions when we checked for a null value of an field in a childs context. This was achieved by delegating sections so the childs visitor.
+
+One aspect we overlooked was creating our own tree to represent the program. We used the ANTLR tree which means if in the future we wanted to swap ANTLR for a similar, but perhaps more up-to-date, tool we would have to rewrite a lot of our code base. However by building a custom tree our code stays intact an all that would ned to be added is a class that converts from a tree to our tree. Having control over the tree and the information in each node can also dramatically help within visitor methods [how?].
+
+However, we had thought about wanting to change the language that you compile to, in a few years ARM11 may not be desirable. By extracting all the ARM11 code into it's own package we can then swap that package for a x86 package, for example. our code will not change as the instruction factory would simply return x86 instructions as opposed to ARM11 instructions.
+
+\section{The Project Management}
+\label{sec:The Project Management}
+
+\subsection{Group Structure}
+\label{sub:Group Structure}
+
+We organised ourselves into pairs and in these pairs we would pair program for larger sections, and for smaller sections each member would work on independent sections of the project.
+
+The pair programming allowed us to more easily catch stupid mistakes and forced us to discuss design, logical, etc. decisions before implementing them leading to only a few errors to debug. While the independent work for smaller sections meant we were able to get more work done and not have a member sat idle for trivial implementations.
+
+\subsection{Use of Project Management Tools}
+\label{sub:Use of Project Management Tools}
+
+To help organise the team we used a few project management tools and continuous integration platforms.
+
+\subsubsection{Maven}
+\label{subs:Maven}
+
+We used Maven to structure our project. Using Maven meant we didn't have to take care of dependencies, such as ANTLR, the make process was also simplified as using the command \texttt{mvn package} would generate the ANTLR java files, test our code using the unit tests we had created and package our code, including the dependencies, into a .jar file.
+
+
+\subsubsection{Git and Github}
+\label{subs:Git and Github}
+
+We used Git and Github as our chosen version control. We utilised branches to to keep features and sub features seperate then use pull requests to merge all of our features together. Below is a diagram showing the branches for our project.
+
+\tikzstyle{every node}=[draw=black,thick,anchor=west]
+\begin{tikzpicture}[%
+  grow via three points={one child at (0.5,-0.7) and
+  two children at (0.5,-0.7) and (0.5,-1.4)},
+  edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
+  \node {master}
+    child { node {lexer}}
+    child { node {parser}}
+    child { node {semantic-analysis}
+      child { node {variable-scoping}}
+      child { node {error-handling}}
+    }
+    child [missing] {}
+    child [missing] {}
+    child { node {code-generation}
+      child { node {store-to-variable}}
+    }
+    child [missing] {}
+    child { node {extension}
+      child { node {ast}}
+      child { node {full-pairs}}
+      child { node {overloading}}
+      child { node {pointerTypes}}
+    };
+\end{tikzpicture}
+
+Github provided us with Issues, we used these to keep track of current bugs and enhancements we wish to implement. It also gives us the option to assign that issue to a member of our team.
+
+Our git commit messages on the whole were quite short and vague, though the style of our messages were on the correct path. Where possible we would style our commit messages to include the people who were working on the commit, an instruction that tells the reader what the commit does (i.e. Implement x instead of Implemented x).
+
+\subsubsection{Travis}
+\label{subs:Travis}
+We used Travis, a continuous intergration tool, that would test our code on every push and pull request. Travis intergrates with Github and meant we would never merge a pull request in the event of our commit failing the unit tests. [How this helped]
+
+\subsection{Slack}
+\label{sub:Slack}
+Our communication platform of choice was Slack, we liked the features is boasted such as channels, intergrations and snippets, which can be non-existent to contrived in other apps such as Facebook and Email.
+
+Channels meant we could have a seperate section for each milestone, as well as a general channel for of topic conversation. This kept all of our WACC messages in one place that was not polluted by other conversations.
+
+Integrations were really useful, the two intergrations we used the most were Github and Travis. Every time we made a commit, a new branch, an issue, assigned an issue to someone, etc. it would be automatically posted on the relevant Slack channel so everyone could read it. This stopped the need for people to ask when something had been pushed, and meant we could easily reference a certain commit. One intergration we would have liked to have used more is Wunderlist, that way we could create a centralised list of all the tasks we had todo instead of having our own lists.
+
+Snippets were useful if we needed to send each other short pieces of code that did not warrant a commit. We would also create snippets containing the key errors produced from running tests so everyone could see what the stack trace and actual output was without us having to run the tests n times.
+
+\subsection{What Would We Do Differently?}
+\label{sub:What Would We Do Differently?}
+
+If we to do this lab exercise again...
+
+\section{The Design Choices}
+\label{sec:The Design Choices}
+
+\subsection{Visitor}
+\label{sub:Visitor}
+
+
+\subsection{Factory}
+\label{sub:Factory}
+To create our instructions we created a Factory to produce all the different types. This way instead of creating a class for each type of instruction we return an anonymous class that implements the interface \texttt{Instruction}. We used Java 8 lambdas to create the instructions as there is only one method \texttt{printInstruction}. This gave a clean and minimal solution to creating all of our instructions.
+
+\subsection{Command Line Interface Seperation}
+\label{sub:Command Line Interface Seperation}
+We used redirection in our compile script to allow our input file to be passed in as the System.in, this means our compiler does not need to know about files it can just take the contents of the file and create an input stream,
+
+\section{Beyond the Specification}
+\label{sec:Beyond the Specification}
+
+\end{document}
