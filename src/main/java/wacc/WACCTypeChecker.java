@@ -35,6 +35,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return firstType;
   }
 
+  private Type getTypeFromUnaryOper(WACCParser.UnaryOperContext ctx) {
+    Type exprType = null;
+    if (ctx.ident() != null) {
+      exprType = visitIdent(ctx.ident());
+    } else if (ctx.expr() != null) {
+      exprType = visitExpr(ctx.expr());
+    } else if (ctx.pointer() != null) {
+      exprType = visitPointer(ctx.pointer());
+    }
+    return exprType;
+  }
+
   private void checkArrayElemExpressions(
       List<? extends WACCParser.ExprContext> exprs) {
     for (WACCParser.ExprContext expr : exprs) {
@@ -632,7 +644,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
 	public Type visitUnaryOper(WACCParser.UnaryOperContext ctx) {
-    Type exprType = visitChildren(ctx);
+    Type exprType = getTypeFromUnaryOper(ctx);
     if (ctx.NOT() != null) {
       if (!Type.isBool(exprType)) {
         incorrectType(ctx, exprType, Types.BOOL_T.toString(), errorHandler);

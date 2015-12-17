@@ -62,14 +62,14 @@ public class PairType extends Type {
 
     PairType p = (PairType) o;
 
-    if (!this.generic) {
-      if (this.fst != p.fst && this.snd != p.snd) {
-        return false;
-      }
+    if (this.generic || p.generic) {
+      return true;
     }
-
-
+    if (!(this.fst.equals(p.fst) && this.snd.equals(p.snd))) {
+      return false;
+    }
     return true;
+
   }
 
   @Override
