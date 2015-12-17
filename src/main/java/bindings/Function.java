@@ -2,7 +2,6 @@ package bindings;
 
 import wacc.SymbolTable;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 
 public class Function extends NewScope {

@@ -350,11 +350,11 @@ public class Utils {
                                             ErrorHandler errorHandler) {
     StringBuilder errorMsgBuilder = new StringBuilder();
     errorMsgBuilder.append("Function ")
-            .append(ctx.funcName.getText())
-            .append(" does not exist with these argument types:\n")
-            .append(Utils.listTypes(types)).append("\n\n")
-            .append("Perhaps you meant any of these lists of types:").append("\n")
-            .append(Utils.getPossibleTypesForOverloading(overloadedFuncs));
+        .append(ctx.funcName.getText())
+        .append(" does not exist with these argument types:\n")
+        .append(Utils.listTypes(types)).append("\n\n")
+        .append("Perhaps you meant any of these lists of types:").append("\n")
+        .append(Utils.getPossibleTypesForOverloading(overloadedFuncs));
     errorHandler.complain(new TypeError(ctx, errorMsgBuilder.toString()));
   }
 

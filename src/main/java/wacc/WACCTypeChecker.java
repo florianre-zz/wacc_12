@@ -203,7 +203,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     if (ctx.pairElem() != null) {
       if (ctx.pairElem().pointer() != null) {
         if (PointerType.isPointer(returnType)) {
-          ctx.returnType = dereferencePointer(returnType, ctx.pairElem().pointer().MUL().size());
+          ctx.returnType = dereferencePointer(
+              returnType, ctx.pairElem().pointer().MUL().size());
           return ctx.returnType;
         }
       } else {
@@ -212,7 +213,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       }
     } else if (ctx.pointer() != null) {
       if (PointerType.isPointer(returnType)) {
-        ctx.returnType = dereferencePointer(returnType, ctx.pointer().MUL().size());
+        ctx.returnType = dereferencePointer(
+            returnType, ctx.pointer().MUL().size());
         return ctx.returnType;
       }
     } else {
@@ -424,30 +426,10 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
       }
     }
     if (calledFunction == null) {
-//      System.err.println("Called :" + calledFunctionName);
       Utils.complainAboutOverloads(ctx, overloadedFuncs, types, errorHandler);
       return getType(Types.UNDEFINED_T);
     }
 
-//    WACCParser.ArgListContext argListContext = ctx.argList();
-//    int expectedSize = calledFunction.getParams().size();
-//    if (argListContext != null) {
-//      int actualSize = argListContext.expr().size();
-//      if (actualSize == expectedSize) {
-//        for (int i = 0; i < actualSize; i++) {
-//          WACCParser.ExprContext exprCtx = argListContext.expr(i);
-//          Type actualType = visitExpr(exprCtx);
-//          Type expectedType = calledFunction.getParams().get(i).getType();
-//          Utils.checkTypesEqual(ctx, actualType, expectedType, errorHandler);
-//        }
-//      } else {
-//        Utils.inconsistentParamCountError(ctx, expectedSize, actualSize,
-//            errorHandler);
-//      }
-//    } else if (expectedSize > 0) {
-//      Utils.inconsistentParamCountError(ctx, expectedSize, 0, errorHandler);
-//    }
-//
     return calledFunction.getType();
   }
 

@@ -2,8 +2,6 @@ package bindings;
 
 import wacc.SymbolTable;
 
-import java.util.LinkedHashMap;
-
 public class NewScope extends Binding {
 
   private SymbolTable<String, Binding> symbolTable;

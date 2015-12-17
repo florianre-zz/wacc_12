@@ -4,8 +4,6 @@ import antlr.WACCParser;
 import arm11.*;
 import arm11.Shift.Shifts;
 import bindings.*;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.misc.NotNull;
 
 import java.util.HashSet;
 import java.util.List;
@@ -382,10 +380,7 @@ public class CodeGenerator extends WACCVisitor<InstructionList> {
     Label printLabel;
     InstructionList printInstructions = null;
     Type returnType = ctx.expr().returnType;
-    if (PointerType.isPointer(returnType)) {
-      printLabel = new Label("p_print_reference");
-      printInstructions = PrintFunctions.printReference(data);
-    } else if (Type.isString(returnType)) {
+    if (Type.isString(returnType)) {
       printLabel = new Label("p_print_string");
       printInstructions = PrintFunctions.printString(data);
     } else if (Type.isInt(returnType)) {

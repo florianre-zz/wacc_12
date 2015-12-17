@@ -57,12 +57,15 @@ public class PointerType extends Type {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
+    if (this == o) {
+      return true;
+    }
     if (!(o instanceof PointerType)) {
       return false;
     }
     PointerType that = (PointerType) o;
-    return this.base.equals(that.base) && this.dimensionality == that.dimensionality;
+    return this.base.equals(that.base)
+            && this.dimensionality == that.dimensionality;
   }
 
   @Override
