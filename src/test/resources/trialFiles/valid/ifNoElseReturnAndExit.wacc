@@ -1,7 +1,7 @@
 begin
   int f() is
     int x = 1;
-    if x == 1
+    if x != 1
     then
       return x
     fi;
