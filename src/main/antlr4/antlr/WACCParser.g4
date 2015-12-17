@@ -17,18 +17,18 @@ func returns [List<Type> paramTypes]: type funcName=ident OPEN_PARENTHESIS (para
 paramList: param (COMMA param)*;
 param: type name=ident;
 statList: stat (SEMICOLON stat)* (SEMICOLON)?;
-stat: SKIP                                                       # SkipStat
-      | type ident EQUALS assignRHS                              # InitStat
-      | assignLHS EQUALS assignRHS                               # AssignStat
-      | READ assignLHS                                           # ReadStat
-      | FREE expr                                                # FreeStat
-      | EXIT expr                                                # ExitStat
-      | RETURN expr                                              # ReturnStat
-      | PRINT expr                                               # PrintStat
-      | PRINTLN expr                                             # PrintStat
+stat: SKIP                                                          # SkipStat
+      | type ident EQUALS assignRHS                                 # InitStat
+      | assignLHS EQUALS assignRHS                                  # AssignStat
+      | READ assignLHS                                              # ReadStat
+      | FREE expr                                                   # FreeStat
+      | EXIT expr                                                   # ExitStat
+      | RETURN expr                                                 # ReturnStat
+      | PRINT expr                                                  # PrintStat
+      | PRINTLN expr                                                # PrintStat
       | IF expr THEN thenStat=statList (ELSE elseStat=statList)? FI # IfStat
-      | WHILE expr DO statList DONE                              # WhileStat
-      | BEGIN statList END                                       # BeginStat
+      | WHILE expr DO statList DONE                                 # WhileStat
+      | BEGIN statList END                                          # BeginStat
       ;
 
 assignLHS returns [Type returnType]: (pointer | ident | arrayElem | pairElem) {Type
