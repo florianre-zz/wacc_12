@@ -48,20 +48,20 @@
 \subsection{Functionality}
 \label{sub:Functionality}
 
-The front end for our compiler demonstrated the correct functionality for all test files. We were allowing valid WACC files through to the code generation stage, and preventing any files with errors through. After performing the lexical, syntactic and semantic analysis on any invalid input WACC files, the compiler would output useful errors; the line and column number followed by a message outlining the error pitching snippets of their code for context against the expected value.
+The front end of our compiler was functionality correct for all test files. We allowed valid WACC files through to the code generation stage, and prevented any files with errors passing through. After performing the lexical, syntactic and semantic analysis on any invalid input WACC files, the compiler would output useful errors; the line and column number followed by a message outlining the error including snippets of their code for context against the expected value.
 
-For the code generation milestone our compiler was functionally correct a large majority of our test cases. The only exceptions are cases in which where there is a pair or array that is freed more than once (without being reinitilised). In these cases we should be throwing a runtime exception and exiting with status code 134; however we throw a null reference exception is thrown instead.
+For the code generation milestone our compiler was functionally correct for all but two test cases, both where a pair or array that is freed more than once without being reinitialised. In these cases a runtime exception should have been thrown and program exited with status code 134; however our generated code threw a null reference exception instead.
 
 \subsection{Extensibilty}
 \label{subs:Extensibilty}
 
-The neatness of our design was always kept in mind whilst implementing our compiler. We wanted to make sure that our code could easily be adapted in the future, perhaps with additional languages features or compiling into a different language.
+The cleanliness of our design was always kept in mind whilst implementing our compiler. We wanted to make sure that our code could easily be adapted and extended in the future, perhaps with additional languages features or compiling into a different language.
 
 As we knew we would have to do an extension, the ability to easily change the compiler was very important. To facilitate the ability to add any new features we used the visitor pattern frequently. Due to the fact all of our visit functions only knew about their context, for each new language feature it was a simple case of adding a new visit function. There were a few exceptions when we had to check for a null value of a child node in our syntax tree.
 
 One aspect we overlooked was creating our own tree structure to represent the program. We used the parse tree provided by ANTLR which meant that if we were to replace ANTLR for a similar, but perhaps more up-to-date, tool we would have to rewrite a lot of our code base. Building an Abstract Syntax Tree (AST) of our own would mean that our methods for code generation could remain intact. We would simply need to create a class to convert from the new tool-created tree to our own AST. Having control over the tree and information stored in each node would also dramatically help within visitor methods. It could remove a lot of checks on the fields in nodes as they would provide all and only the relevant information related to a particular part of the code. 
 
-A good deal of thought was put into the possibility of changing the output language. In a few years ARM11 may not be desirable; by extracting all the ARM11 specific code into it's own package, changing the output language would simply involve swapping that package for, say, a x86 package. Our code would not change as the instruction factory would simply return x86 instructions as opposed to ARM11 instructions.
+A good deal of thought was put into the possibility of changing the output assembly language. In a few years ARM11 may not be desirable; by extracting all the ARM11 specific code into it's own package, changing the output language would simply involve swapping that package for, say, a x86 package. Our code would not change as the instruction factory would simply return x86 instructions as opposed to ARM11 instructions. Additionally we could add support for generating LLVM intermediate representation (IR), and let LLVM to perform code generation.
 
 \section{The Project Management}
 \label{sec:The Project Management}
@@ -69,9 +69,9 @@ A good deal of thought was put into the possibility of changing the output langu
 \subsection{Group Structure}
 \label{sub:Group Structure}
 
-We split our group into twos, and would pair program for larger sections of feature implemenations. For smaller sections, members would work independently.
+We split into pairs to program for larger sections of feature implementations. For smaller sections, members would work independently.
 
-The pair programming made catching simple mistakes easier and forced us to discuss design choices, logical processes and other decisions before implementing them, leading to many fewer errors to debug. The independent work for smaller sections meant we were able to get more work done in a smaller amount of time and not have a member sat idle for trivial implementations.
+Pair programming made catching simple mistakes easier and forced us to discuss design choices, logical processes and other decisions before implementing them, leading to many fewer errors to debug. The independent work for smaller sections meant we were able to get more work done in a smaller amount of time and not have a member sat idle for trivial implementations.
 
 \subsection{Use of Project Management Tools}
 \label{sub:Use of Project Management Tools}
@@ -120,9 +120,22 @@ Github provided us with Issues which we used to keep track of current bugs and e
 
 Our git commit messages on the whole were quite short and vague, though the style of our messages were on the correct path. Where possible we would style our commit messages to include the people who were working on the commit, an instruction that would tell the reader what the commit should do (i.e. Implement x instead of Implemented x).
 
-\subsubsection{Travis}
+\subsubsection{Travis CI}
 \label{subs:Travis}
-We used Travis, a continuous intergration tool, that would test our code on every push and pull request. Travis intergrates with Github and meant we would never merge a pull request in the event of our commit failing the unit tests. [How this helped]
+We used Travis, a continuous integration service, which ran tests on our code after every push and before merging pull requests. This integration with Github meant we would never merge a pull request in the event of our commit failing the unit tests.\\
+Automated testing gave us confidence that our code was correct
+
+as you can always prove that your most important features still work as you expect - documented history
+
+as the tests were run on a remote machine it meant, which could take a few minutes to run - get an email/slack notification on test success/failure.
+
+A side effect of , which created a new virtual machine  
+
+Not useful in, but useful in backend to prevent regression of previous milestones. - will get more useful with time.
+
+Travis has proven more useful as the project progressed, 
+
+In the branch \texttt{travis-emulator} we experimented with, and successfully, this is certainly to remove dependance on LabTS - however decided to spend time in other areas - more useful at the time.
 
 \subsection{Slack}
 \label{sub:Slack}
@@ -182,6 +195,6 @@ For our extension, we chose to extend the WACC language.
 
 We wrote new test files in order to assess whether or not the language extension implementations behaved as intended. Since we also wanted to ensure that these implementations did not brake any of the original specification elements, we adapted out test scripts to run all previous tests and new tests. Due to the nature of some of the language extensions, 2 previous test cases failed. These were \texttt{ifNoelse.wacc} and \texttt{extraSeq.wacc}.
 
-If we would have had more time, we would have liked to implement some optimisations on our assembly code such as efficient register allocation and array-bound analysis. We were also quite keen on making WACC object-oriented - we would have liked to implement classes, inheritance, the advanced features of classes such as multiple-inheritance, overriding and class constructors.
+If we had more time, we would have liked to implement some optimisations on our assembly code such as efficient register allocation and array-bound analysis. We were also quite keen on making WACC object-oriented - implementing classes, inheritance, and advanced features of classes such as multiple-inheritance, overriding and class constructors.
 
 \end{document}
