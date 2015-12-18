@@ -4,10 +4,9 @@ import antlr.WACCParser;
 import arm11.*;
 import bindings.*;
 import org.antlr.v4.runtime.ParserRuleContext;
-import wacc.error.DeclarationError;
-import wacc.error.WACCErrorHandler;
-import wacc.error.TypeAssignmentError;
+import wacc.error.*;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -34,6 +33,51 @@ public class Utils {
     errorHandler.complain(
         new TypeAssignmentError(ctx, expectedType, actual)
     );
+  }
+
+  public static List<Variable> getParamList(WACCParser.FuncContext ctx,
+                                            WACCTypeCreator typeCreator) {
+    List<Variable> funcParams = new ArrayList<>();
+
+    if (ctx.paramList() != null) {
+      List<? extends WACCParser.ParamContext> paramContexts =
+              ctx.paramList().param();
+
+      for (WACCParser.ParamContext paramContext : paramContexts) {
+        String name = paramContext.name.getText();
+        Type type = typeCreator.visitParam(paramContext);
+
+        Variable param = new Variable(name, type);
+        funcParams.add(param);
+      }
+    }
+    return funcParams;
+  }
+
+  public static String getParamString(List<Type> types) {
+    return getArgString(types);
+  }
+
+  public static String getArgString(List<Type> types) {
+    StringBuilder sb = new StringBuilder();
+
+    for (Type t : types) {
+      sb.append(".").append(getNameForLabel(t));
+    }
+    return sb.append(".").toString();
+  }
+
+  private static String getNameForLabel(Type t) {
+//    System.err.println("Label: " + t.toLabel());
+    return t.toLabel();
+  }
+
+  public static String getFuncParamTypeSuffix(List<Variable> params) {
+    List<Type> types = new ArrayList<>();
+    for (Variable v : params) {
+      types.add(v.getType());
+    }
+    return getArgString(types);
   }
 
   public static boolean checkTypesEqual(ParserRuleContext ctx,
@@ -80,7 +124,7 @@ public class Utils {
 
   public static String getToken(int index){
     String tokenName = WACCParser.tokenNames[index];
-    assert(tokenName.charAt(0) != '\'');
+    assert(tokenName.charAt(0) == '\'');
     return tokenName.substring(1, tokenName.length() - 1);
   }
 
@@ -264,6 +308,53 @@ public class Utils {
   public static long getTypeSize(WACCParser.ArrayLitrContext ctx) {
     Type returnType = ctx.expr().get(0).returnType;
     return returnType.getSize();
+  }
+
+
+  public static String getPossibleTypesForOverloading(
+          List<Function> overloadedFunctions) {
+    StringBuilder sb = new StringBuilder();
+    for (Function f : overloadedFunctions) {
+      sb.append('\n');
+      List<Variable> params = f.getParams();
+      if (params.isEmpty()) {
+        sb.append("(no parameters) ");
+      } else {
+        for (Variable p : params) {
+          sb.append(p.getType().toString()).append(" ");
+        }
+      }
+    }
+    return sb.deleteCharAt(sb.length() - 1).toString();
+  }
+
+  public static String listTypes(List<Type> types) {
+    if (types.isEmpty()) {
+      return "(no parameters)";
+    }
+    StringBuilder sb = new StringBuilder();
+    for (Type t : types) {
+      if (t instanceof PairType) {
+        sb.append(Types.PAIR_T).append(" ");
+      } else {
+        sb.append(t.toString()).append(" ");
+      }
+    }
+    return sb.deleteCharAt(sb.length() - 1).toString();
+  }
+
+  public static void complainAboutOverloads(WACCParser.CallContext ctx,
+                                            List<Function> overloadedFuncs,
+                                            List<Type> types,
+                                            ErrorHandler errorHandler) {
+    StringBuilder errorMsgBuilder = new StringBuilder();
+    errorMsgBuilder.append("Function ")
+        .append(ctx.funcName.getText())
+        .append(" does not exist with these argument types:\n")
+        .append(Utils.listTypes(types)).append("\n\n")
+        .append("Perhaps you meant any of these lists of types:").append("\n")
+        .append(Utils.getPossibleTypesForOverloading(overloadedFuncs));
+    errorHandler.complain(new TypeError(ctx, errorMsgBuilder.toString()));
   }
 
 }

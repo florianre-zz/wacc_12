@@ -12,13 +12,14 @@ require 'shellwords'
 
 open(@emulationsFile, 'w') { |f| f.print "" }
 
-@testFolder = "src/test/resources/examples/valid"
+@testFolders = ["src/test/resources/examples/valid", "src/test/resources/trialFiles/valid"]
 @testFiles = []
-Find.find(@testFolder) do |path|
-  @testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+@testFolders.each do |folder|
+  Find.find(folder) do |path|
+    @testFiles << (Shellwords.shellescape path) if path =~ /.*\.wacc$/
+  end
 end
 @numTests = @testFiles.length
-
 def check()
   i = 0
   #@testFiles.delete_at(148)
@@ -36,8 +37,10 @@ def check()
     # emulate
     stdin = ""
     inputFiles = []
-    Find.find(@testFolder) do |path|
-      inputFiles << (Shellwords.shellescape path) if path =~ /.*#{filename}\.in$/
+    @testFolders.each do |folder|
+      Find.find(folder) do |path|
+        inputFiles << (Shellwords.shellescape path) if path =~ /.*#{filename}\.in$/
+      end
     end
     if !inputFiles.empty?
       stdin = File.open("#{inputFiles[0]}").read

@@ -87,7 +87,7 @@ public class PrintFunctions {
 
     saveLinkRegister(list, printLabel);
     list.add(InstructionFactory.createCompare(ARM11Registers.R0, new
-        Immediate(0L)));
+      Immediate(0L)));
     list.add(InstructionFactory.createLoadNotEqual(ARM11Registers.R0,
                                                    trueFormatterLabel));
     list.add(InstructionFactory.createLoadEqual(ARM11Registers.R0,

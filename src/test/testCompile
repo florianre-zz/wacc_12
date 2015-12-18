@@ -43,16 +43,32 @@ def runCompile(testPath, expectedExitCode)
   puts "\n\n"
 end
 
-testFolder = "#{Dir.pwd}/src/test/resources/examples/"
+def runCompileWithDir(folder)
 
-puts "Starting Valid Compile tests..."
-runCompile(testFolder+"valid", 0)
-puts "Finished tests."
+  testFolder = "#{Dir.pwd}/src/test/resources/" + folder + "/"
 
-puts "Starting Syntax Errors Compile tests..."
-runCompile(testFolder+"invalid/syntaxErr", 100)
-puts "Finished tests."
+  puts "Starting Valid Compile tests..."
+  runCompile(testFolder+"valid", 0)
+  puts "Finished tests."
 
-puts "Starting Semantic Errors Compile tests..."
-runCompile(testFolder+"invalid/semanticErr", 200)
-puts "Finished tests."
+  puts "Starting Syntax Errors Compile tests..."
+  runCompile(testFolder+"invalid/syntaxErr", 100)
+  puts "Finished tests."
+
+  puts "Starting Semantic Errors Compile tests..."
+  runCompile(testFolder+"invalid/semanticErr", 200)
+  puts "Finished tests."
+
+end
+
+puts "Given tests:"
+puts "\n"
+runCompileWithDir("examples")
+puts "Finished given tests"
+puts "\n"
+
+puts "Own tests:"
+puts "\n"
+runCompileWithDir("trialFiles")
+puts "Finished own tests"
+puts "\n"

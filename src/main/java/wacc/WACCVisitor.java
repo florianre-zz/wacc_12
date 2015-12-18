@@ -5,9 +5,7 @@ import antlr.WACCParserBaseVisitor;
 import bindings.*;
 import wacc.error.*;
 
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashSet;
+import java.util.*;
 
 public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
 
@@ -42,6 +40,22 @@ public abstract class WACCVisitor<T> extends WACCParserBaseVisitor<T> {
     }
     System.err.println(funcName + ": " + function.getClass());
     return null;
+  }
+
+  protected List<Function> getOverloads(WACCParser.CallContext ctx) {
+    List<Function> functionScopes = new ArrayList<>();
+
+    NewScope progScope = (NewScope) top.get(Scope.PROG.toString());
+    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
+    List<Binding> allFunctions
+            = progScope.getSymbolTable().filterByClass(Function.class);
+    for (Binding binding : allFunctions) {
+      Function function = (Function) binding;
+      if (function.getName().startsWith(funcName + ".")) {
+        functionScopes.add(function);
+      }
+    }
+    return functionScopes;
   }
 
   protected void setWorkingSymbolTable(

@@ -1,0 +1,11 @@
+begin
+  # no parameters
+  char f() is
+    return 'e'
+  end
+  string f() is
+    return "e"
+  end
+
+  skip
+end

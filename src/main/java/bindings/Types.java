@@ -7,7 +7,8 @@ public enum Types {
   CHAR_T("char", 1),
   STRING_T("string", 4),
   PAIR_T("pair", 4),
-  GENERIC_ARRAY_T("T[]", 4);
+  GENERIC_ARRAY_T("T[]", 4),
+  UNDEFINED_T("UNDEFINED", 0);
 
   private final String name;
   private final int size;

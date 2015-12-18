@@ -4,17 +4,20 @@ import antlr.WACCParser;
 import bindings.*;
 import wacc.error.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static wacc.Utils.incorrectType;
 
 public class WACCTypeChecker extends WACCVisitor<Type> {
 
+  private final WACCTypeCreator typeCreator;
   private Function currentFunction;
 
   public WACCTypeChecker(SymbolTable<String, Binding> top,
                          WACCErrorHandler errorHandler) {
     super(top, errorHandler);
+    typeCreator = new WACCTypeCreator(top);
   }
 
   /***************************** Helper Method *******************************/
@@ -32,6 +35,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     return firstType;
   }
 
+  private Type getTypeFromUnaryOper(WACCParser.UnaryOperContext ctx) {
+    Type exprType = null;
+    if (ctx.ident() != null) {
+      exprType = visitIdent(ctx.ident());
+    } else if (ctx.expr() != null) {
+      exprType = visitExpr(ctx.expr());
+    } else if (ctx.pointer() != null) {
+      exprType = visitPointer(ctx.pointer());
+    }
+    return exprType;
+  }
+
   private void checkArrayElemExpressions(
       List<? extends WACCParser.ExprContext> exprs) {
     for (WACCParser.ExprContext expr : exprs) {
@@ -40,6 +55,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         errorHandler.complain(new TypeError(expr));
       }
     }
+  }
+
+  private List<Type> getArgTypes(WACCParser.CallContext ctx) {
+    List<Type> types = new ArrayList<>();
+    WACCParser.ArgListContext argListContext = ctx.argList();
+    if (argListContext != null) {
+      int size = argListContext.expr().size();
+      for (WACCParser.ExprContext expr : argListContext.expr()) {
+        types.add(visitExpr(expr));
+      }
+    }
+    return types;
   }
   
   /************************** Visit Functions ****************************/
@@ -53,6 +80,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitProg(WACCParser.ProgContext ctx) {
     String scopeName = Scope.PROG.toString();
     changeWorkingSymbolTableTo(scopeName);
+
+
     visitChildren(ctx);
     goUpWorkingSymbolTable();
     return null;
@@ -96,7 +125,8 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   */
   @Override
   public Type visitFunc(WACCParser.FuncContext ctx) {
-    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText();
+    String funcName = ScopeType.FUNCTION_SCOPE + ctx.funcName.getText()
+            + Utils.getParamString(ctx.paramTypes);
     currentFunction = (Function) workingSymbolTable.lookupAll(funcName);
     Type expectedReturnType = currentFunction.getType();
 
@@ -171,8 +201,22 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   public Type visitAssignLHS(WACCParser.AssignLHSContext ctx) {
     Type returnType = super.visitAssignLHS(ctx);
     if (ctx.pairElem() != null) {
-      String name = ctx.pairElem().ident().getText();
-      ctx.returnType = getMostRecentBindingForVariable(name).getType();
+      if (ctx.pairElem().pointer() != null) {
+        if (PointerType.isPointer(returnType)) {
+          ctx.returnType = dereferencePointer(
+              returnType, ctx.pairElem().pointer().MUL().size());
+          return ctx.returnType;
+        }
+      } else {
+        String name = ctx.pairElem().ident().getText();
+        ctx.returnType = getMostRecentBindingForVariable(name).getType();
+      }
+    } else if (ctx.pointer() != null) {
+      if (PointerType.isPointer(returnType)) {
+        ctx.returnType = dereferencePointer(
+            returnType, ctx.pointer().MUL().size());
+        return ctx.returnType;
+      }
     } else {
       ctx.returnType = returnType;
     }
@@ -276,12 +320,14 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
     goUpWorkingSymbolTable();
     popCurrentScopeVariableSet();
 
-    scopeName = Scope.ELSE.toString() + ifCount;
-    changeWorkingSymbolTableTo(scopeName);
-    pushEmptyVariableSet();
-    visitStatList(ctx.elseStat);
-    goUpWorkingSymbolTable();
-    popCurrentScopeVariableSet();
+    if (ctx.ELSE() != null) {
+      scopeName = Scope.ELSE.toString() + ifCount;
+      changeWorkingSymbolTableTo(scopeName);
+      pushEmptyVariableSet();
+      visitStatList(ctx.elseStat);
+      goUpWorkingSymbolTable();
+      popCurrentScopeVariableSet();
+    }
 
     return null;
   }
@@ -357,24 +403,31 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitCall(WACCParser.CallContext ctx) {
-    Function calledFunction = getCalledFunction(ctx);
-    WACCParser.ArgListContext argListContext = ctx.argList();
-    int expectedSize = calledFunction.getParams().size();
-    if (argListContext != null) {
-      int actualSize = argListContext.expr().size();
-      if (actualSize == expectedSize) {
-        for (int i = 0; i < actualSize; i++) {
-          WACCParser.ExprContext exprCtx = argListContext.expr(i);
-          Type actualType = visitExpr(exprCtx);
-          Type expectedType = calledFunction.getParams().get(i).getType();
-          Utils.checkTypesEqual(ctx, actualType, expectedType, errorHandler);
-        }
+    List<Function> overloadedFuncs = getOverloads(ctx);
+    List<Type> types = getArgTypes(ctx);
+    ctx.argTypes = types;
+
+    Function calledFunction = null;
+    for (Function overload : overloadedFuncs) {
+      boolean match = true;
+      if (types.size() != overload.getParams().size()) {
+        match = false;
       } else {
-        Utils.inconsistentParamCountError(ctx, expectedSize, actualSize,
-            errorHandler);
+        for (int i = 0; i < types.size(); i++) {
+          Type actualType = types.get(i);
+          Type expectedType = overload.getParams().get(i).getType();
+          if (!actualType.equals(expectedType)) {
+            match = false;
+          }
+        }
       }
-    } else if (expectedSize > 0) {
-      Utils.inconsistentParamCountError(ctx, expectedSize, 0, errorHandler);
+      if (match) {
+        calledFunction = overload;
+      }
+    }
+    if (calledFunction == null) {
+      Utils.complainAboutOverloads(ctx, overloadedFuncs, types, errorHandler);
+      return getType(Types.UNDEFINED_T);
     }
 
     return calledFunction.getType();
@@ -541,8 +594,7 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
    */
   @Override
   public Type visitPairElem(WACCParser.PairElemContext ctx) {
-    Type varType = visitIdent(ctx.ident());
-
+    Type varType = visitChildren(ctx);
     Type returnType = null;
 
     if (Utils.checkTypesEqual(ctx, new PairType(), varType, errorHandler)) {
@@ -596,17 +648,27 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
         incorrectType(ctx, exprType, Types.CHAR_T.toString(), errorHandler);
       }
       return getType(Types.INT_T);
+    } else if (ctx.ADDR() != null) {
+      if (ArrayType.isArray(exprType)) {
+        incorrectType(ctx, exprType, "Not Array", errorHandler);
+      }
+      return new PointerType(exprType);
     }
     return exprType;
   }
 
-  private Type getTypeFromUnaryOper(WACCParser.UnaryOperContext ctx) {
-    Type exprType = null;
-    if (ctx.ident() != null) {
-      exprType = visitIdent(ctx.ident());
-    } else if (ctx.expr() != null) {
-      exprType = visitExpr(ctx.expr());
-    }
+  @Override
+  public Type visitPointer(WACCParser.PointerContext ctx) {
+    return dereferencePointer(visitIdent(ctx.ident()), ctx.MUL().size());
+  }
+
+  public Type dereferencePointer(Type exprType, int wantedDim) {
+    PointerType pointerType = (PointerType) exprType;
+      int totalDim = pointerType.getDimensionality();
+      if (wantedDim <= totalDim) {
+        int returnDim = totalDim - wantedDim;
+        return PointerType.createPointer(pointerType.getBase(), returnDim);
+      }
     return exprType;
   }
 
@@ -732,14 +794,18 @@ public class WACCTypeChecker extends WACCVisitor<Type> {
   @Override
   public Type visitAddOper(WACCParser.AddOperContext ctx) {
     if (!ctx.otherExprs.isEmpty()) {
+      Type returnType = getType(Types.INT_T);
       for (WACCParser.MultOperContext multOperContext : ctx.multOper()) {
         Type type = visitMultOper(multOperContext);
-        if (!Type.isInt(type)) {
+        if (!(Type.isInt(type) || PointerType.isPointer(type))) {
           incorrectType(multOperContext, type, Types.INT_T.toString(),
               errorHandler);
         }
+        if (PointerType.isPointer(type)) {
+          returnType = type;
+        }
       }
-      return getType(Types.INT_T);
+      return returnType;
     } else {
       return visitChildren(ctx);
     }

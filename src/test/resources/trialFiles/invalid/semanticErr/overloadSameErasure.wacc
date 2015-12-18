@@ -1,0 +1,11 @@
+begin
+  # same erasure
+  bool h(pair(int, char) p) is
+    return true
+  end
+  bool h(pair(pair, string) p) is
+    return false
+  end
+
+  skip
+end

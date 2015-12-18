@@ -20,6 +20,9 @@ public class Variable extends Binding {
 
   @Override
   public String toString() {
+    if (type == null) {
+      return "NULL_T";
+    }
     return type.toString();
   }
 

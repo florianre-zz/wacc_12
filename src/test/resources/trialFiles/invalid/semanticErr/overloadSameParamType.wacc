@@ -1,0 +1,11 @@
+begin
+  # same param types
+  int f(bool t) is
+    return 1
+  end
+  bool f(bool f) is
+    return false
+  end
+
+  skip
+end

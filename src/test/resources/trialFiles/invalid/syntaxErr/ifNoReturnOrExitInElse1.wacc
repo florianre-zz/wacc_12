@@ -1,0 +1,20 @@
+# no return in else
+
+# OUTPUT:
+# #SYNTAX ERROR#
+
+# Exit code:
+# 100
+
+begin
+  bool f() is
+    if true
+    then
+      return true
+    else
+      skip
+    fi
+  end
+
+  skip
+end
