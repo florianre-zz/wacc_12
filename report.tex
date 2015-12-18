@@ -61,7 +61,7 @@ As we knew we would have to do an extension, the ability to easily change the co
 
 One aspect we overlooked was creating our own tree structure to represent the program. We used the parse tree provided by ANTLR which meant that if we were to replace ANTLR for a similar, but perhaps more up-to-date, tool we would have to rewrite a lot of our code base. Building an Abstract Syntax Tree (AST) of our own would mean that our methods for code generation could remain intact. We would simply need to create a class to convert from the new tool-created tree to our own AST. Having control over the tree and information stored in each node would also dramatically help within visitor methods. It could remove a lot of checks on the fields in nodes as they would provide all and only the relevant information related to a particular part of the code. 
 
-A good deal of thought was put into the possibility of changing the output assembly language. In a few years ARM11 may not be desirable; by extracting all the ARM11 specific code into it's own package, changing the output language would simply involve swapping that package for, say, a x86 package. Our code would not change as the instruction factory would simply return x86 instructions as opposed to ARM11 instructions. Additionally we could add support for generating LLVM intermediate representation (IR), and let LLVM to perform code generation.
+A good deal of thought was put into the possibility of changing the output assembly language. In a few years ARM11 may not be desirable; by extracting all the ARM11 specific code into it's own package, changing the output language would simply involve swapping that package for, say, a x86 package. Our code would not change as the instruction factory would simply return x86 instructions as opposed to ARM11 instructions. Additionally we could add support for generating LLVM intermediate representation (IR), and let LLVM perform code generation.
 
 \section{The Project Management}
 \label{sec:The Project Management}
@@ -118,7 +118,7 @@ We used Git and Github as our chosen version control. We utilised branches to ke
 
 Github provided us with Issues which we used to keep track of current bugs and enhancements we wanted to implement. It also gave us the option to assign that issue to a member of our team.
 
-Our git commit messages on the whole were quite short and vague, though the style of our messages were on the correct path. Where possible we would style our commit messages to include the people who were working on the commit, an instruction that would tell the reader what the commit should do (i.e. Implement x instead of Implemented x).
+Our git commit messages on the whole were quite short and vague, though the style of our messages were on the correct path. Where possible we would style our commit messages to include the people who were working on the commit (i.e. \texttt{"[EG][EA]..."}), and an instruction that would tell the reader what the commit should do (i.e. \texttt{"Implement x"} instead of \texttt{"Implement\underline{\textit{ed}} x"}).
 
 \subsubsection{Travis CI}
 \label{subs:Travis}
