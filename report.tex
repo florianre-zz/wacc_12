@@ -50,7 +50,7 @@
 
 The front end of our compiler was functionality correct for all test files. We allowed valid WACC files through to the code generation stage, and prevented any files with errors passing through. After performing the lexical, syntactic and semantic analysis on any invalid input WACC files, the compiler would output useful errors; the line and column number followed by a message outlining the error including snippets of their code for context against the expected value.
 
-For the code generation milestone our compiler was functionally correct for all but two test cases, both where a pair or array that is freed more than once without being reinitialised. In these cases a runtime exception should have been thrown and program exited with status code 134; however our generated code threw a null reference exception instead.
+For the code generation milestone our compiler was functionally correct for all but two test cases, both where a pair or array is freed more than once without being reinitialised. In these cases a runtime exception should have been thrown and program exited with status code 134; however our generated code threw a null reference exception instead.
 
 \subsection{Extensibilty}
 \label{subs:Extensibilty}
@@ -87,7 +87,7 @@ We used Maven to structure our project. Using Maven meant we didn't have to take
 \subsubsection{Git and Github}
 \label{subs:Git and Github}
 
-We used Git and Github as our chosen version control. We utilised branches to keep features and sub features seperate, then use pull requests to merge all of our features together. Below is a diagram showing the main branches for our project.
+We used Git and Github as our chosen version control. We utilised branches to keep features and sub features separate, then use pull requests to merge all of our features together. Below is a diagram showing the main branches for our project.
 
 \tikzstyle{every node}=[draw=black,thick,anchor=west]
 \begin{tikzpicture}[%
@@ -139,11 +139,11 @@ In the branch \texttt{travis-emulator} we experimented with, and successfully, t
 
 \subsection{Slack}
 \label{sub:Slack}
-Our communication platform of choice was Slack, we liked the features is boasted such as channels, intergrations and snippets, which can be non-existent to contrived in other apps such as Facebook and Email.
+Our communication platform of choice was Slack, we liked the features is boasted such as channels, integrations and snippets, which can be non-existent to contrived in other apps such as Facebook and Email.
 
-Channels meant we could have a seperate section for each milestone, as well as a general channel for of topic conversation. This kept all of our WACC messages in one place that was not polluted by other conversations.
+Channels meant we could have a separate section for each milestone, as well as a general channel for of topic conversation. This kept all of our WACC messages in one place that was not polluted by other conversations.
 
-Integrations were really useful, the two intergrations we used the most were Github and Travis. Every time we made a commit, a new branch, an issue, assigned an issue to someone, etc. it would be automatically posted on the relevant Slack channel so everyone could read it. This stopped the need for people to ask when something had been pushed, and meant we could easily reference a certain commit. One intergration we would have liked to have used more is Wunderlist, that way we could create a centralised list of all the tasks we had todo instead of having our own lists.
+Integrations were really useful, the two integrations we used the most were Github and Travis. Every time we made a commit, a new branch, an issue, assigned an issue to someone, etc. it would be automatically posted on the relevant Slack channel so everyone could read it. This stopped the need for people to ask when something had been pushed, and meant we could easily reference a certain commit. One integration we would have liked to have used more is Wunderlist, that way we could create a centralised list of all the tasks we had todo instead of having our own lists.
 
 Snippets were useful if we needed to send each other short pieces of code that did not warrant a commit. We would also create snippets containing the key errors produced from running tests so everyone could see what the stack trace and actual output was without us having to run the tests n times.
 
@@ -167,7 +167,7 @@ We used the visitor pattern four times in our project. It was used in front end 
 \label{sub:Factory}
 To create our instructions we used the Factory pattern to produce all the different types. This way, instead of creating a class for each type of instruction, we return an anonymous class that implements the interface \texttt{Instruction}. We used Java 8 lambdas to create the instructions as there is only one method \texttt{printInstruction}. This gave a clean and minimal solution to creating all of our instructions.
 
-\subsection{Command Line Interface Seperation}
+\subsection{Command Line Interface Separation}
 \label{sub:Command Line Interface Seperation}
 We used redirection in our compile script to allow our input file to be passed in as the System.in, this means our compiler does not need to know about files, it can just take the file contents and create an input stream.
 
