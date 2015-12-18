@@ -139,33 +139,49 @@ Snippets were useful if we needed to send each other short pieces of code that d
 
 If we were to do this lab exercise again, we would include the creation of an AST form the start. The AST could be built as soon as parsing the input file is complete. If this building process were to occur at this point in compilation, types would be created at the same time. This would remove the need for a separate visitor to create types when building the symbol table.
 
-In terms of compiler outputs, we would like to create more user-friendly error messages. This includes changing the ANTLR error messages produced in lexical and syntactic analysis to not display a set of possible characters, but instead information on how the particular program construct should be written.
-- AST
-- Different method used instead of a visitor pattern creating types -> built into AST
-- more detailed error messages
-- Write more JUnit tests for the java classes 
+In terms of compiler outputs, we would like to create more user-friendly error messages. This includes changing the ANTLR error messages produced in lexical and syntactic analysis not to display a set of possible characters, but instead information on how that particular program construct should be written.
+
+As an improvement to our work practice, we would Test Driven Development (TDD) on all aspects of our compiler. We did use TDD for parts of our compiler, however, the visitors made this slightly tricky since we were forced to use black-box testing to check the overall functionality of the class with regards to a particular WACC programming construct.
 
 \section{The Design Choices}
 \label{sec:The Design Choices}
 
 \subsection{Visitor}
 \label{sub:Visitor}
-[UPDATE THIS SECION IF WE FINISH THE TREE]\\
-We used the visitor pattern four times in our project. We used it for our front end create types for variables to add to our symbol tables, creating the symbol tables and checking the type of expressions and statements etc. were valid according to the WACC specification. We used it in back end as well to generate the correct assembly code. We used this pattern because it gives us the flexibility to have one tree which we then can then walk over and do different tasks, otherwise each node would have to know what to do for each task and to add a knew task you would need to edit all of the node class files. This is especially undesirable as running \texttt{make} will rebuild the ANTLR files thereby removing any custom code we had added.
+We used the visitor pattern four times in our project. It was used in front end to create the WACC language types and add them to our symbol table. It was also used for creating the symbol table structure and for checking validity of types for expressions, statements and other constructs with respect to the WACC specification. Back end used a visitor as well to generate the correct assembly code. As previously mentioned, this pattern allows easier inclusion of language features by adding a new visit method. Without this we would have to use large if statements and many switch cases, increasing for every new parser rule. This is especially undesirable as running \texttt{make} will rebuild the ANTLR files thereby removing any custom code we had added.
 
 \subsection{Factory}
 \label{sub:Factory}
-To create our instructions we created a Factory to produce all the different types. This way instead of creating a class for each type of instruction we return an anonymous class that implements the interface \texttt{Instruction}. We used Java 8 lambdas to create the instructions as there is only one method \texttt{printInstruction}. This gave a clean and minimal solution to creating all of our instructions.
+To create our instructions we used the Factory pattern to produce all the different types. This way, instead of creating a class for each type of instruction, we return an anonymous class that implements the interface \texttt{Instruction}. We used Java 8 lambdas to create the instructions as there is only one method \texttt{printInstruction}. This gave a clean and minimal solution to creating all of our instructions.
 
 \subsection{Command Line Interface Seperation}
 \label{sub:Command Line Interface Seperation}
-We used redirection in our compile script to allow our input file to be passed in as the System.in, this means our compiler does not need to know about files it can just take the contents of the file and create an input stream,
+We used redirection in our compile script to allow our input file to be passed in as the System.in, this means our compiler does not need to know about files, it can just take the file contents and create an input stream.
 
 \section{Beyond the Specification}
 \label{sec:Beyond the Specification}
-For our extension, we implemented language extensions. We allow function overloading: we can make functions which have the same name but a different \texttt{paramList}. We extended the WACC language with a C-style pointer type: we can now access a variable using its memory address using \texttt{*} followed by the pointer name. To get the address of a variable we created an address operator: \texttt{\&} (we need this to initialise pointers). If statements without an else case are now valid. We extended WACC language with a full typing system for pairs that does not lose type information for nested pairs.
-To make sure our extensions were working properly we wrote new valid and invalid tests in WACC and created a script that notifies us if the compiler is not behaving the way it should.
+For our extension, we chose to extend the WACC language. 
 
-If we would have had more time, we would have liked to implement some optimisations on our assembly code such as efficient register allocation and array-bound analysis. We were also quite keen on making WACC object oriented: so we would have liked to implement classes, inheritance, the advanced features of classes such as multiple-inheritance, overriding and class constructors.
+\begin{enumerate}
+	\item Function Overloading\newline
+	Functions can now have the same name as long as they have different lists of parameters. These overloaded functions can have different return types since they are, in essence, different functions. Pairs in WACC are treated as Objects in Java with generic parameters are treated. This mean that you cannot have a function \texttt{f(pair(int, char))} and another function \texttt{pair(bool, string)} since they have the same erasure.
+	
+	\item Pointer Types\newline
+	The WACC language now has a C-style pointer type. We can now access a variable using its memory address using \texttt{*} followed by the pointer name. To get the address of a variable we created an address operator: \texttt{\&} (we need this to initialise pointers).
+	
+	\item \texttt{if} statements with no \texttt{else} case\newline
+	If statements without an else case are now valid.
+	
+	\item Optional \texttt{;} at the end of a list of statements
+	Most programming languages which use \texttt{;} to separate different statements. Forcing the final statement in a particular code block to have no following \texttt{;} may become an irritating syntax rule to follow. We have removed this rule to allow more comfortable coding and a more consistent style.
+	
+	\item Full Pairs\newline
+	The WACC language now has a full typing system for pairs. This means that no type information is lost for nested pairs. 
+	
+\end{enumerate}
+
+We wrote new test files in order to assess whether or not the language extension implementations behaved as intended. Since we also wanted to ensure that these implementations did not brake any of the original specification elements, we adapted out test scripts to run all previous tests and new tests. Due to the nature of some of the language extensions, 2 previous test cases failed. These were \texttt{ifNoelse.wacc} and \texttt{extraSeq.wacc}.
+
+If we would have had more time, we would have liked to implement some optimisations on our assembly code such as efficient register allocation and array-bound analysis. We were also quite keen on making WACC object-oriented - we would have liked to implement classes, inheritance, the advanced features of classes such as multiple-inheritance, overriding and class constructors.
 
 \end{document}

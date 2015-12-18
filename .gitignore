@@ -40,6 +40,9 @@ target
 .project
 .DS_Store
 
+# ignore latex extra files
+*synctex.gz
+
 
 #ignore windows specific files
 compileWindows
