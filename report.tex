@@ -87,7 +87,7 @@ We used Maven to structure our project. Using Maven meant we didn't have to take
 \subsubsection{Git and Github}
 \label{subs:Git and Github}
 
-We used Git and Github as our chosen version control. We utilised branches to to keep features and sub features seperate then use pull requests to merge all of our features together. Below is a diagram showing the branches for our project.
+We used Git and Github as our chosen version control. We utilised branches to keep features and sub features seperate, then use pull requests to merge all of our features together. Below is a diagram showing the main branches for our project.
 
 \tikzstyle{every node}=[draw=black,thick,anchor=west]
 \begin{tikzpicture}[%
@@ -116,9 +116,9 @@ We used Git and Github as our chosen version control. We utilised branches to to
     };
 \end{tikzpicture}
 
-Github provided us with Issues, we used these to keep track of current bugs and enhancements we wish to implement. It also gives us the option to assign that issue to a member of our team.
+Github provided us with Issues which we used to keep track of current bugs and enhancements we wanted to implement. It also gave us the option to assign that issue to a member of our team.
 
-Our git commit messages on the whole were quite short and vague, though the style of our messages were on the correct path. Where possible we would style our commit messages to include the people who were working on the commit, an instruction that tells the reader what the commit does (i.e. Implement x instead of Implemented x).
+Our git commit messages on the whole were quite short and vague, though the style of our messages were on the correct path. Where possible we would style our commit messages to include the people who were working on the commit, an instruction that would tell the reader what the commit should do (i.e. Implement x instead of Implemented x).
 
 \subsubsection{Travis}
 \label{subs:Travis}
@@ -137,7 +137,13 @@ Snippets were useful if we needed to send each other short pieces of code that d
 \subsection{What Would We Do Differently?}
 \label{sub:What Would We Do Differently?}
 
-If we to do this lab exercise again...
+If we were to do this lab exercise again, we would include the creation of an AST form the start. The AST could be built as soon as parsing the input file is complete. If this building process were to occur at this point in compilation, types would be created at the same time. This would remove the need for a separate visitor to create types when building the symbol table.
+
+In terms of compiler outputs, we would like to create more user-friendly error messages. This includes changing the ANTLR error messages produced in lexical and syntactic analysis to not display a set of possible characters, but instead information on how the particular program construct should be written.
+- AST
+- Different method used instead of a visitor pattern creating types -> built into AST
+- more detailed error messages
+- Write more JUnit tests for the java classes 
 
 \section{The Design Choices}
 \label{sec:The Design Choices}
