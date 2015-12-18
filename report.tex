@@ -3,7 +3,7 @@
 \usepackage{fullpage}
 \usepackage{rotating}
 \usepackage{amsmath, amssymb, amsthm}
-\usepackage{mathpartir}
+%\usepackage{mathpartir}
 \usepackage{tikz}
 \usepackage{verbatim}
 \usepackage{url}
@@ -48,20 +48,20 @@
 \subsection{Functionality}
 \label{sub:Functionality}
 
-The functionality for our front end was correct, according to our testing. We were correctly allowing valid wacc files through to the code generation stage, and preventing any files with syntactical or semantic errors through - as well as outputing useful errors with line and column number followed by a message outlining the error with snippets of their code for context against the expected value.
+The front end for our compiler demonstrated the correct functionality for all test files. We were allowing valid WACC files through to the code generation stage, and preventing any files with errors through. After performing the lexical, syntactic and semantic analysis on any invalid input WACC files, the compiler would output useful errors; the line and column number followed by a message outlining the error pitching snippets of their code for context against the expected value.
 
-For the code generation milestone our compiler was functionally correct, according to our testing, except for cases where there is a pair or array that is freed more than once (without being reinitilised). We should be throwing a runtime exception and exiting with status code 134. However we throw a null reference exception.
+For the code generation milestone our compiler was functionally correct a large majority of our test cases. The only exceptions are cases in which where there is a pair or array that is freed more than once (without being reinitilised). In these cases we should be throwing a runtime exception and exiting with status code 134; however we throw a null reference exception is thrown instead.
 
 \subsection{Extensibilty}
 \label{subs:Extensibilty}
 
-Whilst implementing our compiler we kept in mind the design, we wanted to make sure that our code could easily be adapted in the future, perhaps with addional languages features or compiling into a different language.
+The neatness of our design was always kept in mind whilst implementing our compiler. We wanted to make sure that our code could easily be adapted in the future, perhaps with additional languages features or compiling into a different language.
 
-As we knew we would have to do an extension the ability to easily change the compiler was very important. Due to the fact all of our visitor functions only knew about their context we would only ever have to add code to be able to add language features (such as pointers, which we added as part of our extension), there are a few exceptions when we checked for a null value of an field in a childs context. This was achieved by delegating sections so the childs visitor.
+As we knew we would have to do an extension, the ability to easily change the compiler was very important. To facilitate the ability to add any new features we used the visitor pattern frequently. Due to the fact all of our visit functions only knew about their context, for each new language feature it was a simple case of adding a new visit function. There were a few exceptions when we had to check for a null value of a child node in our syntax tree.
 
-One aspect we overlooked was creating our own tree to represent the program. We used the ANTLR tree which means if in the future we wanted to swap ANTLR for a similar, but perhaps more up-to-date, tool we would have to rewrite a lot of our code base. However by building a custom tree our code stays intact an all that would ned to be added is a class that converts from a tree to our tree. Having control over the tree and the information in each node can also dramatically help within visitor methods [how?].
+One aspect we overlooked was creating our own tree structure to represent the program. We used the parse tree provided by ANTLR which meant that if we were to replace ANTLR for a similar, but perhaps more up-to-date, tool we would have to rewrite a lot of our code base. Building an Abstract Syntax Tree (AST) of our own would mean that our methods for code generation could remain intact. We would simply need to create a class to convert from the new tool-created tree to our own AST. Having control over the tree and information stored in each node would also dramatically help within visitor methods. It could remove a lot of checks on the fields in nodes as they would provide all and only the relevant information related to a particular part of the code. 
 
-However, we had thought about wanting to change the language that you compile to, in a few years ARM11 may not be desirable. By extracting all the ARM11 code into it's own package we can then swap that package for a x86 package, for example. our code will not change as the instruction factory would simply return x86 instructions as opposed to ARM11 instructions.
+A good deal of thought was put into the possibility of changing the output language. In a few years ARM11 may not be desirable; by extracting all the ARM11 specific code into it's own package, changing the output language would simply involve swapping that package for, say, a x86 package. Our code would not change as the instruction factory would simply return x86 instructions as opposed to ARM11 instructions.
 
 \section{The Project Management}
 \label{sec:The Project Management}
@@ -69,9 +69,9 @@ However, we had thought about wanting to change the language that you compile to
 \subsection{Group Structure}
 \label{sub:Group Structure}
 
-We organised ourselves into pairs and in these pairs we would pair program for larger sections, and for smaller sections each member would work on independent sections of the project.
+We split our group into twos, and would pair program for larger sections of feature implemenations. For smaller sections, members would work independently.
 
-The pair programming allowed us to more easily catch stupid mistakes and forced us to discuss design, logical, etc. decisions before implementing them leading to only a few errors to debug. While the independent work for smaller sections meant we were able to get more work done and not have a member sat idle for trivial implementations.
+The pair programming made catching simple mistakes easier and forced us to discuss design choices, logical processes and other decisions before implementing them, leading to many fewer errors to debug. The independent work for smaller sections meant we were able to get more work done in a smaller amount of time and not have a member sat idle for trivial implementations.
 
 \subsection{Use of Project Management Tools}
 \label{sub:Use of Project Management Tools}
@@ -94,6 +94,7 @@ We used Git and Github as our chosen version control. We utilised branches to to
   grow via three points={one child at (0.5,-0.7) and
   two children at (0.5,-0.7) and (0.5,-1.4)},
   edge from parent path={(\tikzparentnode.south) |- (\tikzchildnode.west)}]
+
   \node {master}
     child { node {lexer}}
     child { node {parser}}
